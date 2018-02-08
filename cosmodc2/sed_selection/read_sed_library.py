@@ -3,6 +3,7 @@
 import numpy as np
 from astropy.table import Table
 
+sed_fname = "/Users/aphearin/Dropbox/protoDC2/catsim_galaxy_seds/sdss_mags_of_galaxy_seds.txt"
 
 __all__ = ('read_bruzual_charlot_library', )
 
@@ -31,7 +32,7 @@ def _read_ugriz(fname):
                 break
 
 
-def read_bruzual_charlot_library(fname):
+def read_bruzual_charlot_library(fname=sed_fname):
     ugriz = np.array(list(_read_ugriz(fname)), dtype='f4')
     ngals = ugriz.shape[0]
 
