@@ -4,7 +4,7 @@ import numpy as np
 from astropy.table import Table
 
 
-__all__ = ('read_spectra', )
+__all__ = ('read_bruzual_charlot_library', )
 
 
 def _read_fnames(fname):
@@ -41,7 +41,7 @@ def read_bruzual_charlot_library(fname):
     spectra['r'] = ugriz[:, 2]
     spectra['i'] = ugriz[:, 3]
     spectra['z'] = ugriz[:, 4]
-    spectra['id'] = np.arange(ngals).astype('i4')
+    spectra['specID'] = np.arange(ngals).astype('i4')
     spectra['fname'] = list(_read_fnames(fname))
     return spectra
 
