@@ -26,3 +26,22 @@ def random_linear_combo_spectra(spectra, num_random=None, coeff_low=0, coeff_hig
     result['w1'] = w1
     result['w2'] = w2
     return result
+
+
+def identify_matching_spectra(gr, ri, gr_desired, ri_desired, tol=0.025):
+    """
+    """
+    gr_dist = gr - gr_desired
+    ri_dist = ri - ri_desired
+    dist = np.sqrt(gr_dist**2 + ri_dist**2)
+    mask = dist < tol
+    if np.count_nonzero(mask) == 0:
+        msg = "Zero spectra match gr = {0:.3f} & ri = {1:.3f} within {2:.3f}"
+        raise ValueError(msg.format(gr_desired, ri_desired, tol))
+    else:
+        ngals = len(gr)
+        return np.arange(ngals)[mask]
+
+
+
+
