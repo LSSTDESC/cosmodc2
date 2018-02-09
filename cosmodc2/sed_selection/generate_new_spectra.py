@@ -20,7 +20,7 @@ def random_linear_combo_spectra(spectra, num_random=None, coeff_low=0, coeff_hig
     w2 = np.random.uniform(coeff_low, coeff_high, num_random)
 
     result = Table()
-    for key in ('u', 'g', 'r', 'i', 'z'):
+    for key in ('u', 'g', 'r', 'i', 'z', 'age', 'metallicity'):
         result[key] = spectra[key][indx1]*w1 + spectra[key][indx2]*w2
     result['specID1'] = indx1
     result['specID2'] = indx2

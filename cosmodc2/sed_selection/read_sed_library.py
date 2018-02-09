@@ -44,6 +44,11 @@ def read_bruzual_charlot_library(fname=sed_fname):
     spectra['z'] = ugriz[:, 4]
     spectra['specID'] = np.arange(ngals).astype('i4')
     spectra['fname'] = list(_read_fnames(fname))
+
+    spectra['metallicity'] = [parse_metallicity(name) for name in spectra['fname']]
+    spectra['age'] = [parse_age(name) for name in spectra['fname']]
+    spectra['sfh_model'] = [parse_model(name) for name in spectra['fname']]
+
     return spectra
 
 
