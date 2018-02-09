@@ -2,9 +2,10 @@
 """
 import numpy as np
 from astropy.table import Table
+from scipy.spatial import cKDTree
 
 
-__all__ = ('random_linear_combo_spectra', )
+__all__ = ('random_linear_combo_spectra', 'matching_spectrum_search')
 
 
 def random_linear_combo_spectra(spectra, num_random=None, coeff_low=0, coeff_high=2):
@@ -28,20 +29,13 @@ def random_linear_combo_spectra(spectra, num_random=None, coeff_low=0, coeff_hig
     return result
 
 
-def identify_matching_spectra(gr, ri, gr_desired, ri_desired, tol=0.025):
+def matching_spectrum_search(gr, ri, fake_sed_library):
     """
     """
-    gr_dist = gr - gr_desired
-    ri_dist = ri - ri_desired
-    dist = np.sqrt(gr_dist**2 + ri_dist**2)
-    mask = dist < tol
-    if np.count_nonzero(mask) == 0:
-        msg = "Zero spectra match gr = {0:.3f} & ri = {1:.3f} within {2:.3f}"
-        raise ValueError(msg.format(gr_desired, ri_desired, tol))
-    else:
-        ngals = len(gr)
-        return np.arange(ngals)[mask]
+    gr_tree = fake_sed_library['g']-fake_sed_library['r']
+    ri_tree = fake_sed_library['r']-fake_sed_library['i']
+    sed_tree = cKDTree(np.vstack((gr_tree, ri_tree)).T)
 
-
-
-
+    mock_gr_ri = np.vstack((gr, ri)).T
+    d, idx = sed_tree.query(mock_gr_ri, k=1)
+    return d, idx

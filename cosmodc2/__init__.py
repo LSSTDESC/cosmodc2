@@ -9,4 +9,4 @@ from ._astropy_init import *
 if not _ASTROPY_SETUP_:
     # For egg_info test builds to pass, put package imports here.
 
-    from .read_sed_library import read_bruzual_charlot_library
+    from .sed_selection import *
