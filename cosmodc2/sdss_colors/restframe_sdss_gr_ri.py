@@ -2,12 +2,13 @@
 """
 import numpy as np
 from .sawtooth_binning import sawtooth_bin_indices
+from astropy.utils.misc import NumpyRNGContext
 
 
 __all__ = ('fuzzy_sawtooth_magr_binning', )
 
 
-def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None):
+def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None, seed=None):
     """ Assign galaxies to overlapping bins based on their restframe absolute r-band magnitude.
 
     Binning will be done separately for mock galaxies above and below the SDSS completeness limit.
@@ -28,6 +29,9 @@ def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None):
         Default is to use 25 bins linearly spaced in Magr covering a range that
         just beyond the boundaries of the data.
 
+    seed : int, optional
+        Random number seed. Default is None, for stochastic results.
+
     Returns
     -------
     rmag_bin_number : ndarray
@@ -40,6 +44,6 @@ def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None):
 
     source0_mask = data_source == 0
     rmag_bin_number = -np.ones_like(mock_rmag).astype('i4')
-    rmag_bin_number[source0_mask] = sawtooth_bin_indices(mock_rmag[source0_mask], magr_bins)
-    rmag_bin_number[~source0_mask] = sawtooth_bin_indices(mock_rmag[~source0_mask], magr_bins)
+    rmag_bin_number[source0_mask] = sawtooth_bin_indices(mock_rmag[source0_mask], magr_bins, seed=seed)
+    rmag_bin_number[~source0_mask] = sawtooth_bin_indices(mock_rmag[~source0_mask], magr_bins, seed=seed)
     return rmag_bin_number

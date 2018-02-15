@@ -1,12 +1,13 @@
 """ Functions used to set up overlapping bin boundaries
 """
 import numpy as np
+from astropy.utils.misc import NumpyRNGContext
 
 
 __all__ = ('sawtooth_bin_indices', )
 
 
-def sawtooth_bin_indices(x, bin_edges, min_counts=2):
+def sawtooth_bin_indices(x, bin_edges, min_counts=2, seed=43):
     """ Function assigns each element of the input array `x` to a particular bin number.
 
     The bin boundaries have hard edges, but bin-assignment is probabilistic, such that
@@ -30,11 +31,20 @@ def sawtooth_bin_indices(x, bin_edges, min_counts=2):
         all their elements will be reassigned to the nearest sufficiently populated bin.
         Default is two.
 
+    seed : int, optional
+        Random number seed. Default is 43.
+
     Returns
     -------
     bin_indices : ndarray
         Numpy integer array of shape (npts, ) storing the bin number to which elements of `x`
         are assigned. All values of `bin_indices` will be between 0 and nbins-1, inclusive.
+
+    Examples
+    --------
+    >>> x = np.random.uniform(0, 1, 1000)
+    >>> bin_edges = np.linspace(-1, 2, 25)
+    >>> bin_indices = sawtooth_bin_indices(x, bin_edges)
     """
     assert bin_edges[0] < x.min(), "smallest bin must be less than smallest element in x"
     assert bin_edges[-1] > x.max(), "largest bin must be less than largest element in x"
@@ -53,7 +63,8 @@ def sawtooth_bin_indices(x, bin_edges, min_counts=2):
             prob_low = np.interp(x[bin_mask], [1, 0], [low, high])
             p = prob_low/np.sum(prob_low)
             bin_rows = a[bin_mask]
-            low_bin_selection = np.random.choice(bin_rows, size=npts_bin/2, p=p, replace=False)
+            with NumpyRNGContext(seed+i):
+                low_bin_selection = np.random.choice(bin_rows, size=int(npts_bin/2), p=p, replace=False)
             bin_indices[low_bin_selection] = i
 
     bin_indices[bin_indices == -999] = 0
@@ -78,6 +89,12 @@ def enforce_bin_counts(bin_indices, min_counts):
     -------
     output_bin_inidices : ndarray
         Numpy integer array storing bin numbers after enforcing the population requirement.
+
+    Examples
+    --------
+    >>> bin_indices = np.random.randint(0, 1000, 1000)
+    >>> min_counts = 3
+    >>> output_bin_indices = enforce_bin_counts(bin_indices, min_counts)
     """
     output_bin_indices = np.copy(bin_indices)
     unique_bin_numbers, counts = np.unique(bin_indices, return_counts=True)
