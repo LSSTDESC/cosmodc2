@@ -61,6 +61,28 @@ def sdss_selection_indices(mstar_mock, sfr_percentile_mock, logsm_sdss, sfr_perc
 def extrapolate_faint_end_magr(mstar_mock, p0, p1, magr_scatter):
     """ Power law extrapolation for the median restframe absolute r-band magnitude
     as a function of stellar mass.
+
+    Parameters
+    ----------
+    mstar_mock : ndarray
+        Numpy array of shape (ngals_mock, ) storing mock galaxy stellar mass
+        (in linear units assuming h=0.7)
+
+    p0 : float
+        Intercept in the power law relation between M* and r-band luminosity.
+
+    p1 : float
+        Index in the power law relation between M* and r-band luminosity.
+
+    magr_scatter : float or ndarray
+        Float or Numpy array of shape (ngals_mock, ) storing
+        level of scatter in the log-normal relation Prob(Mr | M*).
+
+    Returns
+    -------
+    magr : ndarray
+        Numpy array of shape (ngals_mock, ) storing mock galaxy restframe
+        r-band absolute magnitude
     """
     median_magr = p0 + p1*np.log10(mstar_mock)
     return np.random.normal(loc=median_magr, scale=magr_scatter)
@@ -70,6 +92,59 @@ def mock_magr(mstar_mock, sfr_percentile_mock,
             logsm_sdss, sfr_percentile_sdss, magr_sdss, redshift_sdss,
             p0=0.6, p1=-2.02, scatter1=0.5, scatter2=0.5, z0=0.05):
     """ Generate a Monte Carlo realization of r-band Absolute magnitude
+
+    Parameters
+    ----------
+    mstar_mock : ndarray
+        Numpy array of shape (ngals_mock, ) storing mock galaxy stellar mass
+        (in linear units assuming h=0.7)
+
+    sfr_percentile_mock : ndarray
+        Numpy array of shape (ngals_mock, ) storing mock galaxy conditional
+        cumulative distribution Prob(< SFR | M*).
+        Can be computed using the SlidingPercentile package.
+
+    logsm_sdss : ndarray
+        Numpy array of shape (ngals_sdss, ) storing SDSS galaxy stellar mass
+        (in log10 units assuming h=0.7)
+
+    sfr_percentile_sdss : ndarray
+        Numpy array of shape (ngals_sdss, ) storing SDSS galaxy conditional
+        cumulative distribution Prob(< SFR | M*).
+        Can be computed using the SlidingPercentile package.
+
+    magr_sdss : ndarray
+        Numpy array of shape (ngals_sdss, ) storing SDSS galaxy restframe r-band
+        absolute magnitude (in units assuming h=0.7)
+
+    redshift_sdss : ndarray
+        Numpy array of shape (ngals_sdss, ) storing SDSS galaxy redshifts.
+        This is used to make a completeness cut z < z0.
+
+    p0 : float, optional
+        Intercept in the power law relation between M* and r-band luminosity.
+        Default is 0.6, which has been hand-tuned through visual inspection of SDSS data.
+
+    p1 : float, optional
+        Index in the power law relation between M* and r-band luminosity.
+        Default is 2.02, which has been hand-tuned through visual inspection of SDSS data.
+
+    scatter1 : float, optional
+        Level of scatter in the log-normal relation Prob(Mr | M*=10**6).
+        Default is 0.5 dex, which has been hand-tuned through visual inspection of SDSS data.
+
+    scatter2 : float, optional
+        Level of scatter in the log-normal relation Prob(Mr | M*=10**8.5).
+        Default is 0.5 dex, which has been hand-tuned through visual inspection of SDSS data.
+
+    z0 : float, optional
+        Redshift used to mask SDSS galaxies. Default is 0.05.
+
+    Returns
+    -------
+    mock_magr : ndarray
+        Numpy array of shape (ngals_mock, ) storing mock galaxy restframe
+        SDSS r-band absolute magnitude (assuming h=0.7).
     """
     data_source = assign_data_source(np.log10(mstar_mock))
 
@@ -91,3 +166,32 @@ def mock_magr(mstar_mock, sfr_percentile_mock,
     magr[mock_mask1] = extrapolated_magr
 
     return magr
+
+
+def shift_gr_ri_colors_at_high_redshift(gr, ri, redshift):
+    """ Apply a simple multiplicative shift to the g-r and r-i color distributions
+    to crudely mock up redshift evolution in the colors.
+
+    Parameters
+    ----------
+    gr : ndarray
+        Array of shape (ngals, ) storing the g-r colors
+
+    ri : ndarray
+        Array of shape (ngals, ) storing the r-i colors
+
+    redshift : float
+        Redshift of the snapshot
+
+    Returns
+    -------
+    gr_new : ndarray
+
+    ri_new : ndarray
+    """
+    gr_shift = np.interp(redshift, [0, 0.3, 1], [1., 1.15, 1.3])
+    ri_shift = np.interp(redshift, [0, 0.3, 1], [1., 1.05, 1.1])
+    gr_new = gr/gr_shift
+    ri_new = ri/ri_shift
+    return gr_new, ri_new
+
