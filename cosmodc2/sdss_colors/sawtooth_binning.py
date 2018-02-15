@@ -51,21 +51,24 @@ def sawtooth_bin_indices(x, bin_edges, min_counts=2, seed=43):
 
     npts_x = len(x)
     num_bin_edges = len(bin_edges)
-    a = np.arange(npts_x)
     bin_indices = np.zeros_like(x).astype(int)-999
+
+    with NumpyRNGContext(seed):
+        uran = np.random.rand(npts_x)
+
     for i, low, high in zip(np.arange(num_bin_edges).astype(int), bin_edges[:-1], bin_edges[1:]):
         bin_mask = (x >= low) & (x < high)
 
         npts_bin = np.count_nonzero(bin_mask)
         if npts_bin > 0:
-            bin_indices[bin_mask] = i+1
+            x_in_bin = x[bin_mask]
+            dx_bin = high - low
+            x_in_bin_rescaled = (x_in_bin - low)/float(dx_bin)
 
-            prob_low = np.interp(x[bin_mask], [1, 0], [low, high])
-            p = prob_low/np.sum(prob_low)
-            bin_rows = a[bin_mask]
-            with NumpyRNGContext(seed+i):
-                low_bin_selection = np.random.choice(bin_rows, size=int(npts_bin/2), p=p, replace=False)
-            bin_indices[low_bin_selection] = i
+            high_bin_selection = (x_in_bin_rescaled > uran[bin_mask])
+            bin_assignment = np.zeros(npts_bin).astype(int) + i
+            bin_assignment[high_bin_selection] = i + 1
+            bin_indices[bin_mask] = bin_assignment
 
     bin_indices[bin_indices == -999] = 0
 
