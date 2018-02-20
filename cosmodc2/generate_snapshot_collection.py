@@ -199,11 +199,6 @@ def write_snapshot_mocks_to_disk(
                 umachine_mock, alphaQ_halos, source_halo_indx, source_galaxy_indx)
 
         ########################################################################
-        #  Cross-match with Galacticus galaxies (uncomment before the final run)
-        ########################################################################
-        # output_snapshot_mock = remap_mock_galaxies_with_galacticus_properties(output_snapshot_mock)
-
-        ########################################################################
         #  Write the output protoDC2 mock to disk
         ########################################################################
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=overwrite)
@@ -281,12 +276,6 @@ def transfer_colors_to_umachine_mstar_ssfr_mock(
 
     for key in keys_to_transfer:
         umachine_mstar_ssfr_mock[key] = umachine_z0p1_color_mock[key][nn_indices]
-
-
-def remap_mock_galaxies_with_galacticus_properties(mock):
-    """
-    """
-    return mock
 
 
 def build_output_snapshot_mock(umachine, target_halos, halo_indices, galaxy_indices,
