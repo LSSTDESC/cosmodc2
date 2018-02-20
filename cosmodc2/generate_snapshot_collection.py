@@ -1,5 +1,6 @@
 """
 """
+from scipy.spatial import cKDTree
 import numpy as np
 from astropy.table import Table
 from galsampler import matched_value_selection_indices, source_galaxy_selection_indices
@@ -8,8 +9,7 @@ from galsampler import matched_value_selection_indices, source_galaxy_selection_
 def write_sdss_restframe_color_snapshot_mocks_to_disk(
             umachine_z0p1_color_mock_fname, protoDC2_fof_halo_catalog_fname_list,
             umachine_mstar_ssfr_mock_fname_list, bolshoi_planck_halo_catalog_fname_list,
-            output_color_mock_fname_list, redshift_list, overwrite=False,
-            source_halo_catalog_Lbox=250., target_halo_catalog_Lbox=256.):
+            output_color_mock_fname_list, redshift_list, overwrite=False):
     """
     Function writes to disk a set of extragalactic snapshot catalogs by GalSampling UniverseMachine.
 
@@ -127,21 +127,19 @@ def load_bolshoi_planck_halo_catalog(bolshoi_planck_halo_catalog_fname):
     return Table.read(bolshoi_planck_halo_catalog_fname, path='data')
 
 
-def add_log10_cumulative_nd_mvir_column(halos, key, Lbox):
-    """
-    """
-    Vbox = float(Lbox**3.)
-    halos.sort(key)
-    halos['log10_cumulative_nd_mvir'] = np.log10(
-        np.arange(len(halos), 0, -1)/Vbox)
-    return halos[::-1]
-
-
 def transfer_colors_to_umachine_mstar_ssfr_mock(
-        umachine_mstar_ssfr_mock, umachine_z0p1_color_mock, redshift):
+        umachine_mstar_ssfr_mock, umachine_z0p1_color_mock, redshift,
+        keys_to_match, keys_to_transfer):
     """
     """
-    raise NotImplementedError()
+    X = np.vstack((umachine_z0p1_color_mock[key] for key in keys_to_match)).T
+    tree = cKDTree(X)
+
+    Y = np.vstack((umachine_mstar_ssfr_mock[key] for key in keys_to_match)).T
+    nn_distinces, nn_indices = tree.query(Y)
+
+    for key in keys_to_transfer:
+        umachine_mstar_ssfr_mock[key] = umachine_z0p1_color_mock[key][nn_indices]
 
 
 def remap_mock_galaxies_with_galacticus_properties():
