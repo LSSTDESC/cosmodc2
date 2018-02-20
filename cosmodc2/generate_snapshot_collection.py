@@ -12,7 +12,7 @@ from halotools.mock_observables import relative_positions_and_velocities
 from .sdss_colors import shift_gr_ri_colors_at_high_redshift
 
 
-def write_sdss_restframe_color_snapshot_mocks_to_disk(
+def write_snapshot_mocks_to_disk(
             umachine_z0p1_color_mock_fname, alphaQ_halos_fname_list,
             umachine_mstar_ssfr_mock_fname_list, bpl_halos_fname_list,
             output_color_mock_fname_list, redshift_list, overwrite=False):
