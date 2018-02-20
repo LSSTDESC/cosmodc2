@@ -127,9 +127,10 @@ def write_sdss_restframe_color_snapshot_mocks_to_disk(
             bpl_halos['halo_id'], umachine_mock['hostid'])
 
         ########################################################################
+        #  Transfer the colors from the z=0.1 UniverseMachine mock
+        #  to the other UniverseMachine mock
         ########################################################################
 
-        #  Transfer the colors from the z=0.1 UniverseMachine mock to the other UniverseMachine mock
         source_mstar = umachine_z0p1_color_mock['obs_sm']
         source_percentile = umachine_z0p1_color_mock['sfr_percentile_fixed_sm']
         target_mstar = umachine_mock['obs_sm']
@@ -142,8 +143,12 @@ def write_sdss_restframe_color_snapshot_mocks_to_disk(
         for key in keys_to_transfer:
             umachine_mock[key] = umachine_z0p1_color_mock[key][um_matching_indx]
 
+        ########################################################################
         #  For every host halo in the AlphaQ halo catalog,
         #  find a matching halo in the Bolshoi-Planck catalog
+        ########################################################################
+
+        #  Bin the halos in each simulation by mass
         dlogM = 0.15
         mass_bins = 10.**np.arange(10.5, 14.5+dlogM, dlogM)
         bpl_halos['mass_bin'] = halo_bin_indices(
@@ -151,6 +156,7 @@ def write_sdss_restframe_color_snapshot_mocks_to_disk(
         alphaQ_halos['mass_bin'] = halo_bin_indices(
             mass=(alphaQ_halos['fof_halo_mass'], mass_bins))
 
+        #  Randomly draw halos from corresponding mass bins
         nhalo_min = 10
         source_halo_bin_numbers = bpl_halos['mass_bin']
         target_halo_bin_numbers = alphaQ_halos['mass_bin']
@@ -159,15 +165,15 @@ def write_sdss_restframe_color_snapshot_mocks_to_disk(
             target_halo_bin_numbers, target_halo_ids, nhalo_min, mass_bins)
         source_halo_indx, matching_target_halo_ids = _result
 
+        #  Transfer quantities from the source halos to the corresponding target halo
         alphaQ_halos['source_halo_id'] = bpl_halos['halo_id'][source_halo_indx]
         alphaQ_halos['matching_mvir'] = bpl_halos['mvir'][source_halo_indx]
         alphaQ_halos['richness'] = bpl_halos['richness'][source_halo_indx]
         alphaQ_halos['first_galaxy_index'] = bpl_halos['first_galaxy_index'][source_halo_indx]
 
-        alphaQ_halos = value_add_matched_target_halos(
-            bpl_halos, alphaQ_halos, source_halo_indx)
-
+        ##############################################################################
         #  Calculate the indices of the UniverseMachine galaxies that will be selected
+        ##############################################################################
         nhalo_min = 10
         source_galaxies_host_halo_id = umachine_mock['hostid']
         source_halos_bin_number = bpl_halos['mass_bin']
@@ -179,15 +185,20 @@ def write_sdss_restframe_color_snapshot_mocks_to_disk(
             target_halos_bin_number, target_halo_ids, nhalo_min, mass_bins)
         source_galaxy_indx, target_galaxy_target_halo_ids, target_galaxy_source_halo_ids = _result
 
+        ########################################################################
         #  Assemble the output protoDC2 mock
+        ########################################################################
         output_snapshot_mock = build_output_snapshot_mock(
-                umachine_mock, alphaQ_halos,
-                source_halo_indx, source_galaxy_indx)
+                umachine_mock, alphaQ_halos, source_halo_indx, source_galaxy_indx)
 
+        ########################################################################
         #  Use DTK code to cross-match with Galacticus galaxies
+        ########################################################################
         output_snapshot_mock = remap_mock_galaxies_with_galacticus_properties(output_snapshot_mock)
 
+        ########################################################################
         #  Write the output protoDC2 mock to disk
+        ########################################################################
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=overwrite)
 
 
@@ -271,20 +282,66 @@ def remap_mock_galaxies_with_galacticus_properties(mock):
     return mock
 
 
-def value_add_matched_target_halos(source_halos, target_halos, indices):
+def build_output_snapshot_mock(umachine, target_halos, halo_indices, galaxy_indices,
+            Lbox_target=256.):
     """
     """
-    target_halos['source_halo_id'] = source_halos['halo_id'][indices]
-    target_halos['matching_mvir'] = source_halos['mvir'][indices]
-    target_halos['richness'] = source_halos['richness'][indices]
-    target_halos['first_galaxy_index'] = source_halos['first_galaxy_index'][indices]
-    return target_halos
+    dc2 = Table()
+    dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
+    dc2['target_halo_id'] = np.repeat(
+        target_halos['halo_id'][halo_indices], target_halos['richness'][halo_indices])
 
+    idxA, idxB = crossmatch(dc2['target_halo_id'], target_halos['halo_id'])
 
-def build_output_snapshot_mock():
-    """
-    """
-    raise NotImplementedError()
+    msg = "target IDs do not match!"
+    assert np.all(dc2['source_halo_id'][idxA] == target_halos['source_halo_id'][idxB]), msg
+
+    dc2['target_halo_x'] = 0.
+    dc2['target_halo_y'] = 0.
+    dc2['target_halo_z'] = 0.
+    dc2['target_halo_vx'] = 0.
+    dc2['target_halo_vy'] = 0.
+    dc2['target_halo_vz'] = 0.
+
+    dc2['target_halo_x'][idxA] = target_halos['x'][idxB]
+    dc2['target_halo_y'][idxA] = target_halos['y'][idxB]
+    dc2['target_halo_z'][idxA] = target_halos['z'][idxB]
+
+    dc2['target_halo_vx'][idxA] = target_halos['vx'][idxB]
+    dc2['target_halo_vy'][idxA] = target_halos['vy'][idxB]
+    dc2['target_halo_vz'][idxA] = target_halos['vz'][idxB]
+
+    dc2['target_halo_mass'] = 0.
+    dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
+
+    source_galaxy_keys = ('host_halo_mvir', 'upid',
+            'host_centric_x', 'host_centric_y', 'host_centric_z',
+            'host_centric_vx', 'host_centric_vy', 'host_centric_vz',
+            'obs_sm', 'obs_sfr', 'sfr_percentile_fixed_sm',
+            'restframe_extincted_sdss_abs_magr',
+            'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri')
+    for key in source_galaxy_keys:
+        dc2[key] = umachine[key][galaxy_indices]
+
+    x_init = dc2['target_halo_x'] + dc2['host_centric_x']
+    vx_init = dc2['target_halo_vx'] + dc2['host_centric_vx']
+    dc2_x, dc2_vx = enforce_periodicity_of_box(x_init, Lbox_target, velocity=vx_init)
+    dc2['x'] = dc2_x
+    dc2['vx'] = dc2_vx
+
+    y_init = dc2['target_halo_y'] + dc2['host_centric_y']
+    vy_init = dc2['target_halo_vy'] + dc2['host_centric_vy']
+    dc2_y, dc2_vy = enforce_periodicity_of_box(y_init, Lbox_target, velocity=vy_init)
+    dc2['y'] = dc2_y
+    dc2['vy'] = dc2_vy
+
+    z_init = dc2['target_halo_z'] + dc2['host_centric_z']
+    vz_init = dc2['target_halo_vz'] + dc2['host_centric_vz']
+    dc2_z, dc2_vz = enforce_periodicity_of_box(z_init, Lbox_target, velocity=vz_init)
+    dc2['z'] = dc2_z
+    dc2['vz'] = dc2_vz
+
+    return dc2
 
 
 def calculate_host_centric_position_velocity(mock, Lbox=250.):
