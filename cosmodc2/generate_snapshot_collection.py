@@ -9,6 +9,7 @@ from galsampler.source_galaxy_selection import _galaxy_table_indices
 from halotools.utils import crossmatch
 from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.mock_observables import relative_positions_and_velocities
+from .sdss_colors import shift_gr_ri_colors_at_high_redshift
 
 
 def write_sdss_restframe_color_snapshot_mocks_to_disk(
@@ -142,6 +143,12 @@ def write_sdss_restframe_color_snapshot_mocks_to_disk(
                 'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri')
         for key in keys_to_transfer:
             umachine_mock[key] = umachine_z0p1_color_mock[key][um_matching_indx]
+
+        #  Shift colors according to redshift
+        gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(
+                umachine_mock['restframe_extincted_sdss_gr'], umachine_mock['restframe_extincted_sdss_ri'])
+        umachine_mock['restframe_extincted_sdss_gr'] = gr_new
+        umachine_mock['restframe_extincted_sdss_ri'] = ri_new
 
         ########################################################################
         #  For every host halo in the AlphaQ halo catalog,
