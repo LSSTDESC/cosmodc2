@@ -79,8 +79,8 @@ def shift_gr_ri_colors_at_high_redshift(gr, ri, redshift):
     >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 0.8)
     >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 8.)
     """
-    gr_shift = np.interp(redshift, [0, 0.3, 1], [1., 1.15, 1.3])
-    ri_shift = np.interp(redshift, [0, 0.3, 1], [1., 1.05, 1.1])
+    gr_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.15, 1.3])
+    ri_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.05, 1.1])
     gr_new = gr/gr_shift
     ri_new = ri/ri_shift
     return gr_new, ri_new
