@@ -192,9 +192,9 @@ def write_sdss_restframe_color_snapshot_mocks_to_disk(
                 umachine_mock, alphaQ_halos, source_halo_indx, source_galaxy_indx)
 
         ########################################################################
-        #  Use DTK code to cross-match with Galacticus galaxies
+        #  Cross-match with Galacticus galaxies (uncomment before the final run)
         ########################################################################
-        output_snapshot_mock = remap_mock_galaxies_with_galacticus_properties(output_snapshot_mock)
+        # output_snapshot_mock = remap_mock_galaxies_with_galacticus_properties(output_snapshot_mock)
 
         ########################################################################
         #  Write the output protoDC2 mock to disk
