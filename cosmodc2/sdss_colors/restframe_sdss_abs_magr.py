@@ -6,7 +6,7 @@ from halotools.empirical_models import polynomial_from_table
 from astropy.utils.misc import NumpyRNGContext
 
 
-__all__ = ('mock_magr', )
+__all__ = ('mock_magr', 'assign_data_source')
 
 
 def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),

@@ -57,6 +57,12 @@ def load_umachine_processed_sdss_catalog(fname=default_fname):
     t['gr_percentile_fixed_magr'] = sliding_conditional_percentile(
             t['restframe_extincted_sdss_abs_magr'], t['restframe_extincted_sdss_gr'], 301)
 
+    t = t[t['restframe_extincted_sdss_abs_magr'] > -50]
+    t = t[t['restframe_extincted_sdss_gr'] > -0.5]
+    t = t[t['restframe_extincted_sdss_gr'] < 1.25]
+    t = t[t['restframe_extincted_sdss_ri'] > -0.5]
+    t = t[t['restframe_extincted_sdss_ri'] < 1.25]
+
     return t
 
 
