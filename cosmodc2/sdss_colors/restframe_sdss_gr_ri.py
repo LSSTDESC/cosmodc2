@@ -131,7 +131,7 @@ def shift_gr_ri_colors_at_high_redshift(gr, ri, redshift):
 
 
 def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
-        mock_magr_bin_number, mock_magr, mock_sfr_percentile, sigma=0.):
+        mock_magr_bin_number, mock_magr, mock_sfr_percentile, sigma=0., k=10):
     """
     """
     mock_gr = np.zeros_like(mock_magr)
@@ -155,7 +155,10 @@ def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
             sigma=sigma, npts_lookup_table=np.count_nonzero(sdss_mask))
 
         sdss_tree = cKDTree(np.vstack((sdss_rmag_bin, sdss_gr_bin)).T)
-        d, idx = sdss_tree.query(np.vstack((mock_magr_bin, mock_gr_bin)).T, k=1)
+        result = sdss_tree.query(np.vstack((mock_magr_bin, mock_gr_bin)).T, k=k)
+        nn_indices = result[1]
+        a = np.random.randint(0, nn_indices.shape[1], nn_indices.shape[0])
+        idx = nn_indices[np.arange(nn_indices.shape[0]), a]
 
         mock_gr[mock_magr_mask] = mock_gr_bin
         mock_ri[mock_magr_mask] = sdss_ri_bin[idx]
@@ -182,7 +185,7 @@ def mc_fake_sdss_gr_ri(sdss_gr, sdss_ri, rmag_bin_number, mock_log10_mstar):
 
 
 def mc_sdss_gr_ri(mock_rmag, mock_mstar, mock_sfr_percentile,
-            sdss_redshift, sdss_magr, sdss_gr, sdss_ri):
+            sdss_redshift, sdss_magr, sdss_gr, sdss_ri, k=10):
     """
     """
     mock_data_source = assign_data_source(np.log10(mock_mstar))
@@ -193,7 +196,7 @@ def mc_sdss_gr_ri(mock_rmag, mock_mstar, mock_sfr_percentile,
     mock_source0_gr, mock_source0_ri = mc_true_sdss_gr_ri(
         sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
         mock_rmag_bin_number[source0_mask], mock_rmag[source0_mask],
-        mock_sfr_percentile[source0_mask])
+        mock_sfr_percentile[source0_mask], k)
 
     mock_source1_gr, mock_source1_ri = mc_fake_sdss_gr_ri(sdss_gr, sdss_ri,
             mock_rmag_bin_number[~source0_mask], np.log10(mock_mstar[~source0_mask]))
