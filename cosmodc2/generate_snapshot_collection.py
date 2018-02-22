@@ -3,6 +3,7 @@ that generates the full collection of AlphaQ halos that have been populated
 with model galaxies with the following properties: {M*, SFR, Mr, g-r, r-i},
 where colors are restframe extincted SDSS colors k-corrected to z=0.1
 """
+from time import time
 from scipy.spatial import cKDTree
 import numpy as np
 from astropy.table import Table
@@ -74,7 +75,9 @@ def write_snapshot_mocks_to_disk(
             bpl_halos_fname_list, output_color_mock_fname_list, redshift_list)
 
     for fname1, fname2, fname3, output_color_mock_fname, redshift in gen:
-        print("...working on z = {0:.2f}".format(redshift))
+        new_time_stamp = time()
+
+        print("\n...loading z = {0:.3f} catalogs into memory".format(redshift))
 
         #  Load all three catalogs into memory
         alphaQ_halos = load_alphaQ_halos(fname1)
@@ -85,6 +88,7 @@ def write_snapshot_mocks_to_disk(
         #  Create value-added catalogs
         ########################################################################
 
+        print("          Computing host-centric positions for UniverseMachine galaxies")
         idxA, idxB = crossmatch(umachine_mock['hostid'], bpl_halos['halo_id'])
 
         #  Compute host halo position for every UniverseMachine galaxy
@@ -117,6 +121,8 @@ def write_snapshot_mocks_to_disk(
         umachine_mock['host_centric_vy'] = vyrel
         umachine_mock['host_centric_vz'] = vzrel
 
+        print("          Computing galaxy--halo correspondence for UniverseMachine galaxies/halos\n")
+
         #  Sort the mock by host halo ID, putting centrals first within each grouping
         umachine_mock.sort(('hostid', 'upid'))
 
@@ -137,6 +143,8 @@ def write_snapshot_mocks_to_disk(
         #  to the other UniverseMachine mock
         ########################################################################
 
+        print("          Matching z=0.1 color mock to z={0:.3f} mock".format(redshift))
+
         #  For every galaxy in umachine_mock, find a galaxy in umachine_z0p1_color_mock
         #  with a closely matching stellar mass and SFR-percentile
         source_mstar = umachine_z0p1_color_mock['obs_sm']
@@ -154,7 +162,7 @@ def write_snapshot_mocks_to_disk(
         #  Shift colors according to redshift
         gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(
                 umachine_mock['restframe_extincted_sdss_gr'],
-                umachine_mock['restframe_extincted_sdss_ri'])
+                umachine_mock['restframe_extincted_sdss_ri'], redshift)
         umachine_mock['restframe_extincted_sdss_gr'] = gr_new
         umachine_mock['restframe_extincted_sdss_ri'] = ri_new
 
@@ -162,6 +170,8 @@ def write_snapshot_mocks_to_disk(
         #  For every host halo in the AlphaQ halo catalog,
         #  use GalSampler to find a matching halo in the Bolshoi-Planck catalog
         ########################################################################
+
+        print("          Matching AlphaQ halos to Bolshoi-Planck halos")
 
         #  Bin the halos in each simulation by mass
         dlogM = 0.15
@@ -189,6 +199,9 @@ def write_snapshot_mocks_to_disk(
         ################################################################################
         #  Use GalSampler to calculate the indices of the galaxies that will be selected
         ################################################################################
+
+        print("          Mapping z={0:.3f} galaxies to AlphaQ halos".format(redshift))
+
         nhalo_min = 10
         source_galaxies_host_halo_id = umachine_mock['hostid']
         source_halos_bin_number = bpl_halos['mass_bin']
@@ -203,13 +216,20 @@ def write_snapshot_mocks_to_disk(
         ########################################################################
         #  Assemble the output protoDC2 mock
         ########################################################################
+        print("          Assembling z={0:.3f} output snapshot mock".format(redshift))
+
         output_snapshot_mock = build_output_snapshot_mock(
                 umachine_mock, alphaQ_halos, source_halo_indx, source_galaxy_indx)
 
         ########################################################################
         #  Write the output protoDC2 mock to disk
         ########################################################################
+        print("          Writing to disk")
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=overwrite)
+
+        old_time_stamp = time()
+        msg = "Snapshot creation runtime = {0:.2f} minutes"
+        print(msg.format((old_time_stamp-new_time_stamp)/60.))
 
 
 def load_umachine_z0p1_color_mock(umachine_z0p1_color_mock_fname):
