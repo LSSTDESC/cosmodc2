@@ -1,4 +1,7 @@
-"""
+""" Module storing write_snapshot_mocks_to_disk, the end-to-end function
+that generates the full collection of AlphaQ halos that have been populated
+with model galaxies with the following properties: {M*, SFR, Mr, g-r, r-i},
+where colors are restframe extincted SDSS colors k-corrected to z=0.1
 """
 from scipy.spatial import cKDTree
 import numpy as np
@@ -9,43 +12,6 @@ from galsampler.source_galaxy_selection import _galaxy_table_indices
 from halotools.utils import crossmatch
 from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.mock_observables import relative_positions_and_velocities
-
-
-def shift_gr_ri_colors_at_high_redshift(gr, ri, redshift):
-    """ Apply a simple multiplicative shift to the g-r and r-i color distributions
-    to crudely mock up redshift evolution in the colors.
-
-    Parameters
-    ----------
-    gr : ndarray
-        Array of shape (ngals, ) storing the g-r colors
-
-    ri : ndarray
-        Array of shape (ngals, ) storing the r-i colors
-
-    redshift : float
-        Redshift of the snapshot
-
-    Returns
-    -------
-    gr_new : ndarray
-        Array of shape (ngals, ) storing the shifted g-r colors
-
-    ri_new : ndarray
-        Array of shape (ngals, ) storing the shifted r-i colors
-
-    Examples
-    --------
-    >>> gr = np.random.uniform(0, 1.25, 1000)
-    >>> ri = np.random.uniform(0.25, 0.75, 1000)
-    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 0.8)
-    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 8.)
-    """
-    gr_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.15, 1.3])
-    ri_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.05, 1.1])
-    gr_new = gr/gr_shift
-    ri_new = ri/ri_shift
-    return gr_new, ri_new
 
 
 def write_snapshot_mocks_to_disk(
@@ -99,7 +65,7 @@ def write_snapshot_mocks_to_disk(
         the orderings of the other filename lists.
 
     redshift_list : list
-        List storing the redshift of each protoDC2 snapshot
+        List of floats storing the redshift of each protoDC2 snapshot
 
     """
     umachine_z0p1_color_mock = load_umachine_z0p1_color_mock(umachine_z0p1_color_mock_fname)
@@ -138,7 +104,7 @@ def write_snapshot_mocks_to_disk(
         umachine_mock['host_halo_vz'][idxA] = bpl_halos['vz'][idxB]
         umachine_mock['host_halo_mvir'][idxA] = bpl_halos['mvir'][idxB]
 
-        #  Throw out the small number of halos with no matching host halo
+        #  Throw out the small number of UniverseMachine galaxies with no matching host halo
         umachine_mock = umachine_mock[idxA]
 
         #  Compute halo-centric position for every UniverseMachine galaxy
@@ -151,23 +117,28 @@ def write_snapshot_mocks_to_disk(
         umachine_mock['host_centric_vy'] = vyrel
         umachine_mock['host_centric_vz'] = vzrel
 
-        #  Sort the mock by host halo ID, putting centrals first
+        #  Sort the mock by host halo ID, putting centrals first within each grouping
         umachine_mock.sort(('hostid', 'upid'))
 
         #  Compute the number of galaxies in each Bolshoi-Planck halo
         bpl_halos['richness'] = compute_richness(
             bpl_halos['halo_id'], umachine_mock['hostid'])
 
-        #  For every Bolshoi-Planck halo,
-        #  compute the index of the galaxy table storing the resident central galaxy
+        #  For every Bolshoi-Planck halo, compute the index of the galaxy table
+        #  storing the central galaxy, reserving -1 for unoccupied halos
         bpl_halos['first_galaxy_index'] = _galaxy_table_indices(
             bpl_halos['halo_id'], umachine_mock['hostid'])
+        #  Because of the particular sorting order of umachine_mock,
+        #  knowledge of `first_galaxy_index` and `richness` gives sufficient
+        #  information to map the correct members of umachine_mock to each halo
 
         ########################################################################
         #  Transfer the colors from the z=0.1 UniverseMachine mock
         #  to the other UniverseMachine mock
         ########################################################################
 
+        #  For every galaxy in umachine_mock, find a galaxy in umachine_z0p1_color_mock
+        #  with a closely matching stellar mass and SFR-percentile
         source_mstar = umachine_z0p1_color_mock['obs_sm']
         source_percentile = umachine_z0p1_color_mock['sfr_percentile_fixed_sm']
         target_mstar = umachine_mock['obs_sm']
@@ -182,13 +153,14 @@ def write_snapshot_mocks_to_disk(
 
         #  Shift colors according to redshift
         gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(
-                umachine_mock['restframe_extincted_sdss_gr'], umachine_mock['restframe_extincted_sdss_ri'])
+                umachine_mock['restframe_extincted_sdss_gr'],
+                umachine_mock['restframe_extincted_sdss_ri'])
         umachine_mock['restframe_extincted_sdss_gr'] = gr_new
         umachine_mock['restframe_extincted_sdss_ri'] = ri_new
 
         ########################################################################
         #  For every host halo in the AlphaQ halo catalog,
-        #  find a matching halo in the Bolshoi-Planck catalog
+        #  use GalSampler to find a matching halo in the Bolshoi-Planck catalog
         ########################################################################
 
         #  Bin the halos in each simulation by mass
@@ -214,9 +186,9 @@ def write_snapshot_mocks_to_disk(
         alphaQ_halos['richness'] = bpl_halos['richness'][source_halo_indx]
         alphaQ_halos['first_galaxy_index'] = bpl_halos['first_galaxy_index'][source_halo_indx]
 
-        ##############################################################################
-        #  Calculate the indices of the UniverseMachine galaxies that will be selected
-        ##############################################################################
+        ################################################################################
+        #  Use GalSampler to calculate the indices of the galaxies that will be selected
+        ################################################################################
         nhalo_min = 10
         source_galaxies_host_halo_id = umachine_mock['hostid']
         source_halos_bin_number = bpl_halos['mass_bin']
@@ -379,7 +351,6 @@ def build_output_snapshot_mock(umachine, target_halos, halo_indices, galaxy_indi
 def calculate_host_centric_position_velocity(mock, Lbox=250.):
     """
     """
-    Lbox = 250.
     xrel, vxrel = relative_positions_and_velocities(mock['x'], mock['host_halo_x'],
         v1=mock['vx'], v2=mock['host_halo_vx'], period=Lbox)
     yrel, vyrel = relative_positions_and_velocities(mock['y'], mock['host_halo_y'],
@@ -389,3 +360,39 @@ def calculate_host_centric_position_velocity(mock, Lbox=250.):
 
     return xrel, yrel, zrel, vxrel, vyrel, vzrel
 
+
+def shift_gr_ri_colors_at_high_redshift(gr, ri, redshift):
+    """ Apply a simple multiplicative shift to the g-r and r-i color distributions
+    to crudely mock up redshift evolution in the colors.
+
+    Parameters
+    ----------
+    gr : ndarray
+        Array of shape (ngals, ) storing the g-r colors
+
+    ri : ndarray
+        Array of shape (ngals, ) storing the r-i colors
+
+    redshift : float
+        Redshift of the snapshot
+
+    Returns
+    -------
+    gr_new : ndarray
+        Array of shape (ngals, ) storing the shifted g-r colors
+
+    ri_new : ndarray
+        Array of shape (ngals, ) storing the shifted r-i colors
+
+    Examples
+    --------
+    >>> gr = np.random.uniform(0, 1.25, 1000)
+    >>> ri = np.random.uniform(0.25, 0.75, 1000)
+    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 0.8)
+    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 8.)
+    """
+    gr_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.15, 1.3])
+    ri_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.05, 1.1])
+    gr_new = gr/gr_shift
+    ri_new = ri/ri_shift
+    return gr_new, ri_new
