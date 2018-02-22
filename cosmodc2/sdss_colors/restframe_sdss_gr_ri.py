@@ -7,6 +7,9 @@ from halotools.empirical_models import conditional_abunmatch
 from scipy.spatial import cKDTree
 from halotools.empirical_models import polynomial_from_table
 from ..sdss_colors.sdss_completeness_model import retrieve_sdss_sample_mask
+from halotools.utils import sliding_conditional_percentile, unsorting_indices
+from halotools.empirical_models import noisy_percentile
+from scipy.stats import gaussian_kde
 
 
 __all__ = ('mc_sdss_gr_ri', )
@@ -83,7 +86,7 @@ def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None, seed=Non
     """
     if magr_bins is None:
         epsilon = 0.01
-        rmin, rmax, dr = mock_rmag.min()-epsilon, mock_rmag.max()+epsilon, 0.25
+        rmin, rmax, dr = mock_rmag.min()-epsilon, mock_rmag.max()+epsilon, 0.2
         magr_bins = np.arange(rmin, rmax+dr, dr)
 
     source0_mask = data_source == 0
@@ -93,81 +96,71 @@ def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None, seed=Non
     return rmag_bin_number
 
 
-def shift_gr_ri_colors_at_high_redshift(gr, ri, redshift):
-    """ Apply a simple multiplicative shift to the g-r and r-i color distributions
-    to crudely mock up redshift evolution in the colors.
-
-    Parameters
-    ----------
-    gr : ndarray
-        Array of shape (ngals, ) storing the g-r colors
-
-    ri : ndarray
-        Array of shape (ngals, ) storing the r-i colors
-
-    redshift : float
-        Redshift of the snapshot
-
-    Returns
-    -------
-    gr_new : ndarray
-        Array of shape (ngals, ) storing the shifted g-r colors
-
-    ri_new : ndarray
-        Array of shape (ngals, ) storing the shifted r-i colors
-
-    Examples
-    --------
-    >>> gr = np.random.uniform(0, 1.25, 1000)
-    >>> ri = np.random.uniform(0.25, 0.75, 1000)
-    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 0.8)
-    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 8.)
-    """
-    gr_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.15, 1.3])
-    ri_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.05, 1.1])
-    gr_new = gr/gr_shift
-    ri_new = ri/ri_shift
-    return gr_new, ri_new
-
-
 def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
         mock_magr_bin_number, mock_magr, mock_sfr_percentile, sigma=0., k=10):
-    """
+    """ Given {Mr, SFR-percentile} for mock galaxies, search SDSS data
+    to select galaxies with matching {Mr, g-r-percentile}, and use the colors
+    {g-r, r-i} of the selected SDSS galaxies to paint on to the mock galaxies.
     """
     mock_gr = np.zeros_like(mock_magr)
     mock_ri = np.zeros_like(mock_magr)
 
-    true_color_bin_numbers = list(set(mock_magr_bin_number))
-    for bin_number in true_color_bin_numbers:
-
+    #  We loop over probabilistically overlapping bins of r-band magnitude
+    magr_bin_numbers = list(set(mock_magr_bin_number))
+    for bin_number in magr_bin_numbers:
         mock_magr_mask = mock_magr_bin_number == bin_number
-        mock_magr_bin = mock_magr[mock_magr_mask]
-        mock_sfr_percentile_bin = 1.-mock_sfr_percentile[mock_magr_mask]
+        npts_mock_bin = np.count_nonzero(mock_magr_mask)
 
+        mock_magr_bin = mock_magr[mock_magr_mask]
+        mock_sfr_percentile_bin = mock_sfr_percentile[mock_magr_mask]
+
+        #  Make a cut to apply a color-completeness limiting redshift
         Mr_min, Mr_max = mock_magr_bin.min(), mock_magr_bin.max()
         sdss_mask = retrieve_sdss_sample_mask(sdss_redshift, sdss_magr, Mr_min, Mr_max)
         sdss_rmag_bin = sdss_magr[sdss_mask]
         sdss_gr_bin = sdss_gr[sdss_mask]
         sdss_ri_bin = sdss_ri[sdss_mask]
 
-        mock_gr_bin = conditional_abunmatch(
-            mock_sfr_percentile_bin, sdss_gr_bin,
-            sigma=sigma, npts_lookup_table=np.count_nonzero(sdss_mask))
+        #  Use Gaussian kernel density estimation on the SDSS data
+        #  to generate a random sampling of colors for each mock galaxy
+        #  This step helps smooth out artificial clustering of mock galaxies
+        #  around outlier fluctuations in the observed data
+        X_bin = np.vstack((sdss_rmag_bin, sdss_gr_bin, sdss_ri_bin))
+        kde_bin = gaussian_kde(X_bin)
+        resampled_bin = kde_bin.resample(npts_mock_bin)
+        sdss_rmag_bin_resampled = resampled_bin[0, :]
+        sdss_gr_bin_resampled = resampled_bin[1, :]
+        sdss_ri_bin_resampled = resampled_bin[2, :]
 
-        sdss_tree = cKDTree(np.vstack((sdss_rmag_bin, sdss_gr_bin)).T)
-        result = sdss_tree.query(np.vstack((mock_magr_bin, mock_gr_bin)).T, k=k)
+        #  Sort the mock galaxies in the bin by their SFR-rank-order-percentile (at fixed M*)
+        #  Sort the Monte Carlo realization of g-r
+        #  Apply the implicit non-parametric map to paint g-r onto mock galaxies
+        idx_mock_percentile_sorted = np.argsort(mock_sfr_percentile_bin)
+        mock_gr_bin = np.zeros(npts_mock_bin).astype('f4')
+        mock_gr_bin[idx_mock_percentile_sorted] = np.sort(sdss_gr_bin_resampled)[::-1]
+
+        #  Now run a nearest-neighbor search on the KDE-resampled SDSS data
+        #  to identify an r-i color of a galaxy with a closely matching {Mr, g-r}.
+        #  Randomly selecting one of the 10 nearest neighbors helps smear out
+        #  artificial amplification of hard edges in the observed data
+        Y = np.vstack((sdss_rmag_bin_resampled, sdss_gr_bin_resampled)).T
+        sdss_tree = cKDTree(Y)
+        knn = min(k, len(sdss_rmag_bin_resampled))
+        result = sdss_tree.query(np.vstack((mock_magr_bin, mock_gr_bin)).T, k=knn)
         nn_indices = result[1]
         a = np.random.randint(0, nn_indices.shape[1], nn_indices.shape[0])
         idx = nn_indices[np.arange(nn_indices.shape[0]), a]
+        mock_ri_bin = sdss_ri_bin_resampled[idx]
 
         mock_gr[mock_magr_mask] = mock_gr_bin
-        mock_ri[mock_magr_mask] = sdss_ri_bin[idx]
+        mock_ri[mock_magr_mask] = mock_ri_bin
 
     return mock_gr, mock_ri
 
 
 def mc_fake_sdss_gr_ri(sdss_gr, sdss_ri, rmag_bin_number, mock_log10_mstar):
-    """
+    """ Set up a simple multivariate Gaussian model to extrapolate SDSS colors
+    {g-r, r-i} into the very faint end.
     """
     gr_center = np.median(sdss_gr)-0.35
     ri_center = np.median(sdss_ri)-0.15
@@ -186,7 +179,11 @@ def mc_fake_sdss_gr_ri(sdss_gr, sdss_ri, rmag_bin_number, mock_log10_mstar):
 
 def mc_sdss_gr_ri(mock_rmag, mock_mstar, mock_sfr_percentile,
             sdss_redshift, sdss_magr, sdss_gr, sdss_ri, k=10):
-    """
+    """ Divide mock galaxies into a sample for which colors from real SDSS galaxies
+    will be drawn, and another sample for which colors from the extrapolation model
+    will be drawn, creating a fuzzy boundary in stellar mass that stitches the
+    two samples together. Then for each sample, call the appropriate
+    Monte Carlo function to generate {g-r, r-i} colors.
     """
     mock_data_source = assign_data_source(np.log10(mock_mstar))
     mock_rmag_bin_number = fuzzy_sawtooth_magr_binning(mock_rmag, mock_data_source)
@@ -209,7 +206,3 @@ def mc_sdss_gr_ri(mock_rmag, mock_mstar, mock_sfr_percentile,
     output_mock_ri[~source0_mask] = mock_source1_ri
 
     return output_mock_gr, output_mock_ri
-
-
-
-

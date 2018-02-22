@@ -9,7 +9,43 @@ from galsampler.source_galaxy_selection import _galaxy_table_indices
 from halotools.utils import crossmatch
 from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.mock_observables import relative_positions_and_velocities
-from .sdss_colors import shift_gr_ri_colors_at_high_redshift
+
+
+def shift_gr_ri_colors_at_high_redshift(gr, ri, redshift):
+    """ Apply a simple multiplicative shift to the g-r and r-i color distributions
+    to crudely mock up redshift evolution in the colors.
+
+    Parameters
+    ----------
+    gr : ndarray
+        Array of shape (ngals, ) storing the g-r colors
+
+    ri : ndarray
+        Array of shape (ngals, ) storing the r-i colors
+
+    redshift : float
+        Redshift of the snapshot
+
+    Returns
+    -------
+    gr_new : ndarray
+        Array of shape (ngals, ) storing the shifted g-r colors
+
+    ri_new : ndarray
+        Array of shape (ngals, ) storing the shifted r-i colors
+
+    Examples
+    --------
+    >>> gr = np.random.uniform(0, 1.25, 1000)
+    >>> ri = np.random.uniform(0.25, 0.75, 1000)
+    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 0.8)
+    >>> gr_new, ri_new = shift_gr_ri_colors_at_high_redshift(gr, ri, 8.)
+    """
+    gr_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.15, 1.3])
+    ri_shift = np.interp(redshift, [0.1, 0.3, 1], [1., 1.05, 1.1])
+    gr_new = gr/gr_shift
+    ri_new = ri/ri_shift
+    return gr_new, ri_new
 
 
 def write_snapshot_mocks_to_disk(
