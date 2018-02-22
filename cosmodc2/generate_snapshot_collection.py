@@ -7,8 +7,9 @@ from time import time
 from scipy.spatial import cKDTree
 import numpy as np
 from astropy.table import Table
-from galsampler import halo_bin_indices, source_halo_index_selection, source_galaxy_selection_indices
+from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.utils import compute_richness
+from galsampler.cython_kernels import galaxy_selection_kernel
 from galsampler.source_galaxy_selection import _galaxy_table_indices
 from halotools.utils import crossmatch
 from halotools.empirical_models import enforce_periodicity_of_box
@@ -206,16 +207,9 @@ def write_snapshot_mocks_to_disk(
 
         print("          Mapping z={0:.3f} galaxies to AlphaQ halos".format(redshift))
 
-        nhalo_min = 10
-        source_galaxies_host_halo_id = umachine_mock['hostid']
-        source_halos_bin_number = bpl_halos['mass_bin']
-        source_halos_halo_id = bpl_halos['halo_id']
-        target_halos_bin_number = alphaQ_halos['mass_bin']
-        target_halo_ids = alphaQ_halos['halo_id']
-        _result = source_galaxy_selection_indices(source_galaxies_host_halo_id,
-            source_halos_bin_number, source_halos_halo_id,
-            target_halos_bin_number, target_halo_ids, nhalo_min, mass_bins)
-        source_galaxy_indx, target_galaxy_target_halo_ids, target_galaxy_source_halo_ids = _result
+        source_galaxy_indx = np.array(galaxy_selection_kernel(
+            alphaQ_halos['first_galaxy_index'].astype('i8'),
+            alphaQ_halos['richness'].astype('i4'), alphaQ_halos['richness'].sum()))
 
         ########################################################################
         #  Assemble the output protoDC2 mock
@@ -223,7 +217,7 @@ def write_snapshot_mocks_to_disk(
         print("          Assembling z={0:.3f} output snapshot mock".format(redshift))
 
         output_snapshot_mock = build_output_snapshot_mock(
-                umachine_mock, alphaQ_halos, source_halo_indx, source_galaxy_indx)
+                umachine_mock, alphaQ_halos, source_galaxy_indx)
 
         ########################################################################
         #  Write the output protoDC2 mock to disk
@@ -310,14 +304,14 @@ def transfer_colors_to_umachine_mstar_ssfr_mock(
         umachine_mstar_ssfr_mock[key] = umachine_z0p1_color_mock[key][nn_indices]
 
 
-def build_output_snapshot_mock(umachine, target_halos, halo_indices, galaxy_indices,
+def build_output_snapshot_mock(umachine, target_halos, galaxy_indices,
             Lbox_target=256.):
     """
     """
     dc2 = Table()
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
-        target_halos['halo_id'][halo_indices], target_halos['richness'][halo_indices])
+        target_halos['halo_id'], target_halos['richness'])
 
     idxA, idxB = crossmatch(dc2['target_halo_id'], target_halos['halo_id'])
 
