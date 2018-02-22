@@ -84,6 +84,10 @@ def write_snapshot_mocks_to_disk(
         umachine_mock = load_umachine_mstar_ssfr_mock(fname2)
         bpl_halos = load_bpl_halos(fname3)
 
+        #  Throw out the small number of galaxies for which there is no matching host
+        idxA, idxB = crossmatch(umachine_mock['hostid'], bpl_halos['halo_id'])
+        umachine_mock = umachine_mock[idxA]
+
         ########################################################################
         #  Create value-added catalogs
         ########################################################################
