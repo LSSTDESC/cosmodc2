@@ -83,3 +83,14 @@ def find_closest_available_bpl_halocat(z, dirname):
     available_snaps = np.array([1./f(fname) - 1. for fname in available_fnames])
 
     return available_fnames[np.argmin(np.abs(z - available_snaps))]
+
+
+def retrieve_list_of_filenames(redshift_list, halocat_dirname, um_dirname):
+    """
+    """
+    halocat_fname_list = list(find_closest_available_bpl_halocat(z, halocat_dirname)
+        for z in redshift_list)
+    um_fname_list = list(find_closest_available_umachine_snapshot(z, um_dirname)
+        for z in redshift_list)
+    return um_fname_list, halocat_fname_list
+
