@@ -15,6 +15,24 @@ from halotools.utils import crossmatch
 from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.mock_observables import relative_positions_and_velocities
 from .load_gio_halos import load_gio_halo_snapshot
+from .get_fof_info import get_fof_info
+from .umachine_processing.load_umachine_outputs import retrieve_list_of_filenames
+
+
+def get_filename_lists_of_protoDC2(pkldirname, halocat_dirname, um_dirname):
+    """
+    """
+    _x = get_fof_info(pkldirname)
+    redshift_strings, snapshots, alphaQ_halos_fname_list = _x
+    redshift_list = [float(z) for z in redshift_strings]
+    _y = retrieve_list_of_filenames(redshift_list, halocat_dirname, um_dirname)
+    umachine_mstar_ssfr_mock_fname_list, bpl_halos_fname_list = _y
+
+    output_color_mock_fname_list = list(
+        'protoDC2_v3_galaxies_' + fname for fname in alphaQ_halos_fname_list)
+
+    return (alphaQ_halos_fname_list, umachine_mstar_ssfr_mock_fname_list,
+            bpl_halos_fname_list, output_color_mock_fname_list)
 
 
 def write_snapshot_mocks_to_disk(
