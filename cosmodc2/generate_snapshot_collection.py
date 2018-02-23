@@ -14,6 +14,7 @@ from galsampler.source_galaxy_selection import _galaxy_table_indices
 from halotools.utils import crossmatch
 from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.mock_observables import relative_positions_and_velocities
+from .load_gio_halos import load_gio_halo_snapshot
 
 
 def write_snapshot_mocks_to_disk(
