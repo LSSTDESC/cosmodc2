@@ -276,7 +276,8 @@ def load_umachine_mstar_ssfr_mock(umachine_mstar_ssfr_mock_fname, Lbox=250.):
 def load_alphaQ_halos(alphaQ_halos_fname):
     """
     """
-    t = Table.read(alphaQ_halos_fname, path='data')
+    t = load_gio_halo_snapshot(alphaQ_halos_fname)
+
     t.rename_column('fof_halo_tag', 'halo_id')
 
     t.rename_column('fof_halo_center_x', 'x')
@@ -286,7 +287,9 @@ def load_alphaQ_halos(alphaQ_halos_fname):
     t.rename_column('fof_halo_mean_vx', 'vx')
     t.rename_column('fof_halo_mean_vy', 'vy')
     t.rename_column('fof_halo_mean_vz', 'vz')
+
     t.remove_column('fof_halo_vel_disp')
+
     return t
 
 
