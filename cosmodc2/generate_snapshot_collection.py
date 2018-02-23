@@ -3,6 +3,7 @@ that generates the full collection of AlphaQ halos that have been populated
 with model galaxies with the following properties: {M*, SFR, Mr, g-r, r-i},
 where colors are restframe extincted SDSS colors k-corrected to z=0.1
 """
+import os
 from time import time
 from scipy.spatial import cKDTree
 import numpy as np
@@ -28,11 +29,15 @@ def get_filename_lists_of_protoDC2(pkldirname, halocat_dirname, um_dirname):
     _y = retrieve_list_of_filenames(redshift_list, halocat_dirname, um_dirname)
     umachine_mstar_ssfr_mock_fname_list, bpl_halos_fname_list = _y
 
-    output_color_mock_fname_list = list(
-        'protoDC2_v3_galaxies_' + fname for fname in alphaQ_halos_fname_list)
+    dirname_alphaQ_halos = os.path.dirname(alphaQ_halos_fname_list[0])
+    output_color_mock_basename_list = list(
+        'protoDC2_v3_galaxies_' + os.path.basename(fname)
+        for fname in alphaQ_halos_fname_list)
+    # output_color_mock_fname_list = list(os.path.join(dirname_alphaQ_halos, basename)
+    #     for basename in output_color_mock_basename_list)
 
     return (alphaQ_halos_fname_list, umachine_mstar_ssfr_mock_fname_list,
-            bpl_halos_fname_list, output_color_mock_fname_list, redshift_list)
+            bpl_halos_fname_list, output_color_mock_basename_list, redshift_list)
 
 
 def write_snapshot_mocks_to_disk(
