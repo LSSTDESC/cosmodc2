@@ -32,7 +32,7 @@ def get_filename_lists_of_protoDC2(pkldirname, halocat_dirname, um_dirname):
         'protoDC2_v3_galaxies_' + fname for fname in alphaQ_halos_fname_list)
 
     return (alphaQ_halos_fname_list, umachine_mstar_ssfr_mock_fname_list,
-            bpl_halos_fname_list, output_color_mock_fname_list)
+            bpl_halos_fname_list, output_color_mock_fname_list, redshift_list)
 
 
 def write_snapshot_mocks_to_disk(
