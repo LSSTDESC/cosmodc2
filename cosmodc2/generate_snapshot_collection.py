@@ -293,8 +293,6 @@ def load_alphaQ_halos(alphaQ_halos_fname):
     t.rename_column('fof_halo_mean_vy', 'vy')
     t.rename_column('fof_halo_mean_vz', 'vz')
 
-    t.remove_column('fof_halo_vel_disp')
-
     return t
 
 
