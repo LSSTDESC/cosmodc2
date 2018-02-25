@@ -6,8 +6,10 @@ from astropy.utils.misc import NumpyRNGContext
 
 __all__ = ('sawtooth_bin_indices', )
 
+default_seed = 43
 
-def sawtooth_bin_indices(x, bin_edges, min_counts=2, seed=43):
+
+def sawtooth_bin_indices(x, bin_edges, min_counts=2, seed=default_seed):
     """ Function assigns each element of the input array `x` to a particular bin number.
 
     The bin boundaries have hard edges, but bin-assignment is probabilistic, such that
@@ -32,7 +34,8 @@ def sawtooth_bin_indices(x, bin_edges, min_counts=2, seed=43):
         Default is two.
 
     seed : int, optional
-        Random number seed. Default is 43.
+        Random number seed. Default is default_seed, set at the top of
+        the module where the function is defined.
 
     Returns
     -------

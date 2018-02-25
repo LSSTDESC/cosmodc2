@@ -3,21 +3,27 @@
 import numpy as np
 from astropy.table import Table
 from scipy.spatial import cKDTree
+from astropy.utils.misc import NumpyRNGContext
 
 
 __all__ = ('random_linear_combo_spectra', 'matching_spectrum_search')
 
 
-def random_linear_combo_spectra(spectra, num_random=None, coeff_low=0, coeff_high=2):
+default_seed = 43
+
+
+def random_linear_combo_spectra(spectra, num_random=None,
+            coeff_low=0, coeff_high=2, seed=default_seed):
     ngals = len(spectra)
     if num_random is None:
         num_random = ngals
 
     a = np.arange(ngals)
-    indx1 = np.random.choice(a, size=num_random)
-    indx2 = np.random.choice(a, size=num_random)
-    w1 = np.random.uniform(coeff_low, coeff_high, num_random)
-    w2 = np.random.uniform(coeff_low, coeff_high, num_random)
+    with NumpyRNGContext(seed):
+        indx1 = np.random.choice(a, size=num_random)
+        indx2 = np.random.choice(a, size=num_random)
+        w1 = np.random.uniform(coeff_low, coeff_high, num_random)
+        w2 = np.random.uniform(coeff_low, coeff_high, num_random)
 
     result = Table()
     for key in ('u', 'g', 'r', 'i', 'z', 'age', 'metallicity'):
