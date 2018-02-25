@@ -8,9 +8,11 @@ from astropy.utils.misc import NumpyRNGContext
 
 __all__ = ('mock_magr', 'assign_data_source')
 
+default_seed = 43
+
 
 def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
-            table_ordinates=np.array([1, 0.8, 0.35, 0]), seed=None):
+            table_ordinates=np.array([1, 0.8, 0.35, 0]), seed=default_seed):
     """
     Determine the source of observational data that will be used
     to map colors onto mock galaxies.
@@ -32,7 +34,8 @@ def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
         a mock galaxy will be assigned to data source one.
 
     seed : int, optional
-        Random number seed. Default is None, for stochastic results.
+        Random number seed. Default is default_seed, set at the top of
+        the module where the function is defined.
 
     Returns
     -------
@@ -94,7 +97,7 @@ def sdss_selection_indices(mstar_mock, sfr_percentile_mock, logsm_sdss, sfr_perc
     return nn_distinces, nn_indices
 
 
-def extrapolate_faint_end_magr(mstar_mock, p0, p1, magr_scatter, seed=None):
+def extrapolate_faint_end_magr(mstar_mock, p0, p1, magr_scatter, seed=default_seed):
     """ Power law extrapolation for the median restframe absolute r-band magnitude
     as a function of stellar mass.
 
@@ -115,7 +118,8 @@ def extrapolate_faint_end_magr(mstar_mock, p0, p1, magr_scatter, seed=None):
         level of scatter in the log-normal relation Prob(Mr | M*).
 
     seed : int, optional
-        Random number seed. Default is None, for stochastic results.
+        Random number seed. Default is default_seed, set at the top of
+        the module where the function is defined.
 
     Returns
     -------
@@ -130,7 +134,7 @@ def extrapolate_faint_end_magr(mstar_mock, p0, p1, magr_scatter, seed=None):
 
 def mock_magr(mstar_mock, sfr_percentile_mock,
             logsm_sdss, sfr_percentile_sdss, magr_sdss, redshift_sdss,
-            p0=0.6, p1=-2.02, scatter1=0.5, scatter2=0.5, z0=0.05, seed=None):
+            p0=0.6, p1=-2.02, scatter1=0.5, scatter2=0.5, z0=0.05, seed=default_seed):
     """ Generate a Monte Carlo realization of r-band Absolute magnitude
 
     Parameters
@@ -181,7 +185,8 @@ def mock_magr(mstar_mock, sfr_percentile_mock,
         Redshift used to mask SDSS galaxies. Default is 0.05.
 
     seed : int, optional
-        Random number seed. Default is None, for stochastic results.
+        Random number seed. Default is default_seed, set at the top of
+        the module where the function is defined.
 
     Returns
     -------

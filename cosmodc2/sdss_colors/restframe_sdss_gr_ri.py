@@ -15,8 +15,11 @@ from scipy.stats import gaussian_kde
 __all__ = ('mc_sdss_gr_ri', )
 
 
+default_seed = 43
+
+
 def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
-            table_ordinates=np.array([1, 0.8, 0.35, 0])):
+            table_ordinates=np.array([1, 0.8, 0.35, 0]), seed=default_seed):
     """
     Determine the source of observational data that will be used
     to map colors onto mock galaxies.
@@ -38,6 +41,10 @@ def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
         Control points defining the probability that
         a mock galaxy will be assigned to data source one.
 
+    seed : int, optional
+        Random number seed. Default is default_seed, set at the top of
+        the module where the function is defined.
+
     Returns
     -------
     data_source : ndarray
@@ -48,14 +55,15 @@ def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
     ordinates = polynomial_from_table(table_abscissa, table_ordinates, input_abscissa)
 
     prob_fake = np.interp(mock_logsm, input_abscissa, ordinates)
-    fake_mask = np.random.rand(len(mock_logsm)) < prob_fake
+    with NumpyRNGContext(seed):
+        fake_mask = np.random.rand(len(mock_logsm)) < prob_fake
     data_source = np.zeros_like(fake_mask).astype(int)
     data_source[fake_mask] = 1
 
     return data_source
 
 
-def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None, seed=None):
+def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None, seed=default_seed):
     """ Assign galaxies to overlapping bins based on their restframe absolute r-band magnitude.
 
     Binning will be done separately for mock galaxies above and below the SDSS completeness limit.
@@ -77,7 +85,8 @@ def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None, seed=Non
         just beyond the boundaries of the data.
 
     seed : int, optional
-        Random number seed. Default is None, for stochastic results.
+        Random number seed. Default is default_seed, set at the top of
+        the module where the function is defined.
 
     Returns
     -------
@@ -97,7 +106,7 @@ def fuzzy_sawtooth_magr_binning(mock_rmag, data_source, magr_bins=None, seed=Non
 
 
 def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
-        mock_magr_bin_number, mock_magr, mock_sfr_percentile, sigma=0., k=10):
+        mock_magr_bin_number, mock_magr, mock_sfr_percentile, sigma=0., k=10, seed=default_seed):
     """ Given {Mr, SFR-percentile} for mock galaxies, search SDSS data
     to select galaxies with matching {Mr, g-r-percentile}, and use the colors
     {g-r, r-i} of the selected SDSS galaxies to paint on to the mock galaxies.
@@ -127,7 +136,8 @@ def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
         #  around outlier fluctuations in the observed data
         X_bin = np.vstack((sdss_rmag_bin, sdss_gr_bin, sdss_ri_bin))
         kde_bin = gaussian_kde(X_bin)
-        resampled_bin = kde_bin.resample(npts_mock_bin)
+        with NumpyRNGContext(seed):
+            resampled_bin = kde_bin.resample(npts_mock_bin)
         sdss_rmag_bin_resampled = resampled_bin[0, :]
         sdss_gr_bin_resampled = resampled_bin[1, :]
         sdss_ri_bin_resampled = resampled_bin[2, :]
@@ -148,7 +158,8 @@ def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
         knn = min(k, len(sdss_rmag_bin_resampled))
         result = sdss_tree.query(np.vstack((mock_magr_bin, mock_gr_bin)).T, k=knn)
         nn_indices = result[1]
-        a = np.random.randint(0, nn_indices.shape[1], nn_indices.shape[0])
+        with NumpyRNGContext(seed):
+            a = np.random.randint(0, nn_indices.shape[1], nn_indices.shape[0])
         idx = nn_indices[np.arange(nn_indices.shape[0]), a]
         mock_ri_bin = sdss_ri_bin_resampled[idx]
 
@@ -158,7 +169,7 @@ def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
     return mock_gr, mock_ri
 
 
-def mc_fake_sdss_gr_ri(sdss_gr, sdss_ri, rmag_bin_number, mock_log10_mstar):
+def mc_fake_sdss_gr_ri(sdss_gr, sdss_ri, rmag_bin_number, mock_log10_mstar, seed=default_seed):
     """ Set up a simple multivariate Gaussian model to extrapolate SDSS colors
     {g-r, r-i} into the very faint end.
     """
@@ -172,31 +183,33 @@ def mc_fake_sdss_gr_ri(sdss_gr, sdss_ri, rmag_bin_number, mock_log10_mstar):
     X = np.vstack((sdss_gr, sdss_ri))
     cov = np.cov(X)/2.
 
-    Z = np.random.multivariate_normal(mean=(0, 0), cov=cov, size=ngals_mock) + median_array
+    with NumpyRNGContext(seed):
+        Z = np.random.multivariate_normal(
+            mean=(0, 0), cov=cov, size=ngals_mock) + median_array
     mock_gr, mock_ri = Z[:, 0], Z[:, 1]
     return mock_gr, mock_ri
 
 
 def mc_sdss_gr_ri(mock_rmag, mock_mstar, mock_sfr_percentile,
-            sdss_redshift, sdss_magr, sdss_gr, sdss_ri, k=10):
+            sdss_redshift, sdss_magr, sdss_gr, sdss_ri, k=10, seed=default_seed):
     """ Divide mock galaxies into a sample for which colors from real SDSS galaxies
     will be drawn, and another sample for which colors from the extrapolation model
     will be drawn, creating a fuzzy boundary in stellar mass that stitches the
     two samples together. Then for each sample, call the appropriate
     Monte Carlo function to generate {g-r, r-i} colors.
     """
-    mock_data_source = assign_data_source(np.log10(mock_mstar))
-    mock_rmag_bin_number = fuzzy_sawtooth_magr_binning(mock_rmag, mock_data_source)
+    mock_data_source = assign_data_source(np.log10(mock_mstar), seed=seed)
+    mock_rmag_bin_number = fuzzy_sawtooth_magr_binning(mock_rmag, mock_data_source, seed=seed)
 
     source0_mask = mock_data_source == 0
 
     mock_source0_gr, mock_source0_ri = mc_true_sdss_gr_ri(
         sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
         mock_rmag_bin_number[source0_mask], mock_rmag[source0_mask],
-        mock_sfr_percentile[source0_mask], k)
+        mock_sfr_percentile[source0_mask], k, seed=seed)
 
     mock_source1_gr, mock_source1_ri = mc_fake_sdss_gr_ri(sdss_gr, sdss_ri,
-            mock_rmag_bin_number[~source0_mask], np.log10(mock_mstar[~source0_mask]))
+            mock_rmag_bin_number[~source0_mask], np.log10(mock_mstar[~source0_mask]), seed=seed)
 
     output_mock_gr = np.zeros_like(mock_rmag) - 999.
     output_mock_ri = np.zeros_like(mock_rmag) - 999.
