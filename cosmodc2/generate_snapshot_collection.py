@@ -7,6 +7,7 @@ import os
 from time import time
 from scipy.spatial import cKDTree
 import numpy as np
+import string
 from astropy.table import Table
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.utils import compute_richness
@@ -31,7 +32,7 @@ def get_filename_lists_of_protoDC2(pkldirname, halocat_dirname, um_dirname):
 
     dirname_alphaQ_halos = os.path.dirname(alphaQ_halos_fname_list[0])
     output_color_mock_basename_list = list(
-        'protoDC2_v3_galaxies_' + os.path.basename(fname)
+        'protoDC2_v3_galaxies_' + string.replace(os.path.basename(fname), '.fofproperties', '')+ '.hdf5'
         for fname in alphaQ_halos_fname_list)
     # output_color_mock_fname_list = list(os.path.join(dirname_alphaQ_halos, basename)
     #     for basename in output_color_mock_basename_list)

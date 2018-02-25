@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append("/gpfs/mira-home/ekovacs/cosmology/genericio/python")
 import genericio as gio
+import numpy as np
 from astropy.table import Table
 
 property_template ='fof_halo_{}'
@@ -18,8 +19,9 @@ def load_gio_halo_snapshot(filename):
 
     halo_table = Table()
     for halo_prop in halo_properties_list:
-        print('Reading column {}'.format(halo_prop)) 
-        halo_table[halo_prop] = gio.gio_read(filename, halo_prop)
+        print('Reading column {}'.format(halo_prop))
+        #cast properties into 1-d ndarray by selecting first element
+        halo_table[halo_prop] = gio.gio_read(filename, halo_prop)[:,0]
 
     return halo_table
 
