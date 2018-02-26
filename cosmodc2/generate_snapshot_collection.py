@@ -297,10 +297,18 @@ def load_alphaQ_halos(alphaQ_halos_fname):
     return t
 
 
-def load_bpl_halos(bpl_halos_fname):
+def load_bpl_halos(bpl_halos_fname, Lbox=250.):
     """
     """
-    return Table.read(bpl_halos_fname, path='data')
+    t = Table.read(bpl_halos_fname, path='data')
+
+    #  Correct for edge case where position is exactly on box boundary
+    epsilon = 0.0001
+    t['x'][t['x'] == Lbox] = Lbox-epsilon
+    t['y'][t['y'] == Lbox] = Lbox-epsilon
+    t['z'][t['z'] == Lbox] = Lbox-epsilon
+
+    return t
 
 
 def um1_to_um2_matching_indices(source_mstar, source_percentile, target_mstar, target_percentile):
