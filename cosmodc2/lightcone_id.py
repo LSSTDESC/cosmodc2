@@ -1,4 +1,4 @@
-
+import numpy as np
 
 lc_block_num_offset = np.int64(1e15)
 lc_step_num_offset  = np.int64(1e12)
