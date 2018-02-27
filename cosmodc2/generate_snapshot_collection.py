@@ -18,6 +18,7 @@ from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.mock_observables import relative_positions_and_velocities
 from .load_gio_halos import load_gio_halo_snapshot
 from .get_fof_info import get_fof_info
+from .lightcone_id import append_lightcone_id, astropy_table_to_lightcone_hdf5
 from .umachine_processing.load_umachine_outputs import retrieve_list_of_filenames
 
 
@@ -245,11 +246,18 @@ def write_snapshot_mocks_to_disk(
                 umachine_mock, alphaQ_halos, source_galaxy_indx)
 
         ########################################################################
+        #  Adding a unqiue id to each galaxy
+        ########################################################################
+
+        append_lightcone_ids(output_snapshot_mock)
+
+        ########################################################################
         #  Write the output protoDC2 mock to disk
         ########################################################################
         print("          Writing to disk")
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=overwrite)
-
+        output_lightcone_fname =  output_color_mock+"_lightcone"
+        astropy_table_to_lightcone_hdf5(output_snaphsot_mock, output_lightcone_fname)
         old_time_stamp = time()
         msg = "Snapshot creation runtime = {0:.2f} minutes"
         print(msg.format((old_time_stamp-new_time_stamp)/60.))
