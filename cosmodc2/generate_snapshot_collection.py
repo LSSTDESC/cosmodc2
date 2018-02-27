@@ -248,8 +248,8 @@ def write_snapshot_mocks_to_disk(
         ########################################################################
         #  Adding a unqiue id to each galaxy
         ########################################################################
-
-        append_lightcone_id(output_snapshot_mock)
+        step_num = int(os.path.basename(output_color_mock_fname).replace(".hdf5").split("m000-")[-1])
+        append_lightcone_id(0, step_num, output_snapshot_mock)
 
         ########################################################################
         #  Write the output protoDC2 mock to disk
