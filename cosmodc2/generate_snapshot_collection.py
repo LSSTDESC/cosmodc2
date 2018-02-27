@@ -248,7 +248,7 @@ def write_snapshot_mocks_to_disk(
         ########################################################################
         #  Adding a unqiue id to each galaxy
         ########################################################################
-        step_num = int(os.path.basename(output_color_mock_fname).replace(".hdf5").split("m000-")[-1])
+        step_num = int(os.path.basename(output_color_mock_fname).replace(".hdf5","").split("m000-")[-1])
 
         append_lightcone_id(0, step_num, output_snapshot_mock)
 
