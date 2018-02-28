@@ -66,4 +66,5 @@ def astropy_table_to_lightcone_hdf5(tbl, hdf5_fname):
     hfile['vy'] = tbl['vy'].quantity
     hfile['vz'] = tbl['vz'].quantity
     hfile['id'] = tbl['lightcone_id'].quantity
+    hfile.close()
     return
