@@ -257,8 +257,8 @@ def write_snapshot_mocks_to_disk(
         ########################################################################
         print("          Writing to disk")
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=overwrite)
-        output_lightcone_fname =  output_color_mock+"_lightcone"
-        astropy_table_to_lightcone_hdf5(output_snaphsot_mock, output_lightcone_fname)
+        output_lightcone_fname =  output_color_mock_fname.replace('.hdf5','') + "_lightcone.hdf5"
+        astropy_table_to_lightcone_hdf5(output_snapshot_mock, output_lightcone_fname)
         old_time_stamp = time()
         msg = "Snapshot creation runtime = {0:.2f} minutes"
         print(msg.format((old_time_stamp-new_time_stamp)/60.))
