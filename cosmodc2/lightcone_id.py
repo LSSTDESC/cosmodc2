@@ -52,7 +52,7 @@ def append_lightcone_id(block_num, step_num, tbl):
     tbl['lightcone_id'] = lightcone_id_bs
     
 
-def astropy_table_to_lightcone_hdf5(tbl, hdf5_fname):
+def astropy_table_to_lightcone_hdf5(tbl, hdf5_fname, commit_hash):
     """
     Takes in an astropy Table object and writes it an easy to 
     read hdf5 file with only the data that's needed for the light
@@ -66,5 +66,6 @@ def astropy_table_to_lightcone_hdf5(tbl, hdf5_fname):
     hfile['vy'] = tbl['vy'].quantity
     hfile['vz'] = tbl['vz'].quantity
     hfile['id'] = tbl['lightcone_id'].quantity
+    hfile.attrs.create('cosmodc2_commit', commit_hash)
     hfile.close()
     return

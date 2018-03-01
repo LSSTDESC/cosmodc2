@@ -45,7 +45,7 @@ def get_filename_lists_of_protoDC2(pkldirname, halocat_dirname, um_dirname):
 def write_snapshot_mocks_to_disk(
             umachine_z0p1_color_mock_fname, alphaQ_halos_fname_list,
             umachine_mstar_ssfr_mock_fname_list, bpl_halos_fname_list,
-            output_color_mock_fname_list, redshift_list, overwrite=False):
+            output_color_mock_fname_list, redshift_list, commit_hash, overwrite=False):
     """
     Function writes to disk a set of extragalactic snapshot catalogs by GalSampling UniverseMachine.
 
@@ -243,7 +243,7 @@ def write_snapshot_mocks_to_disk(
         print("          Assembling z={0:.3f} output snapshot mock".format(redshift))
 
         output_snapshot_mock = build_output_snapshot_mock(
-                umachine_mock, alphaQ_halos, source_galaxy_indx)
+                umachine_mock, alphaQ_halos, source_galaxy_indx, commit_hash)
 
         ########################################################################
         #  Adding a unqiue id to each galaxy
@@ -255,10 +255,10 @@ def write_snapshot_mocks_to_disk(
         ########################################################################
         #  Write the output protoDC2 mock to disk
         ########################################################################
-        print("          Writing to disk")
+        print("          Writing to disk using commit hash {}".format(commit_hash))
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=overwrite)
         output_lightcone_fname =  output_color_mock_fname.replace('.hdf5','') + "_lightcone.hdf5"
-        astropy_table_to_lightcone_hdf5(output_snapshot_mock, output_lightcone_fname)
+        astropy_table_to_lightcone_hdf5(output_snapshot_mock, output_lightcone_fname, commit_hash)
         old_time_stamp = time()
         msg = "Snapshot creation runtime = {0:.2f} minutes"
         print(msg.format((old_time_stamp-new_time_stamp)/60.))
@@ -347,11 +347,11 @@ def transfer_colors_to_umachine_mstar_ssfr_mock(
         umachine_mstar_ssfr_mock[key] = umachine_z0p1_color_mock[key][nn_indices]
 
 
-def build_output_snapshot_mock(umachine, target_halos, galaxy_indices,
+def build_output_snapshot_mock(umachine, target_halos, galaxy_indices, commit_hash,
             Lbox_target=256.):
     """
     """
-    dc2 = Table()
+    dc2 = Table(meta={'commit_hash':commit_hash})
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
         target_halos['halo_id'], target_halos['richness'])
