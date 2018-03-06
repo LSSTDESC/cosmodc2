@@ -4,6 +4,25 @@ import numpy as np
 from halotools.utils import resample_x_to_match_y, sliding_conditional_percentile
 
 
+def gr_ri_matching_indices(r_in, gr_in, ri_in, gr_desired, ri_desired,
+            gr_bins, ri_bins, weights_gr_ri=(0.75, 0.25), nwindow=201):
+    """
+    """
+    idx_fake_gr = resample_x_to_match_y(gr_in, gr_desired, gr_bins)
+    gr_out = gr_in[idx_fake_gr]
+    ri_out_temp = ri_in[idx_fake_gr]
+    idx_fake_ri = resample_x_to_match_y(ri_out_temp, ri_desired, ri_bins)
+    ri_out = ri_out_temp[idx_fake_ri]
+
+    gr_out_p = sliding_conditional_percentile(r_in, gr_out, nwindow)
+    ri_out_p = sliding_conditional_percentile(r_in, ri_out, nwindow)
+    weighted_gr_ri_out = weights_gr_ri[0]*gr_out_p + weights_gr_ri[1]*ri_out_p
+    weighted_gr_ri_out_p = sliding_conditional_percentile(r_in, weighted_gr_ri_out, nwindow)
+
+    idx_sorted_weighted_gr_ri_out_p = np.argsort(weighted_gr_ri_out_p)
+    return idx_sorted_weighted_gr_ri_out_p
+
+
 def remap_weighted_gr_ri(r_in, gr_in, ri_in, gr_desired, ri_desired,
                          gr_bins, ri_bins, weights_gr_ri=(0.75, 0.25), nwindow=201):
     """
