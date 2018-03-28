@@ -35,6 +35,12 @@ def sequence_peak(magr, x, y):
     return result
 
 
+def redshift_evolution_factor(magr, redshift, z_table, shift_table):
+    """
+    """
+    return np.interp(redshift, z_table, shift_table)
+
+
 def red_sequence_width_gr(magr,
         x=[-22.5, -21, -20, -18, -15],
         y=[0.05, 0.06, 0.065, 0.06, 0.06]):
@@ -65,19 +71,25 @@ def quiescent_fraction_gr(magr,
     return np.interp(magr, x, y)
 
 
-def g_minus_r(magr, redshift, seed=None):
+def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
+            peak_shift_factor=[0, -0.05, -0.1, -0.15], scatter_factor=[1, 1.1, 1.25, 1.3]):
     magr = np.atleast_1d(magr)
 
     ngals = len(magr)
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_gr(magr)
 
-    red_sequence = np.random.normal(
-        loc=red_sequence_peak_gr(magr[is_quiescent]),
-        scale=red_sequence_width_gr(magr[is_quiescent]))
-    star_forming_sequence = np.random.normal(
-        loc=main_sequence_peak_gr(magr[~is_quiescent]),
-        scale=main_sequence_width_gr(magr[~is_quiescent]))
+    red_sequence_loc = red_sequence_peak_gr(magr[is_quiescent])
+    red_sequence_loc = red_sequence_loc + red_sequence_loc*redshift_evolution_factor(
+        magr[is_quiescent], redshift[is_quiescent], z_table, peak_shift_factor)
+    red_sequence_scatter = red_sequence_width_gr(magr[is_quiescent])
+    red_sequence = np.random.normal(loc=red_sequence_loc, scale=red_sequence_scatter)
+
+    main_sequence_loc = main_sequence_peak_gr(magr[~is_quiescent])
+    main_sequence_loc = main_sequence_loc + main_sequence_loc*redshift_evolution_factor(
+                magr[~is_quiescent], redshift[~is_quiescent], z_table, peak_shift_factor)
+    main_sequence_scatter = main_sequence_width_gr(magr[~is_quiescent])
+    star_forming_sequence = np.random.normal(loc=main_sequence_loc, scale=main_sequence_scatter)
 
     result = np.zeros(ngals).astype('f4')
     result[is_quiescent] = red_sequence
@@ -115,7 +127,8 @@ def quiescent_fraction_ri(magr,
     return np.interp(magr, x, y)
 
 
-def r_minus_i(magr, redshift, seed=None):
+def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
+            peak_shift_factor=[0, -0.05, -0.1, -0.15], scatter_factor=[1, 1.1, 1.25, 1.3]):
     magr = np.atleast_1d(magr)
 
     ngals = len(magr)
@@ -123,12 +136,16 @@ def r_minus_i(magr, redshift, seed=None):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_ri(magr)
 
     red_sequence_loc = red_sequence_peak_ri(magr[is_quiescent])
-    red_sequence = np.random.normal(
-        loc=red_sequence_loc, scale=red_sequence_width_ri(magr[is_quiescent]))
+    red_sequence_loc = red_sequence_loc + red_sequence_loc*redshift_evolution_factor(
+        magr[is_quiescent], redshift[is_quiescent], z_table, peak_shift_factor)
+    red_sequence_scatter = red_sequence_width_ri(magr[is_quiescent])
+    red_sequence = np.random.normal(loc=red_sequence_loc, scale=red_sequence_scatter)
 
     main_sequence_loc = main_sequence_peak_ri(magr[~is_quiescent])
-    star_forming_sequence = np.random.normal(
-        loc=main_sequence_loc, scale=main_sequence_width_ri(magr[~is_quiescent]))
+    main_sequence_loc = main_sequence_loc + main_sequence_loc*redshift_evolution_factor(
+                magr[~is_quiescent], redshift[~is_quiescent], z_table, peak_shift_factor)
+    main_sequence_scatter = main_sequence_width_ri(magr[~is_quiescent])
+    star_forming_sequence = np.random.normal(loc=main_sequence_loc, scale=main_sequence_scatter)
 
     result = np.zeros(ngals).astype('f4')
     result[is_quiescent] = red_sequence
