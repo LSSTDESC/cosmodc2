@@ -2,6 +2,7 @@
 """
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext
+from halotools.empirical_models import conditional_abunmatch
 
 
 def sequence_width(magr, x, y):
@@ -133,4 +134,21 @@ def r_minus_i(magr, seed=None):
     result[is_quiescent] = red_sequence
     result[~is_quiescent] = star_forming_sequence
     return result
+
+
+def gr_ri_monte_carlo(magr, percentile,
+            local_random_scale=0.1, nonlocal_random_fraction=0.05, nwin=301):
+    """
+    """
+    ngals = len(magr)
+
+    p1 = np.where(np.random.rand(ngals) > 0.05,
+        np.random.normal(loc=percentile, scale=local_random_scale), np.random.rand(ngals))
+    p2 = np.where(np.random.rand(ngals) > 0.05,
+        np.random.normal(loc=percentile, scale=local_random_scale), np.random.rand(ngals))
+
+    gr = conditional_abunmatch(magr, p1, magr, g_minus_r(magr), nwin)
+    ri = conditional_abunmatch(magr, p2, magr, r_minus_i(magr), nwin)
+
+    return gr, ri
 
