@@ -65,7 +65,7 @@ def quiescent_fraction_gr(magr,
     return np.interp(magr, x, y)
 
 
-def g_minus_r(magr, seed=None):
+def g_minus_r(magr, redshift, seed=None):
     magr = np.atleast_1d(magr)
 
     ngals = len(magr)
@@ -115,19 +115,20 @@ def quiescent_fraction_ri(magr,
     return np.interp(magr, x, y)
 
 
-def r_minus_i(magr, seed=None):
+def r_minus_i(magr, redshift, seed=None):
     magr = np.atleast_1d(magr)
 
     ngals = len(magr)
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_ri(magr)
 
+    red_sequence_loc = red_sequence_peak_ri(magr[is_quiescent])
     red_sequence = np.random.normal(
-        loc=red_sequence_peak_ri(magr[is_quiescent]),
-        scale=red_sequence_width_ri(magr[is_quiescent]))
+        loc=red_sequence_loc, scale=red_sequence_width_ri(magr[is_quiescent]))
+
+    main_sequence_loc = main_sequence_peak_ri(magr[~is_quiescent])
     star_forming_sequence = np.random.normal(
-        loc=main_sequence_peak_ri(magr[~is_quiescent]),
-        scale=main_sequence_width_ri(magr[~is_quiescent]))
+        loc=main_sequence_loc, scale=main_sequence_width_ri(magr[~is_quiescent]))
 
     result = np.zeros(ngals).astype('f4')
     result[is_quiescent] = red_sequence
@@ -135,7 +136,7 @@ def r_minus_i(magr, seed=None):
     return result
 
 
-def gr_ri_monte_carlo(magr, percentile,
+def gr_ri_monte_carlo(magr, percentile, redshift,
             local_random_scale=0.1, nonlocal_random_fraction=0.05, nwin=301):
     """
     """
@@ -146,8 +147,8 @@ def gr_ri_monte_carlo(magr, percentile,
     p2 = np.where(np.random.rand(ngals) > 0.05,
         np.random.normal(loc=percentile, scale=local_random_scale), np.random.rand(ngals))
 
-    gr = conditional_abunmatch(magr, p1, magr, g_minus_r(magr), nwin)
-    ri = conditional_abunmatch(magr, p2, magr, r_minus_i(magr), nwin)
+    gr = conditional_abunmatch(magr, p1, magr, g_minus_r(magr, redshift), nwin)
+    ri = conditional_abunmatch(magr, p2, magr, r_minus_i(magr, redshift), nwin)
 
     return gr, ri
 
