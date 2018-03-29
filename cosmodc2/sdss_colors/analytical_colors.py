@@ -94,7 +94,7 @@ def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
     result = np.zeros(ngals).astype('f4')
     result[is_quiescent] = red_sequence
     result[~is_quiescent] = star_forming_sequence
-    return result
+    return result, is_quiescent
 
 
 def red_sequence_width_ri(magr,
@@ -150,7 +150,7 @@ def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
     result = np.zeros(ngals).astype('f4')
     result[is_quiescent] = red_sequence
     result[~is_quiescent] = star_forming_sequence
-    return result
+    return result, is_quiescent
 
 
 def gr_ri_monte_carlo(magr, percentile, redshift,
@@ -164,8 +164,10 @@ def gr_ri_monte_carlo(magr, percentile, redshift,
     p2 = np.where(np.random.rand(ngals) > 0.05,
         np.random.normal(loc=percentile, scale=local_random_scale), np.random.rand(ngals))
 
-    gr = conditional_abunmatch(magr, p1, magr, g_minus_r(magr, redshift), nwin)
-    ri = conditional_abunmatch(magr, p2, magr, r_minus_i(magr, redshift), nwin)
+    ri_orig, is_quiescent_ri = r_minus_i(magr, redshift)
+    gr_orig, is_quiescent_gr = g_minus_r(magr, redshift)
+    gr = conditional_abunmatch(magr, p1, magr, gr_orig, nwin)
+    ri = conditional_abunmatch(magr, p2, magr, ri_orig, nwin)
 
-    return gr, ri
+    return gr, ri, is_quiescent_ri, is_quiescent_gr
 
