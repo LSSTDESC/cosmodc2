@@ -1,11 +1,12 @@
 """
 """
+from astropy.table import Table
 import numpy as np
 import os
 import fnmatch
 
 
-__all__ = ('load_um_binary_sfr_catalog', )
+__all__ = ('load_um_binary_sfr_catalog', 'reformat_umachine_binary_output')
 
 
 default_sfr_catalog_dtype = np.dtype([('id', '<i8'), ('descid', '<i8'), ('upid', '<i8'),
@@ -14,6 +15,30 @@ default_sfr_catalog_dtype = np.dtype([('id', '<i8'), ('descid', '<i8'), ('upid',
     ('r', '<f4'), ('rank1', '<f4'), ('rank2', '<f4'), ('ra', '<f4'),
     ('rarank', '<f4'), ('t_tdyn', '<f4'), ('sm', '<f4'), ('icl', '<f4'),
     ('sfr', '<f4'), ('obs_sm', '<f4'), ('obs_sfr', '<f4'), ('obs_uv', '<f4'), ('foo', '<f4')])
+
+
+def reformat_umachine_binary_output(fname,
+        keys_to_keep=('id', 'upid', 'vmp', 'mp', 'm', 'v', 'sm', 'sfr', 'obs_sm', 'obs_sfr')):
+    """
+    """
+    t = Table(load_um_binary_sfr_catalog(fname))
+    t['x'] = t['pos'][:, 0]
+    t['y'] = t['pos'][:, 1]
+    t['z'] = t['pos'][:, 2]
+    t['vx'] = t['pos'][:, 3]
+    t['vy'] = t['pos'][:, 4]
+    t['vz'] = t['pos'][:, 5]
+
+    for key in t.keys():
+        if key not in keys_to_keep:
+            t.remove_column(key)
+
+    t.rename_colum('vmp', 'vpeak')
+    t.rename_colum('mp', 'mpeak')
+    t.rename_colum('m', 'mvir')
+    t.rename_colum('v', 'vmax')
+
+    return t
 
 
 def load_um_binary_sfr_catalog(fname, dtype=default_sfr_catalog_dtype):
@@ -93,4 +118,7 @@ def retrieve_list_of_filenames(redshift_list, halocat_dirname, um_dirname):
     um_fname_list = list(find_closest_available_umachine_snapshot(z, um_dirname)
         for z in redshift_list)
     return um_fname_list, halocat_fname_list
+
+
+
 
