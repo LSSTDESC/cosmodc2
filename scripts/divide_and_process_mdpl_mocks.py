@@ -1,6 +1,8 @@
 """
 """
 import sys
+from time import time
+start = time()
 sys.path.insert(0, "/scratch2/scratchdirs/aphearin/galsampler/build/lib.linux-x86_64-2.7")
 sys.path.insert(0, "/scratch2/scratchdirs/aphearin/halotools/build/lib.linux-x86_64-2.7")
 sys.path.insert(0, "/scratch2/scratchdirs/aphearin/cosmodc2")
@@ -16,7 +18,6 @@ from cosmodc2.umachine_processing import calculate_host_centric_position_velocit
 from galsampler.utils import compute_richness
 from galsampler.source_galaxy_selection import _galaxy_table_indices
 from halotools.utils import sliding_conditional_percentile
-from cosmodc2.generate_snapshot_collection import load_host_halos
 
 
 parser = argparse.ArgumentParser()
@@ -35,11 +36,11 @@ umachine_mock = reformat_umachine_binary_output(args.umachine_sfr_catalog_fname)
 #  Add hostid column and separate host halos
 umachine_mock['hostid'] = umachine_mock['upid']
 host_halo_mask = umachine_mock['upid'] == -1
-umachine_mock['hostid'][host_halo_mask] = umachine_mock['id'][host_halo_mask]
+umachine_mock['hostid'][host_halo_mask] = umachine_mock['halo_id'][host_halo_mask]
 host_halos = umachine_mock[host_halo_mask]
 
 #  Throw out galaxies with less than 10^6 mstar
-umachine_mock = umachine_mock[umachine_mock['obs_sm'] > 10**6]
+umachine_mock = umachine_mock[umachine_mock['obs_sm'] > 10**6.5]
 Lbox = 1000.
 
 #  Apply periodic boundary conditions
@@ -123,7 +124,8 @@ print("...writing to disk")
 host_halos.write(args.bpl_halo_catalog_outname, path='data', overwrite=True)
 umachine_mock.write(args.umachine_catalog_outname, path='data', overwrite=True)
 
-
+end = time()
+print("total runtime = {0:.2f}".format(end-start))
 
 
 

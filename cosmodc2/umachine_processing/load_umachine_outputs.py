@@ -40,6 +40,7 @@ def reformat_umachine_binary_output(fname,
     t.rename_column('mp', 'mpeak')
     t.rename_column('m', 'mvir')
     t.rename_column('v', 'vmax')
+    t.rename_column('id', 'halo_id')
 
     return t
 
