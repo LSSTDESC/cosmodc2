@@ -6,8 +6,8 @@ start = time()
 sys.path.insert(0, "/scratch2/scratchdirs/aphearin/galsampler/build/lib.linux-x86_64-2.7")
 sys.path.insert(0, "/scratch2/scratchdirs/aphearin/halotools/build/lib.linux-x86_64-2.7")
 sys.path.insert(0, "/scratch2/scratchdirs/aphearin/cosmodc2")
-
 import numpy as np
+
 import os
 import argparse
 from halotools.utils import crossmatch
@@ -33,17 +33,9 @@ args = parser.parse_args()
 #  Load SFR mock
 umachine_mock = reformat_umachine_binary_output(args.umachine_sfr_catalog_fname)
 
-#  Add hostid column and separate host halos
-umachine_mock['hostid'] = umachine_mock['upid']
-host_halo_mask = umachine_mock['upid'] == -1
-umachine_mock['hostid'][host_halo_mask] = umachine_mock['halo_id'][host_halo_mask]
-host_halos = umachine_mock[host_halo_mask]
-
-#  Throw out galaxies with less than 10^6 mstar
-umachine_mock = umachine_mock[umachine_mock['obs_sm'] > 10**6.5]
-Lbox = 1000.
-
+print("...Applying periodic boundary conditions")
 #  Apply periodic boundary conditions
+Lbox = 1000.
 umachine_mock['x'] = enforce_periodicity_of_box(umachine_mock['x'], Lbox)
 umachine_mock['y'] = enforce_periodicity_of_box(umachine_mock['y'], Lbox)
 umachine_mock['z'] = enforce_periodicity_of_box(umachine_mock['z'], Lbox)
@@ -54,6 +46,21 @@ umachine_mock['x'][umachine_mock['x'] == Lbox] = Lbox-epsilon
 umachine_mock['y'][umachine_mock['y'] == Lbox] = Lbox-epsilon
 umachine_mock['z'][umachine_mock['z'] == Lbox] = Lbox-epsilon
 
+#  Catalog is too big - only keep the bottom left corner
+Lbox = 500.
+pos_mask = umachine_mock['x'] < Lbox
+pos_mask *= umachine_mock['y'] < Lbox
+pos_mask *= umachine_mock['z'] < Lbox
+umachine_mock = umachine_mock[pos_mask]
+
+#  Add hostid column and separate host halos
+umachine_mock['hostid'] = umachine_mock['upid']
+host_halo_mask = umachine_mock['upid'] == -1
+umachine_mock['hostid'][host_halo_mask] = umachine_mock['halo_id'][host_halo_mask]
+host_halos = umachine_mock[host_halo_mask]
+
+#  Throw out galaxies with less than 10^6 mstar
+umachine_mock = umachine_mock[umachine_mock['obs_sm'] > 10**6.]
 
 #  Throw out the small number of galaxies for which there is no matching host
 idxA, idxB = crossmatch(umachine_mock['hostid'], host_halos['halo_id'])
@@ -62,7 +69,8 @@ umachine_mock = umachine_mock[idxA]
 
 #  Compute host halo position for every UniverseMachine galaxy
 print("...computing host halo properties ")
-idxA, idxB = crossmatch(umachine_mock['hostid'], host_halos['halo_id'])
+idxA, idxB = crossmatch(umachine_mock['hostid'], host_halos['halo_id'],
+    skip_bounds_checking=True)
 
 umachine_mock['host_halo_x'] = np.nan
 umachine_mock['host_halo_y'] = np.nan
@@ -98,6 +106,8 @@ print("...computing SFR percentile")
 nwin = 501
 x = umachine_mock['obs_sm']
 y = umachine_mock['obs_sfr']
+umachine_mock['obs_sfr_percentile'] = sliding_conditional_percentile(x, y, nwin)
+y = umachine_mock['sfr']
 umachine_mock['sfr_percentile'] = sliding_conditional_percentile(x, y, nwin)
 
 
@@ -121,11 +131,11 @@ host_halos['first_galaxy_index'] = _galaxy_table_indices(
 
 #  Write results to disk
 print("...writing to disk")
-host_halos.write(args.bpl_halo_catalog_outname, path='data', overwrite=True)
+host_halos.write(args.halo_catalog_outname, path='data', overwrite=True)
 umachine_mock.write(args.umachine_catalog_outname, path='data', overwrite=True)
 
 end = time()
-print("total runtime = {0:.2f}".format(end-start))
+print("total runtime = {0:.2f} minutes".format((end-start)/60.))
 
 
 
