@@ -33,10 +33,10 @@ def reformat_umachine_binary_output(fname,
         if key not in keys_to_keep:
             t.remove_column(key)
 
-    t.rename_colum('vmp', 'vpeak')
-    t.rename_colum('mp', 'mpeak')
-    t.rename_colum('m', 'mvir')
-    t.rename_colum('v', 'vmax')
+    t.rename_column('vmp', 'vpeak')
+    t.rename_column('mp', 'mpeak')
+    t.rename_column('m', 'mvir')
+    t.rename_column('v', 'vmax')
 
     return t
 
