@@ -83,7 +83,7 @@ umachine_mock['host_halo_mvir'][idxA] = bpl_halos['mvir'][idxB]
 
 #  Compute halo-centric position for every UniverseMachine galaxy
 print("...computing host halo-centric positions and velocities")
-result = calculate_host_centric_position_velocity(umachine_mock, 250.)
+result = calculate_host_centric_position_velocity(umachine_mock, Lbox)
 xrel, yrel, zrel, vxrel, vyrel, vzrel = result
 umachine_mock['host_centric_x'] = xrel
 umachine_mock['host_centric_y'] = yrel

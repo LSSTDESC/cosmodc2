@@ -45,7 +45,8 @@ def get_filename_lists_of_protoDC2(pkldirname, halocat_dirname, um_dirname):
 def write_snapshot_mocks_to_disk(
             umachine_z0p1_color_mock_fname, alphaQ_halos_fname_list,
             umachine_mstar_ssfr_mock_fname_list, bpl_halos_fname_list,
-            output_color_mock_fname_list, redshift_list, commit_hash, overwrite=False):
+            output_color_mock_fname_list, redshift_list, commit_hash,
+            Lbox, overwrite=False):
     """
     Function writes to disk a set of extragalactic snapshot catalogs by GalSampling UniverseMachine.
 
@@ -95,7 +96,13 @@ def write_snapshot_mocks_to_disk(
     redshift_list : list
         List of floats storing the redshift of each protoDC2 snapshot
 
+    Lbox : float
+        Size of the simulation storing the UniverseMachine mocks
+
     """
+    assert Lbox in (250, 1000), "Positional Lbox argument should be either BPl or MDPL2"
+    raise NotImplementedError("Unfinished for v4")
+
     umachine_z0p1_color_mock = load_umachine_z0p1_color_mock(umachine_z0p1_color_mock_fname)
 
     gen = zip(alphaQ_halos_fname_list, umachine_mstar_ssfr_mock_fname_list,
@@ -109,7 +116,7 @@ def write_snapshot_mocks_to_disk(
         #  Load all three catalogs into memory
         alphaQ_halos = load_alphaQ_halos(fname1)
         umachine_mock = load_umachine_mstar_ssfr_mock(fname2)
-        bpl_halos = load_bpl_halos(fname3)
+        bpl_halos = load_bpl_halos(fname3, Lbox)
 
         #  Throw out the small number of galaxies for which there is no matching host
         idxA, idxB = crossmatch(umachine_mock['hostid'], bpl_halos['halo_id'])
@@ -143,7 +150,7 @@ def write_snapshot_mocks_to_disk(
         umachine_mock = umachine_mock[idxA]
 
         #  Compute halo-centric position for every UniverseMachine galaxy
-        result = calculate_host_centric_position_velocity(umachine_mock)
+        result = calculate_host_centric_position_velocity(umachine_mock, Lbox)
         xrel, yrel, zrel, vxrel, vyrel, vzrel = result
         umachine_mock['host_centric_x'] = xrel
         umachine_mock['host_centric_y'] = yrel
@@ -270,7 +277,7 @@ def load_umachine_z0p1_color_mock(umachine_z0p1_color_mock_fname):
     return Table.read(umachine_z0p1_color_mock_fname, path='data')
 
 
-def load_umachine_mstar_ssfr_mock(umachine_mstar_ssfr_mock_fname, Lbox=250.):
+def load_umachine_mstar_ssfr_mock(umachine_mstar_ssfr_mock_fname, Lbox):
     """
     """
     t = Table.read(umachine_mstar_ssfr_mock_fname, path='data')
@@ -306,7 +313,7 @@ def load_alphaQ_halos(alphaQ_halos_fname):
     return t
 
 
-def load_bpl_halos(bpl_halos_fname, Lbox=250.):
+def load_bpl_halos(bpl_halos_fname, Lbox):
     """
     """
     t = Table.read(bpl_halos_fname, path='data')
@@ -409,7 +416,7 @@ def build_output_snapshot_mock(umachine, target_halos, galaxy_indices, commit_ha
     return dc2
 
 
-def calculate_host_centric_position_velocity(mock, Lbox=250.):
+def calculate_host_centric_position_velocity(mock, Lbox):
     """
     """
     xrel, vxrel = relative_positions_and_velocities(mock['x'], mock['host_halo_x'],
