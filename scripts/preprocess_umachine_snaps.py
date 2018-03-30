@@ -32,6 +32,7 @@ parser.add_argument("bpl_halo_catalog_outname",
 args = parser.parse_args()
 
 umachine_mock = reformat_umachine_binary_output(args.umachine_sfr_catalog_fname)
+umachine_mock = umachine_mock[umachine_mock['obs_sm'] > 10**6]
 Lbox = 250.
 
 #  Load both catalogs into memory
@@ -49,74 +50,78 @@ umachine_mock['z'][umachine_mock['z'] == Lbox] = Lbox-epsilon
 bpl_halos = load_bpl_halos(args.bpl_halo_catalog_fname)
 print("bpl_halos has been loaded")
 
-# #  Throw out the small number of galaxies for which there is no matching host
-# umachine_mock['hostid'] = umachine_mock['upid']
-# host_halo_mask = umachine_mock['upid'] == -1
-# umachine_mock['hostid'][host_halo_mask] = umachine_mock['id'][host_halo_mask]
+#  Throw out the small number of galaxies for which there is no matching host
+umachine_mock['hostid'] = umachine_mock['upid']
+host_halo_mask = umachine_mock['upid'] == -1
+umachine_mock['hostid'][host_halo_mask] = umachine_mock['id'][host_halo_mask]
 
-# idxA, idxB = crossmatch(umachine_mock['hostid'], bpl_halos['halo_id'])
-# umachine_mock = umachine_mock[idxA]
-
-
-# #  Compute host halo position for every UniverseMachine galaxy
-# idxA, idxB = crossmatch(umachine_mock['hostid'], bpl_halos['halo_id'])
-
-# umachine_mock['host_halo_x'] = np.nan
-# umachine_mock['host_halo_y'] = np.nan
-# umachine_mock['host_halo_z'] = np.nan
-# umachine_mock['host_halo_vx'] = np.nan
-# umachine_mock['host_halo_vy'] = np.nan
-# umachine_mock['host_halo_vz'] = np.nan
-# umachine_mock['host_halo_mvir'] = np.nan
-
-# umachine_mock['host_halo_x'][idxA] = bpl_halos['x'][idxB]
-# umachine_mock['host_halo_y'][idxA] = bpl_halos['y'][idxB]
-# umachine_mock['host_halo_z'][idxA] = bpl_halos['z'][idxB]
-# umachine_mock['host_halo_vx'][idxA] = bpl_halos['vx'][idxB]
-# umachine_mock['host_halo_vy'][idxA] = bpl_halos['vy'][idxB]
-# umachine_mock['host_halo_vz'][idxA] = bpl_halos['vz'][idxB]
-# umachine_mock['host_halo_mvir'][idxA] = bpl_halos['mvir'][idxB]
-
-
-# #  Compute halo-centric position for every UniverseMachine galaxy
-# result = calculate_host_centric_position_velocity(umachine_mock)
-# xrel, yrel, zrel, vxrel, vyrel, vzrel = result
-# umachine_mock['host_centric_x'] = xrel
-# umachine_mock['host_centric_y'] = yrel
-# umachine_mock['host_centric_z'] = zrel
-# umachine_mock['host_centric_vx'] = vxrel
-# umachine_mock['host_centric_vy'] = vyrel
-# umachine_mock['host_centric_vz'] = vzrel
-
-
-# #  Add column for sfr_percentile
-# nwin = 501
-# x = umachine_mock['obs_sm']
-# y = umachine_mock['obs_sfr']
-# umachine_mock['sfr_percentile'] = sliding_conditional_percentile(x, y, nwin)
-
-
-# print("          Computing galaxy--halo correspondence for UniverseMachine galaxies/halos\n")
-
-# #  Sort the mock by host halo ID, putting centrals first within each grouping
-# umachine_mock.sort(('hostid', 'upid'))
-
-# #  Compute the number of galaxies in each Bolshoi-Planck halo
-# bpl_halos['richness'] = compute_richness(
-#     bpl_halos['halo_id'], umachine_mock['hostid'])
-
-# #  For every Bolshoi-Planck halo, compute the index of the galaxy table
-# #  storing the central galaxy, reserving -1 for unoccupied halos
-# bpl_halos['first_galaxy_index'] = _galaxy_table_indices(
-#     bpl_halos['halo_id'], umachine_mock['hostid'])
-# #  Because of the particular sorting order of umachine_mock,
-# #  knowledge of `first_galaxy_index` and `richness` gives sufficient
-# #  information to map the correct members of umachine_mock to each halo
+idxA, idxB = crossmatch(umachine_mock['hostid'], bpl_halos['halo_id'])
+umachine_mock = umachine_mock[idxA]
 
 
 
-# #  Write results to disk
+#  Compute host halo position for every UniverseMachine galaxy
+print("...computing host halo properties ")
+idxA, idxB = crossmatch(umachine_mock['hostid'], bpl_halos['halo_id'])
 
-# bpl_halos.write(args.bpl_halo_catalog_outname, path='data')
-# umachine_mock.write(args.umachine_catalog_outname, path='data')
+umachine_mock['host_halo_x'] = np.nan
+umachine_mock['host_halo_y'] = np.nan
+umachine_mock['host_halo_z'] = np.nan
+umachine_mock['host_halo_vx'] = np.nan
+umachine_mock['host_halo_vy'] = np.nan
+umachine_mock['host_halo_vz'] = np.nan
+umachine_mock['host_halo_mvir'] = np.nan
+
+umachine_mock['host_halo_x'][idxA] = bpl_halos['x'][idxB]
+umachine_mock['host_halo_y'][idxA] = bpl_halos['y'][idxB]
+umachine_mock['host_halo_z'][idxA] = bpl_halos['z'][idxB]
+umachine_mock['host_halo_vx'][idxA] = bpl_halos['vx'][idxB]
+umachine_mock['host_halo_vy'][idxA] = bpl_halos['vy'][idxB]
+umachine_mock['host_halo_vz'][idxA] = bpl_halos['vz'][idxB]
+umachine_mock['host_halo_mvir'][idxA] = bpl_halos['mvir'][idxB]
+
+
+#  Compute halo-centric position for every UniverseMachine galaxy
+print("...computing host halo-centric positions and velocities")
+result = calculate_host_centric_position_velocity(umachine_mock, 250.)
+xrel, yrel, zrel, vxrel, vyrel, vzrel = result
+umachine_mock['host_centric_x'] = xrel
+umachine_mock['host_centric_y'] = yrel
+umachine_mock['host_centric_z'] = zrel
+umachine_mock['host_centric_vx'] = vxrel
+umachine_mock['host_centric_vy'] = vyrel
+umachine_mock['host_centric_vz'] = vzrel
+
+
+#  Add column for sfr_percentile
+print("...computing SFR percentile")
+nwin = 501
+x = umachine_mock['obs_sm']
+y = umachine_mock['obs_sfr']
+umachine_mock['sfr_percentile'] = sliding_conditional_percentile(x, y, nwin)
+
+
+#  Sort the mock by host halo ID, putting centrals first within each grouping
+umachine_mock.sort(('hostid', 'upid'))
+
+#  Compute the number of galaxies in each Bolshoi-Planck halo
+print("...computing richness")
+bpl_halos['richness'] = compute_richness(
+    bpl_halos['halo_id'], umachine_mock['hostid'])
+
+#  For every Bolshoi-Planck halo, compute the index of the galaxy table
+#  storing the central galaxy, reserving -1 for unoccupied halos
+print("...computing galaxy selection indices")
+bpl_halos['first_galaxy_index'] = _galaxy_table_indices(
+    bpl_halos['halo_id'], umachine_mock['hostid'])
+#  Because of the particular sorting order of umachine_mock,
+#  knowledge of `first_galaxy_index` and `richness` gives sufficient
+#  information to map the correct members of umachine_mock to each halo
+
+
+
+#  Write results to disk
+print("...writing to disk")
+bpl_halos.write(args.bpl_halo_catalog_outname, path='data', overwrite=True)
+umachine_mock.write(args.umachine_catalog_outname, path='data', overwrite=True)
 
