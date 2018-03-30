@@ -18,20 +18,23 @@ default_sfr_catalog_dtype = np.dtype([('id', '<i8'), ('descid', '<i8'), ('upid',
 
 
 def reformat_umachine_binary_output(fname,
-        keys_to_keep=('id', 'upid', 'vmp', 'mp', 'm', 'v', 'sm', 'sfr', 'obs_sm', 'obs_sfr')):
+        keys_to_keep=['id', 'upid', 'vmp', 'mp', 'm', 'v', 'sm', 'sfr', 'obs_sm', 'obs_sfr']):
     """
     """
     t = Table(load_um_binary_sfr_catalog(fname))
+
+    keys_to_keep.append('pos')
+    for key in t.keys():
+        if key not in keys_to_keep:
+            t.remove_column(key)
+
     t['x'] = t['pos'][:, 0]
     t['y'] = t['pos'][:, 1]
     t['z'] = t['pos'][:, 2]
     t['vx'] = t['pos'][:, 3]
     t['vy'] = t['pos'][:, 4]
     t['vz'] = t['pos'][:, 5]
-
-    for key in t.keys():
-        if key not in keys_to_keep:
-            t.remove_column(key)
+    t.remove_column('pos')
 
     t.rename_column('vmp', 'vpeak')
     t.rename_column('mp', 'mpeak')
