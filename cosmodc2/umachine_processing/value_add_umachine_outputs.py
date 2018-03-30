@@ -8,7 +8,8 @@ from galsampler.source_galaxy_selection import _galaxy_table_indices
 from scipy.stats import cKDTree
 
 
-__all__ = ('calculate_value_added_galaxy_halo_catalogs', )
+__all__ = ('calculate_value_added_galaxy_halo_catalogs',
+        'calculate_host_centric_position_velocity')
 
 
 def calculate_value_added_galaxy_halo_catalogs(
