@@ -6,6 +6,8 @@ import numpy as np
 rp = np.array((0.17, 0.27, 0.42, 0.67, 1.1, 1.7,
     2.7, 4.2, 6.7, 10.6, 16.9, 26.8, 42.3))
 
+__all__ = ('zehavi11_cumulative_nd', 'zehavi11_clustering')
+
 
 def zehavi11_cumulative_nd(magr_h=0.7, distance_h=1.):
     """ Their quoted values for luminosity and distance are assuming h=1.
