@@ -6,20 +6,14 @@ from halotools.empirical_models import polynomial_from_table
 from astropy.utils.misc import NumpyRNGContext
 
 
-__all__ = ('mock_magr', 'assign_data_source', 'median_magr_from_mstar',
-        'twopart_median_magr_from_mstar')
+__all__ = ('mock_magr', 'assign_data_source',
+        'median_magr_from_mstar', 'dim_satellites')
 
 default_seed = 43
 
 
-def median_magr_from_mstar(log_mstar, x_table=[8.5, 10, 11.5], y_table=[-17.75, -20., -23]):
-    """
-    """
-    return polynomial_from_table(x_table, y_table, log_mstar)
-
-
-def twopart_median_magr_from_mstar(log_mstar,
-        x_table=[9.5, 10.25, 11.5], y_table=[-18, -19.5, -22.25],
+def median_magr_from_mstar(log_mstar,
+        x_table=[9.5, 10.25, 11.5], y_table=[-18.8, -20.1, -22.6],
         faint_end_x=6, faint_end_y=-15):
     """
     """
@@ -29,6 +23,38 @@ def twopart_median_magr_from_mstar(log_mstar,
         [faint_end_x, x_table[0]], [faint_end_y, y_table[0]])
     result[mask] = faint_end_result[mask]
     return result
+
+
+def satellite_dimming_selection(log_mhost, upid, log_mhost_table, dimprob):
+    """
+    """
+    prob = np.ones_like(log_mhost)
+    satmask = upid != -1
+    prob[satmask] = np.interp(log_mhost[satmask], log_mhost_table, dimprob)
+    return np.random.rand(len(upid)) < prob
+
+
+def satellite_dimming_factor(log_mpeak, upid, mpeak_table, dimming_mag_table):
+    """
+    """
+    mask = upid != -1
+    dimming_factor = np.zeros_like(log_mpeak)
+    dimming_factor[mask] = np.interp(
+        log_mpeak[mask], mpeak_table, dimming_mag_table)
+    return dimming_factor
+
+
+def dim_satellites(magr, log_mpeak, log_mhost, upid,
+        log_mhost_table=[12, 13.5, 15], dimprob=[0, 0.25, 1.],
+        mpeak_table=[11.5, 12.25, 13], dimming_mag_table=[0.75, 0.35, 0.]):
+    """
+    """
+    dimming_mag = satellite_dimming_factor(
+            log_mpeak, upid, mpeak_table, dimming_mag_table)
+    dimming_mask = satellite_dimming_selection(log_mhost, upid, log_mhost_table, dimprob)
+
+    magr[dimming_mask] += dimming_mag[dimming_mask]
+    return magr
 
 
 def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
