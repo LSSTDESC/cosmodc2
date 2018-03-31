@@ -6,12 +6,12 @@ from halotools.empirical_models import polynomial_from_table
 from astropy.utils.misc import NumpyRNGContext
 
 
-__all__ = ('mock_magr', 'assign_data_source')
+__all__ = ('mock_magr', 'assign_data_source', 'median_magr_from_mstar')
 
 default_seed = 43
 
 
-def magr_from_mstar(log_mstar, x_table = [8, 10, 11.5],
+def median_magr_from_mstar(log_mstar, x_table = [8, 10, 11.5],
                     y_table = [-16.25, -19.8, -23]):
     """
     """
