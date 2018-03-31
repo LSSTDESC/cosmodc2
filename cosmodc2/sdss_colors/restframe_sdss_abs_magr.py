@@ -11,8 +11,7 @@ __all__ = ('mock_magr', 'assign_data_source', 'median_magr_from_mstar')
 default_seed = 43
 
 
-def median_magr_from_mstar(log_mstar, x_table = [8, 10, 11.5],
-                    y_table = [-16.25, -19.8, -23]):
+def median_magr_from_mstar(log_mstar, x_table=[8.5, 10, 11.5], y_table=[-17.75, -20., -23]):
     """
     """
     return polynomial_from_table(x_table, y_table, log_mstar)

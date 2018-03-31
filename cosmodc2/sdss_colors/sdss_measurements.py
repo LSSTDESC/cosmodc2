@@ -5,19 +5,38 @@ import numpy as np
 
 rp = np.array((0.17, 0.27, 0.42, 0.67, 1.1, 1.7,
     2.7, 4.2, 6.7, 10.6, 16.9, 26.8, 42.3))
+lumthresh = np.array((-18, -18.5, -19, -19.5, -20, -20.5, -21, -21.5, -22.0))
+
 
 __all__ = ('zehavi11_cumulative_nd', 'zehavi11_clustering')
 
 
-def zehavi11_cumulative_nd(magr_h=0.7, distance_h=1.):
-    """ Their quoted values for luminosity and distance are assuming h=1.
+def zehavi11_cumulative_nd(magr_h=0.7):
+    """ Cumulative number densities in units of (h/Mpc)**3
+    taken from Table 2 of Zehavi+11, https://arxiv.org/abs/1005.2413.
 
+    Their quoted values for luminosity and distance are assuming h=1.
     The scaling of Mr with little h is given by Mr + 5 log h.
+    The sign convention for this conversion is made explicit below.
+
+    To convert Magr to other little h conventions to permit direct comparison
+    to zehavi11_cumulative_nd, proceed as follows.
+    Let's use the notation ``Mr[h=1]`` to denote the numerical value
+    of the r-band absolute magnitude of a galaxy when one assumes H0=100km/s/Mpc;
+    similarly, ``Mr[h=0.7]`` denotes the numerical value of r-band absolute magnitude
+    of the very same galaxy when one assumes H0=70/s/Mpc.
+    To convert between these two values:
+
+    Mr[h=0.7] = Mr[h=1] + 5*log_10(0.7)
+
+    So when converting to values quoted for h=0.7,
+    the value of Mr gets smaller, more negative, corresponding to a brighter value,
+    relative to the h=1 quoted value.
+
     Distance scales as R/h, but the simulation coordinates also use h=1
     so it's easier not to convert.
     """
-    lumthresh = np.array((-18, -18.5, -19, -19.5, -20, -20.5, -21, -21.5))
-    cumnd = np.array((3.030, 2.311, 1.676, 1.12, 0.656, 0.318, 0.116, 0.028))
+    cumnd = np.array((3.030, 2.311, 1.676, 1.12, 0.656, 0.318, 0.116, 0.028, 0.005))/100.
     return lumthresh, cumnd
 
 def zehavi11_clustering(magr_thresh):
