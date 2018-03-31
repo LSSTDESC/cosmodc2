@@ -6,7 +6,8 @@ from halotools.empirical_models import polynomial_from_table
 from astropy.utils.misc import NumpyRNGContext
 
 
-__all__ = ('mock_magr', 'assign_data_source', 'median_magr_from_mstar')
+__all__ = ('mock_magr', 'assign_data_source', 'median_magr_from_mstar',
+        'twopart_median_magr_from_mstar')
 
 default_seed = 43
 
@@ -15,6 +16,19 @@ def median_magr_from_mstar(log_mstar, x_table=[8.5, 10, 11.5], y_table=[-17.75, 
     """
     """
     return polynomial_from_table(x_table, y_table, log_mstar)
+
+
+def twopart_median_magr_from_mstar(log_mstar,
+        x_table=[9.5, 10.25, 11.5], y_table=[-18, -19.5, -22.25],
+        faint_end_x=6, faint_end_y=-15):
+    """
+    """
+    result = polynomial_from_table(x_table, y_table, log_mstar)
+    mask = log_mstar < x_table[0]
+    faint_end_result = np.interp(log_mstar,
+        [faint_end_x, x_table[0]], [faint_end_y, y_table[0]])
+    result[mask] = faint_end_result[mask]
+    return result
 
 
 def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
