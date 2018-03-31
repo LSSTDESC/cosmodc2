@@ -11,6 +11,13 @@ __all__ = ('mock_magr', 'assign_data_source')
 default_seed = 43
 
 
+def magr_from_mstar(log_mstar, x_table = [8, 10, 11.5],
+                    y_table = [-16.25, -19.8, -23]):
+    """
+    """
+    return polynomial_from_table(x_table, y_table, log_mstar)
+
+
 def assign_data_source(mock_logsm, table_abscissa=np.array([8.5, 9, 9.5, 10]),
             table_ordinates=np.array([1, 0.8, 0.35, 0]), seed=default_seed):
     """
