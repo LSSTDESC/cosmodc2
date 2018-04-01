@@ -26,3 +26,6 @@ def calculate_cluster_clf_powerlaw_coeffs(mstar, magr, upid):
     c1, c0 = np.polyfit(logsm_mids, median_magr, deg=1)
 
     return c0, c1
+
+
+
