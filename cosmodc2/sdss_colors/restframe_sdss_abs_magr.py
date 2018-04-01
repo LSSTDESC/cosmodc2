@@ -4,10 +4,11 @@ import numpy as np
 from scipy.spatial import cKDTree
 from halotools.empirical_models import polynomial_from_table
 from astropy.utils.misc import NumpyRNGContext
+from halotools.empirical_models import conditional_abunmatch
 
 
 __all__ = ('mock_magr', 'assign_data_source',
-        'median_magr_from_mstar', 'dim_satellites')
+        'median_magr_from_mstar', 'dim_satellites', 'mock_magr_from_sdss_draws')
 
 default_seed = 43
 
@@ -178,10 +179,11 @@ def extrapolate_faint_end_magr(mstar_mock, p0, p1, magr_scatter, seed=default_se
         return np.random.normal(loc=median_magr, scale=magr_scatter)
 
 
-def mock_magr(mstar_mock, sfr_percentile_mock,
+def mock_magr_from_sdss_draws(mstar_mock, sfr_percentile_mock,
             logsm_sdss, sfr_percentile_sdss, magr_sdss, redshift_sdss,
             p0=0.6, p1=-2.02, scatter1=0.5, scatter2=0.5, z0=0.05, seed=default_seed):
-    """ Generate a Monte Carlo realization of r-band Absolute magnitude
+    """ Generate a Monte Carlo realization of r-band Absolute magnitude by
+    empirically drawing from SDSS data (with an extrapolation at the faint end)
 
     Parameters
     ----------
@@ -260,3 +262,70 @@ def mock_magr(mstar_mock, sfr_percentile_mock,
     magr[mock_mask1] = extrapolated_magr
 
     return magr
+
+
+def prob_remap_bcg(upid, host_halo_mass,
+            mhalo_table=(13.5, 13.75, 14, 15), prob_table=(0, 0.1, 0.5, 1)):
+    """
+    """
+    ngals = len(upid)
+
+    prob_remap = np.interp(np.log10(host_halo_mass), mhalo_table, prob_table)
+    uran = np.random.rand(ngals)
+    uran[upid != -1] = 1.0
+    return uran < prob_remap
+
+
+def prob_remap_highsm(upid, logsm,
+            logsm_table=(11, 11.25, 11.5), prob_table=(0, 0.5, 1)):
+    """
+    """
+    ngals = len(upid)
+
+    prob_remap = np.interp(logsm, logsm_table, prob_table)
+    uran = np.random.rand(ngals)
+    return uran < prob_remap
+
+
+def remap_bcg_and_high_mass(upid, host_halo_mvir, logsm, magr):
+    """
+    """
+
+    remap_bcg = prob_remap_bcg(upid, host_halo_mvir)
+    remap_highsm = prob_remap_highsm(upid, logsm)
+    remapping_mask = remap_bcg | remap_highsm
+    num_to_remap = np.count_nonzero(remapping_mask)
+
+    c0, c1 = (-0.178, -1.935)
+    median_new_magr2 = c0 + c1*logsm
+
+    new_magr = magr
+    new_magr[remapping_mask] = np.random.normal(
+        loc=median_new_magr2[remapping_mask], scale=0.35, size=num_to_remap)
+
+    return new_magr
+
+
+def cam_rematch_magr(mstar, old_magr, new_magr, nwin=301):
+    """
+    """
+    return conditional_abunmatch(mstar, old_magr, mstar, new_magr, nwin)
+
+
+def mock_magr(upid_mock, mstar_mock, sfr_percentile_mock, host_halo_mvir_mock,
+            logsm_sdss, sfr_percentile_sdss, magr_sdss, redshift_sdss):
+    """
+    """
+    magr_mock_from_data = mock_magr_from_sdss_draws(mstar_mock, sfr_percentile_mock,
+                logsm_sdss, sfr_percentile_sdss, magr_sdss, redshift_sdss)
+
+    logsm_mock = np.log10(mstar_mock)
+    remapped_magr_mock = remap_bcg_and_high_mass(
+        upid_mock, host_halo_mvir_mock, logsm_mock, magr_mock_from_data)
+
+    cam_smoothed_magr_mock = cam_rematch_magr(
+        mstar_mock, magr_mock_from_data, remapped_magr_mock)
+
+    return cam_smoothed_magr_mock
+
+
