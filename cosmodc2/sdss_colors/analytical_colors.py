@@ -3,11 +3,9 @@
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from halotools.empirical_models import conditional_abunmatch
-from scipy.linalg import eigh
-from scipy.stats import norm
 
 
-__all__ = ('gr_ri_monte_carlo', 'overhaul_gr_ri_monte_carlo')
+__all__ = ('gr_ri_monte_carlo',)
 
 
 def sequence_width(magr, x, y):
@@ -159,25 +157,6 @@ def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
 
 
 def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
-            local_random_scale=0.1, nonlocal_random_fraction=0.05, nwin=301):
-    """
-    """
-    ngals = len(magr)
-
-    p1 = np.where(np.random.rand(ngals) > 0.05,
-        np.random.normal(loc=1-sfr_percentile, scale=local_random_scale), np.random.rand(ngals))
-    p2 = np.where(np.random.rand(ngals) > 0.05,
-        np.random.normal(loc=1-sfr_percentile, scale=local_random_scale), np.random.rand(ngals))
-
-    ri_orig, is_quiescent_ri = r_minus_i(magr, redshift)
-    gr_orig, is_quiescent_gr = g_minus_r(magr, redshift)
-    gr = conditional_abunmatch(magr, p1, magr, gr_orig, nwin)
-    ri = conditional_abunmatch(magr, p2, magr, ri_orig, nwin)
-
-    return gr, ri, is_quiescent_ri, is_quiescent_gr
-
-
-def overhaul_gr_ri_monte_carlo(magr, sfr_percentile, redshift,
             local_random_scale=0.1, nwin=301, seed=43):
     """
     """
