@@ -30,11 +30,22 @@ def cumulative_nd(magr, volume, assumed_littleh_for_magr, lumthresh_h1p0):
     return counts/float(volume)
 
 
-def zehavi_wp(x, y, z, vz, period, magr, magr_thresh, assumed_littleh_for_magr):
+def zehavi_wp(x, y, z, vz, period, magr, magr_thresh, assumed_littleh_for_magr,
+            subsample='all', gr_colors=None):
     """
     """
-    magr_h0p1 = magr - 5*np.log10(assumed_littleh_for_magr)
-    mask = magr_h0p1 < magr_thresh
+    magr_h1p0 = magr - 5*np.log10(assumed_littleh_for_magr)
+
+    mask = magr_h1p0 < magr_thresh
+    if subsample != 'all':
+        gr_cut = 0.21 - 0.03*magr_h1p0
+        assert gr_colors is not None, "Must pass g-r colors when subsample = {0}".format(subsample)
+        blue_mask = gr_colors < gr_cut
+        if subsample == 'blue':
+            mask *= blue_mask
+        elif subsample == 'red':
+            mask *= ~blue_mask
+
     ngals = np.count_nonzero(mask)
 
     downsampling_factor = 4.e5/float(ngals)

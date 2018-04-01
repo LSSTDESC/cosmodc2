@@ -1,5 +1,6 @@
 """
 """
+import os
 import numpy as np
 
 
@@ -39,7 +40,9 @@ def zehavi11_cumulative_nd(magr_h=0.7):
     cumnd = np.array((3.030, 2.311, 1.676, 1.12, 0.656, 0.318, 0.116, 0.028, 0.005))/100.
     return lumthresh, cumnd
 
-def zehavi11_clustering(magr_thresh):
+
+def zehavi11_clustering(magr_thresh, subsample='all',
+        data_dirname="/Users/aphearin/Dropbox/sham_colors/DATA/Zehavi_wp_lumthresh_colorsplit"):
     """"
     """
     thresh_18p0 = np.array((
@@ -60,24 +63,33 @@ def zehavi11_clustering(magr_thresh):
     thresh_21p5 = np.array((1028.0, 731.7, 392.6, 228.6, 144.6, 94.3, 70.5, 48.6,
         33.1, 20.9, 11.6, 6.04))
 
-    if magr_thresh == -18:
-        return thresh_18p0
-    elif magr_thresh == -18.5:
-        return thresh_18p5
-    elif magr_thresh == -19.0:
-        return thresh_19p0
-    elif magr_thresh == -19.5:
-        return thresh_19p5
-    elif magr_thresh == -20.0:
-        return thresh_20p0
-    elif magr_thresh == -20.5:
-        return thresh_20p5
-    elif magr_thresh == -21.0:
-        return thresh_21p0
-    elif magr_thresh == -21.5:
-        return thresh_21p5
+    if subsample == 'all':
+        if magr_thresh == -18:
+            return thresh_18p0
+        elif magr_thresh == -18.5:
+            return thresh_18p5
+        elif magr_thresh == -19.0:
+            return thresh_19p0
+        elif magr_thresh == -19.5:
+            return thresh_19p5
+        elif magr_thresh == -20.0:
+            return thresh_20p0
+        elif magr_thresh == -20.5:
+            return thresh_20p5
+        elif magr_thresh == -21.0:
+            return thresh_21p0
+        elif magr_thresh == -21.5:
+            return thresh_21p5
+        else:
+            return ValueError("unsupported value of magr_thresh = {0}".format(magr_thresh))
     else:
-        return ValueError("unsupported value of magr_thresh = {0}".format(magr_thresh))
+        msg = "``subsample`` argument = {0}\n The available options are ``all``, ``red``, ``blue``"
+        assert subsample in ('blue', 'red'), msg.format(subsample)
+        magr_thresh_string = "{0:.1f}".format(abs(magr_thresh))
+        basename = "wp_" + magr_thresh_string + "_m" + subsample + ".dat"
+        fname = os.path.join(data_dirname, basename)
+        X = np.loadtxt(fname)
+        return X[:-1, 1], X[:-1, 2]
 
 
 
