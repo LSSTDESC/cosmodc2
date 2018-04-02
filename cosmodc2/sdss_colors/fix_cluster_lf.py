@@ -106,6 +106,7 @@ def cluster_bcg_red_sequence_gr_ri(num_samples, gr_median, ri_median, scatter):
 
 
 def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
+        is_on_red_sequence_gr, is_on_red_sequence_ri,
         host_mass_table=(13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.25, 0.75, 1),
         gr_red_sequence_median=0.95, gr_red_sequence_scatter=0.04,
         ri_red_sequence_median=0.44, ri_red_sequence_scatter=0.03, nwin=101):
@@ -113,6 +114,8 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
     """
     remapping_mask = prob_remap_cluster_bcg(
         upid, host_halo_mvir, host_mass_table, prob_remap_table)
+    is_on_red_sequence_gr[remapping_mask] = True
+    is_on_red_sequence_ri[remapping_mask] = True
 
     num_to_remap = np.count_nonzero(remapping_mask)
     nwin = min(num_to_remap, nwin)
@@ -142,7 +145,7 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
             halo_mass, noisy_input_gr, halo_mass, desired_ri, nwin)
         ri[remapping_mask] = remapped_red_sequence_ri
 
-    return gr, ri
+    return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
 
 
 
