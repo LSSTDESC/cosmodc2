@@ -25,18 +25,18 @@ mzero_bulge = -21.8
 scatter_bulge = 0.15
 
 #  Redshift-dependence parameters
-default_z_table = (0.1, 5, 1, 2)
-default_shrinking_table = (1., 1.75, 2.5, 3.5)
+default_z_table = (0.25, 0.75, 1.25, 2)
+default_shrinking_table = (1., 1.25, 1.5, 2.)
 
 
-def redshift_shrinking_factor(redshift, z_table, shrinking_table):
+def redshift_shrinking_factor(redshift, z0=1, ymin=1, ymax=2, k=4):
+    """ Sigmoid function calibrated against van der Wel 2014.
     """
-    """
-    return np.interp(redshift, z_table, shrinking_table)
+    height_diff = ymax-ymin
+    return ymin + height_diff/(1 + np.exp(-k*(redshift-z0)))
 
 
-def median_size_vs_luminosity(magr, redshift, gamma, alpha, beta, mzero,
-            z_table, shrinking_table):
+def median_size_vs_luminosity(magr, redshift, gamma, alpha, beta, mzero):
     """
     Generic functional form used by Zhang & Yang (2017) to model size vs. luminosity
 
@@ -60,14 +60,6 @@ def median_size_vs_luminosity(magr, redshift, gamma, alpha, beta, mzero,
     mzero : float
         transition luminosity parameter of the fitting function
 
-    z_table : ndarray
-        Numpy array of shape (npts, ) storing the abscissa
-        at which the redshift-dependence is tabulated
-
-    shrinking_table : ndarray
-        Numpy array of shape (npts, ) storing the value of the
-        redshift-shrinking factor evaluated at the input z_table.
-
     Returns
     -------
     median_size : ndarray
@@ -80,13 +72,12 @@ def median_size_vs_luminosity(magr, redshift, gamma, alpha, beta, mzero,
     """
     luminosity = 10**(-0.4*(magr-mzero))
     z0_size = gamma*(luminosity**alpha)*((1.+luminosity)**(beta-alpha))
-    shrinking_factor = redshift_shrinking_factor(redshift, z_table, shrinking_table)
+    shrinking_factor = redshift_shrinking_factor(redshift)
     return z0_size/shrinking_factor
 
 
 def median_size_vs_luminosity_early_type(magr, redshift,
-        alpha=alpha_bulge, beta=beta_bulge, gamma=gamma_bulge, mzero=mzero_bulge,
-        z_table=default_z_table, shrinking_table=default_shrinking_table):
+        alpha=alpha_bulge, beta=beta_bulge, gamma=gamma_bulge, mzero=mzero_bulge):
     """
     Fitting function for median bulge size vs. luminosity
 
@@ -110,14 +101,6 @@ def median_size_vs_luminosity_early_type(magr, redshift,
     mzero : float, optional
         transition luminosity parameter of the fitting function
 
-    z_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the abscissa
-        at which the redshift-dependence is tabulated
-
-    shrinking_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the value of the
-        redshift-shrinking factor evaluated at the input z_table.
-
     Returns
     -------
     median_size : ndarray
@@ -134,12 +117,11 @@ def median_size_vs_luminosity_early_type(magr, redshift,
     >>> sizes = median_size_vs_luminosity_early_type(magr, redshift)
     """
     return median_size_vs_luminosity(
-            magr, redshift, gamma, alpha, beta, mzero, z_table, shrinking_table)
+            magr, redshift, gamma, alpha, beta, mzero)
 
 
 def median_size_vs_luminosity_late_type(magr, redshift,
-        alpha=alpha_disk, beta=beta_disk, gamma=gamma_disk, mzero=mzero_disk,
-        z_table=default_z_table, shrinking_table=default_shrinking_table):
+        alpha=alpha_disk, beta=beta_disk, gamma=gamma_disk, mzero=mzero_disk):
     """
     Fitting function for median disk size vs. luminosity
 
@@ -163,14 +145,6 @@ def median_size_vs_luminosity_late_type(magr, redshift,
     mzero : float, optional
         transition luminosity parameter of the fitting function
 
-    z_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the abscissa
-        at which the redshift-dependence is tabulated
-
-    shrinking_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the value of the
-        redshift-shrinking factor evaluated at the input z_table.
-
     Returns
     -------
     median_size : ndarray
@@ -187,13 +161,12 @@ def median_size_vs_luminosity_late_type(magr, redshift,
     >>> sizes = median_size_vs_luminosity_late_type(magr, redshift)
     """
     return median_size_vs_luminosity(
-            magr, redshift, gamma, alpha, beta, mzero, z_table, shrinking_table)
+            magr, redshift, gamma, alpha, beta, mzero)
 
 
 def mc_size_vs_luminosity_early_type(magr, redshift,
         alpha=alpha_bulge, beta=beta_bulge, gamma=gamma_bulge, mzero=mzero_bulge,
-        scatter=scatter_bulge, z_table=default_z_table,
-        shrinking_table=default_shrinking_table):
+        scatter=scatter_bulge):
     """
     Monte Carlo realization of bulge size based on the
     Zhang & Yang (2017) fitting function for median bulge size vs. luminosity
@@ -218,14 +191,6 @@ def mc_size_vs_luminosity_early_type(magr, redshift,
     mzero : float, optional
         transition luminosity parameter of the fitting function
 
-    z_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the abscissa
-        at which the redshift-dependence is tabulated
-
-    shrinking_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the value of the
-        redshift-shrinking factor evaluated at the input z_table.
-
     Returns
     -------
     median_size : ndarray
@@ -242,15 +207,14 @@ def mc_size_vs_luminosity_early_type(magr, redshift,
     >>> sizes = mc_size_vs_luminosity_early_type(magr, redshift)
     """
     loc = np.log10(median_size_vs_luminosity(
-        magr, redshift, gamma, alpha, beta, mzero, z_table, shrinking_table))
+        magr, redshift, gamma, alpha, beta, mzero))
     with NumpyRNGContext(fixed_seed):
         return 10**np.random.normal(loc=loc, scale=scatter)
 
 
 def mc_size_vs_luminosity_late_type(magr, redshift,
         alpha=alpha_disk, beta=beta_disk,
-        gamma=gamma_disk, mzero=mzero_disk, scatter=scatter_disk,
-        z_table=default_z_table, shrinking_table=default_shrinking_table):
+        gamma=gamma_disk, mzero=mzero_disk, scatter=scatter_disk):
     """
     Monte Carlo realization of disk size based on the
     Zhang & Yang (2017) fitting function for median disk size vs. luminosity
@@ -275,14 +239,6 @@ def mc_size_vs_luminosity_late_type(magr, redshift,
     mzero : float, optional
         transition luminosity parameter of the fitting function
 
-    z_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the abscissa
-        at which the redshift-dependence is tabulated
-
-    shrinking_table : ndarray, optional
-        Numpy array of shape (npts, ) storing the value of the
-        redshift-shrinking factor evaluated at the input z_table.
-
     Returns
     -------
     median_size : ndarray
@@ -299,6 +255,6 @@ def mc_size_vs_luminosity_late_type(magr, redshift,
     >>> sizes = mc_size_vs_luminosity_late_type(magr, redshift)
     """
     loc = np.log10(median_size_vs_luminosity(
-        magr, redshift, gamma, alpha, beta, mzero, z_table, shrinking_table))
+        magr, redshift, gamma, alpha, beta, mzero))
     with NumpyRNGContext(fixed_seed):
         return 10**np.random.normal(loc=loc, scale=scatter)
