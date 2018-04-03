@@ -22,7 +22,7 @@ def write_snapshot_mocks_to_disk(sdss_fname,
 
         print("\n...loading z = {0:.3f} catalogs into memory".format(redshift))
 
-        mock = load_umachine_mstar_ssfr_mock(umachine_mock_fname)
+        mock = Table.read(umachine_mock_fname, path='data')
         sdss = load_umachine_processed_sdss_catalog(sdss_fname)
 
         #  Assign r-band magnitude
@@ -67,17 +67,9 @@ def write_snapshot_mocks_to_disk(sdss_fname,
                 mock['restframe_extincted_sdss_abs_magr'], redshift)
 
         print("          Writing to disk using commit hash {}".format(commit_hash))
+        mock.meta['cosmodc2_commit_hash'] = commit_hash
         mock.write(output_color_mock_fname, path='data', overwrite=True)
 
-
-def load_umachine_mstar_ssfr_mock(fname):
-    """
-    """
-    return Table.read(fname, path='data')
-
-
-def load_host_halos(fname):
-    """
-    """
-    return Table.read(fname, path='data')
-
+        time_stamp = time()
+        msg = "End-to-end runtime for redshift {0:.1f} = {1:.2f} minutes"
+        print(msg.format(redshift, (new_time_stamp-time_stamp)/60.))
