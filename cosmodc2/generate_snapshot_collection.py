@@ -1,7 +1,9 @@
 """ Module storing write_snapshot_mocks_to_disk, the end-to-end function
-that generates the full collection of AlphaQ halos that have been populated
+that generatee the full collection of AlphaQ halos that have been populated
 with model galaxies with the following properties: {M*, SFR, Mr, g-r, r-i},
-where colors are restframe extincted SDSS colors k-corrected to z=0.1
+where colors are restframe extincted SDSS colors k-corrected to z=0.1.
+
+This is the module used to generate the mocks in the v3 release of protoDC2.
 """
 import os
 from time import time
@@ -264,7 +266,7 @@ def write_snapshot_mocks_to_disk(
         ########################################################################
         print("          Writing to disk using commit hash {}".format(commit_hash))
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=overwrite)
-        output_lightcone_fname =  output_color_mock_fname.replace('.hdf5','') + "_lightcone.hdf5"
+        output_lightcone_fname = output_color_mock_fname.replace('.hdf5','') + "_lightcone.hdf5"
         astropy_table_to_lightcone_hdf5(output_snapshot_mock, output_lightcone_fname, commit_hash)
         old_time_stamp = time()
         msg = "Snapshot creation runtime = {0:.2f} minutes"
