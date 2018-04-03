@@ -2,7 +2,6 @@
 """
 import numpy as np
 from halotools.utils import monte_carlo_from_cdf_lookup
-from halotools.empirical_models import conditional_abunmatch
 
 
 A = 10**-3.15
@@ -21,15 +20,35 @@ def specific_bh_acc_rate_distribution_table(redshift, npts=1000):
     return rate_table, A*(((1. + redshift)/(1. + z0))**gamma_z)*rate_table**gamma_e
 
 
-def monte_carlo_specific_bh_acc_rate(redshift, mstar, sfr):
+def monte_carlo_specific_bh_acc_rate(redshift, sfr_percentile):
     """
-    """
-    ngals = len(mstar)
-    rate_table, prob_table = specific_bh_acc_rate_distribution_table(redshift)
-    mc_specific_acc_rates = monte_carlo_from_cdf_lookup(
-        rate_table, prob_table, num_draws=ngals)
+    Parameters
+    ----------
+    redshift : float
+        Median redshift of the sample
 
-    nwin = 101
-    correlated_specific_acc_rates = conditional_abunmatch(
-        mstar, sfr, mstar, mc_specific_acc_rates, nwin)
-    raise NotImplementedError()
+    sfr_percentile : ndarray
+        Numpy array of shape (ngals, ) storing the SFR rank-order percentile
+        at fixed stellar mass.
+
+    Returns
+    -------
+    specific_bh_acc_rate : ndarray
+        Numpy array of shape (ngals, ) storing log10(dM/dt / Mstar_galaxy)
+
+    Examples
+    --------
+    >>> redshift = 0.4
+    >>> sfr_percentile = np.random.uniform(0, 1, 10000)
+    >>> specific_bh_acc_rate = monte_carlo_specific_bh_acc_rate(redshift, sfr_percentile)
+
+    """
+    redshift = np.atleast_1d(redshift)
+    msg = ("monte_carlo_specific_bh_acc_rate only accepts "
+        "a single float for ``redshift`` argument")
+    assert len(redshift) == 1, msg
+
+    rate_table, prob_table = specific_bh_acc_rate_distribution_table(redshift)
+    return monte_carlo_from_cdf_lookup(
+        rate_table, prob_table, mc_input=sfr_percentile)
+
