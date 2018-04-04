@@ -16,7 +16,7 @@ __all__ = ('monte_carlo_specific_bh_acc_rate', )
 def eddington_ratio_distribution(redshift, npts=1000):
     """
     """
-    rate_table = np.logspace(-1, 0, npts)
+    rate_table = np.logspace(-4, 0, npts)
     return rate_table, A*(((1. + redshift)/(1. + z0))**gamma_z)*rate_table**gamma_e
 
 
@@ -48,7 +48,7 @@ def monte_carlo_specific_bh_acc_rate(redshift, sfr_percentile):
         "a single float for ``redshift`` argument")
     assert len(redshift) == 1, msg
 
-    rate_table, prob_table = eddington_ratio_distribution(redshift)
+    rate_table, prob_table = eddington_ratio_distribution(redshift[0])
     return monte_carlo_from_cdf_lookup(
-        rate_table, prob_table, mc_input=sfr_percentile)
+        rate_table, prob_table, mc_input=1-sfr_percentile)
 
