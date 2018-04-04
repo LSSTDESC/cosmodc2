@@ -13,7 +13,7 @@ z0 = 0.6
 __all__ = ('monte_carlo_specific_bh_acc_rate', )
 
 
-def specific_bh_acc_rate_distribution_table(redshift, npts=1000):
+def eddington_ratio_distribution(redshift, npts=1000):
     """
     """
     rate_table = np.logspace(-1, 0, npts)
@@ -34,7 +34,7 @@ def monte_carlo_specific_bh_acc_rate(redshift, sfr_percentile):
     Returns
     -------
     specific_bh_acc_rate : ndarray
-        Numpy array of shape (ngals, ) storing log10(dM/dt / Mstar_galaxy)
+        Numpy array of shape (ngals, ) storing log10(dM_bh/dt / Mbh)
 
     Examples
     --------
@@ -48,7 +48,7 @@ def monte_carlo_specific_bh_acc_rate(redshift, sfr_percentile):
         "a single float for ``redshift`` argument")
     assert len(redshift) == 1, msg
 
-    rate_table, prob_table = specific_bh_acc_rate_distribution_table(redshift)
+    rate_table, prob_table = eddington_ratio_distribution(redshift)
     return monte_carlo_from_cdf_lookup(
         rate_table, prob_table, mc_input=sfr_percentile)
 
