@@ -37,14 +37,6 @@ def cluster_bcg_red_sequence(ngals, red_sequence_median, red_sequence_scatter):
     return np.random.normal(loc=red_sequence_median, scale=red_sequence_scatter, size=ngals)
 
 
-def twodim_cluster_bcg_red_sequence(ngals, gr_median, gr_scatter, ri_median, ri_scatter):
-    """
-    """
-    gr = cluster_bcg_red_sequence(ngals, gr_median, gr_scatter)
-    ri = cluster_bcg_red_sequence(ngals, ri_median, ri_scatter)
-
-
-
 def prob_remap_cluster_bcg(upid, host_halo_mvir, host_mass_table, prob_remap_table):
     """
     """
@@ -127,9 +119,6 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
         bcg_red_sequence_gr, bcg_red_sequence_ri = cluster_bcg_red_sequence_gr_ri(
             num_to_remap, gr_red_sequence_median,
             ri_red_sequence_median, gr_red_sequence_scatter)
-
-        # bcg_red_sequence_gr = cluster_bcg_red_sequence(
-        #     num_to_remap, gr_red_sequence_median, gr_red_sequence_scatter)
 
         halo_mass = host_halo_mvir[remapping_mask]
 
