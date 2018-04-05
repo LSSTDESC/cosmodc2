@@ -111,11 +111,11 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
     is_on_red_sequence_ri[remapping_mask] = True
 
     num_to_remap = np.count_nonzero(remapping_mask)
-    nwin = min(num_to_remap, nwin)
+    nwin = min(num_to_remap-1, nwin)
     if nwin % 2 == 0:
         nwin -= 1
 
-    if num_to_remap > 2:
+    if num_to_remap > 4:
 
         bcg_red_sequence_gr, bcg_red_sequence_ri = cluster_bcg_red_sequence_gr_ri(
             num_to_remap, gr_red_sequence_median,
