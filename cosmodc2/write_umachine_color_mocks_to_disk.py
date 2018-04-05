@@ -8,12 +8,14 @@ from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
 from cosmodc2.load_gio_halos import load_gio_halo_snapshot
+from halotools.empirical_models import enforce_periodicity_of_box
+from halotools.utils import crossmatch
 
 
 def write_snapshot_mocks_to_disk(sdss_fname,
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             target_halo_fname_list, output_color_mock_fname_list,
-            redshift_list, commit_hash, target_halo_loader):
+            redshift_list, commit_hash, target_halo_loader, Lbox_target_halos):
     """
     """
 
@@ -92,11 +94,14 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         #  Assemble the output protoDC2 mock
         ########################################################################
 
-        raise NotImplementedError("Still need to GalSample into AlphaQ")
+        output_snapshot_mock = build_output_snapshot_mock(
+                mock, target_halos, source_galaxy_indx, commit_hash, Lbox_target_halos)
 
         print("          Writing to disk using commit hash {}".format(commit_hash))
-        mock.meta['cosmodc2_commit_hash'] = commit_hash
-        mock.write(output_color_mock_fname, path='data', overwrite=True)
+        output_snapshot_mock.meta['cosmodc2_commit_hash'] = commit_hash
+        output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=True)
+
+        # raise NotImplementedError("Still need to GalSample into AlphaQ")
 
         time_stamp = time()
         msg = "End-to-end runtime for redshift {0:.1f} = {1:.2f} minutes"
@@ -124,3 +129,66 @@ def load_alphaQ_halos(fname, target_halo_loader):
     t.rename_column('fof_halo_mean_vz', 'vz')
 
     return t
+
+
+def build_output_snapshot_mock(umachine, target_halos, galaxy_indices,
+            commit_hash, Lbox_target):
+    """
+    """
+    dc2 = Table(meta={'commit_hash': commit_hash})
+    dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
+    dc2['target_halo_id'] = np.repeat(
+        target_halos['halo_id'], target_halos['richness'])
+
+    idxA, idxB = crossmatch(dc2['target_halo_id'], target_halos['halo_id'])
+
+    msg = "target IDs do not match!"
+    assert np.all(dc2['source_halo_id'][idxA] == target_halos['source_halo_id'][idxB]), msg
+
+    dc2['target_halo_x'] = 0.
+    dc2['target_halo_y'] = 0.
+    dc2['target_halo_z'] = 0.
+    dc2['target_halo_vx'] = 0.
+    dc2['target_halo_vy'] = 0.
+    dc2['target_halo_vz'] = 0.
+
+    dc2['target_halo_x'][idxA] = target_halos['x'][idxB]
+    dc2['target_halo_y'][idxA] = target_halos['y'][idxB]
+    dc2['target_halo_z'][idxA] = target_halos['z'][idxB]
+
+    dc2['target_halo_vx'][idxA] = target_halos['vx'][idxB]
+    dc2['target_halo_vy'][idxA] = target_halos['vy'][idxB]
+    dc2['target_halo_vz'][idxA] = target_halos['vz'][idxB]
+
+    dc2['target_halo_mass'] = 0.
+    dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
+
+    source_galaxy_keys = ('host_halo_mvir', 'upid',
+            'host_centric_x', 'host_centric_y', 'host_centric_z',
+            'host_centric_vx', 'host_centric_vy', 'host_centric_vz',
+            'obs_sm', 'obs_sfr', 'sfr_percentile_fixed_sm',
+            'restframe_extincted_sdss_abs_magr',
+            'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri')
+    for key in source_galaxy_keys:
+        dc2[key] = umachine[key][galaxy_indices]
+
+    x_init = dc2['target_halo_x'] + dc2['host_centric_x']
+    vx_init = dc2['target_halo_vx'] + dc2['host_centric_vx']
+    dc2_x, dc2_vx = enforce_periodicity_of_box(x_init, Lbox_target, velocity=vx_init)
+    dc2['x'] = dc2_x
+    dc2['vx'] = dc2_vx
+
+    y_init = dc2['target_halo_y'] + dc2['host_centric_y']
+    vy_init = dc2['target_halo_vy'] + dc2['host_centric_vy']
+    dc2_y, dc2_vy = enforce_periodicity_of_box(y_init, Lbox_target, velocity=vy_init)
+    dc2['y'] = dc2_y
+    dc2['vy'] = dc2_vy
+
+    z_init = dc2['target_halo_z'] + dc2['host_centric_z']
+    vz_init = dc2['target_halo_vz'] + dc2['host_centric_vz']
+    dc2_z, dc2_vz = enforce_periodicity_of_box(z_init, Lbox_target, velocity=vz_init)
+    dc2['z'] = dc2_z
+    dc2['vz'] = dc2_vz
+
+    return dc2
+
