@@ -7,12 +7,13 @@ from cosmodc2.sdss_colors import load_umachine_processed_sdss_catalog
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
+from cosmodc2.load_gio_halos import load_gio_halo_snapshot
 
 
 def write_snapshot_mocks_to_disk(sdss_fname,
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             target_halo_fname_list, output_color_mock_fname_list,
-            redshift_list, commit_hash):
+            redshift_list, commit_hash, target_halo_loader):
     """
     """
 
@@ -50,11 +51,10 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         mock['restframe_extincted_sdss_gr'] = gr_mock
         mock['restframe_extincted_sdss_ri'] = ri_mock
 
-
         ###  GalSampler
         print("\n...loading z = {0:.2f} halo catalogs into memory".format(redshift))
         source_halos = Table.read(umachine_halos_fname, path='data')
-        target_halos = load_alphaQ_halos(target_halo_fname)
+        target_halos = load_alphaQ_halos(target_halo_fname, target_halo_loader)
 
         #  Bin the halos in each simulation by mass
         dlogM = 0.15
@@ -82,7 +82,6 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         ################################################################################
         #  Use GalSampler to calculate the indices of the galaxies that will be selected
         ################################################################################
-
         print("          Mapping z={0:.2f} galaxies to AlphaQ halos".format(redshift))
 
         source_galaxy_indx = np.array(galaxy_selection_kernel(
@@ -104,8 +103,24 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         print(msg.format(redshift, (new_time_stamp-time_stamp)/60.))
 
 
-def load_alphaQ_halos(fname):
+def load_alphaQ_halos(fname, target_halo_loader):
     """
     """
-    return Table.read(fname, path='data')
+    if target_halo_loader == 'hdf5':
+        t = Table.read(fname, path='data')
+    elif target_halo_loader == 'gio':
+        t = load_gio_halo_snapshot(fname)
+    else:
+        raise ValueError("Options for ``loader`` are ``hdf5`` or ``gio``")
 
+    t.rename_column('fof_halo_tag', 'halo_id')
+
+    t.rename_column('fof_halo_center_x', 'x')
+    t.rename_column('fof_halo_center_y', 'y')
+    t.rename_column('fof_halo_center_z', 'z')
+
+    t.rename_column('fof_halo_mean_vx', 'vx')
+    t.rename_column('fof_halo_mean_vy', 'vy')
+    t.rename_column('fof_halo_mean_vz', 'vz')
+
+    return t
