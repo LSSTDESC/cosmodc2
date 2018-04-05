@@ -46,6 +46,8 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         sdss_magr = sdss['restframe_extincted_sdss_abs_magr']
         sdss_redshift = sdss['z']
 
+        print("\n...assigning SDSS restframe colors")
+
         magr, gr_mock, ri_mock = assign_restframe_sdss_gri(
             upid_mock, mstar_mock, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock,
             logmstar_sdss, sfr_percentile_sdss, sdss_magr, sdss_redshift)
@@ -58,6 +60,7 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         source_halos = Table.read(umachine_halos_fname, path='data')
         target_halos = load_alphaQ_halos(target_halo_fname, target_halo_loader)
 
+        print("...Finding halo--halo correspondence with GalSampler")
         #  Bin the halos in each simulation by mass
         dlogM = 0.15
         mass_bins = 10.**np.arange(10.5, 14.5+dlogM, dlogM)
@@ -84,7 +87,7 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         ################################################################################
         #  Use GalSampler to calculate the indices of the galaxies that will be selected
         ################################################################################
-        print("          Mapping z={0:.2f} galaxies to AlphaQ halos".format(redshift))
+        print("...GalSampling z={0:.2f} galaxies to AlphaQ halos".format(redshift))
 
         source_galaxy_indx = np.array(galaxy_selection_kernel(
             target_halos['first_galaxy_index'].astype('i8'),
@@ -94,10 +97,11 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         #  Assemble the output protoDC2 mock
         ########################################################################
 
+        print("...building output snapshot mock")
         output_snapshot_mock = build_output_snapshot_mock(
                 mock, target_halos, source_galaxy_indx, commit_hash, Lbox_target_halos)
 
-        print("          Writing to disk using commit hash {}".format(commit_hash))
+        print("...writing to disk using commit hash {}".format(commit_hash))
         output_snapshot_mock.meta['cosmodc2_commit_hash'] = commit_hash
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=True)
 
