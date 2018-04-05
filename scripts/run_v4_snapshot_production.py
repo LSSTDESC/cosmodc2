@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, "/Users/aphearin/work/repositories/python/cosmodc2/build/lib")
 import os
 from cosmodc2 import write_snapshot_mocks_to_disk
 
