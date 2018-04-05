@@ -170,7 +170,7 @@ def build_output_snapshot_mock(umachine, target_halos, galaxy_indices,
     source_galaxy_keys = ('host_halo_mvir', 'upid',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
             'host_centric_vx', 'host_centric_vy', 'host_centric_vz',
-            'obs_sm', 'obs_sfr', 'sfr_percentile_fixed_sm',
+            'obs_sm', 'obs_sfr', 'sfr_percentile',
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri')
     for key in source_galaxy_keys:
