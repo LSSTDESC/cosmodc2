@@ -4,10 +4,11 @@ import numpy as np
 from scipy.linalg import eigh
 from scipy.stats import norm, binned_statistic
 from halotools.empirical_models import conditional_abunmatch
+from .analytical_colors import red_sequence_peak_gr, red_sequence_peak_ri
 
 
 __all__ = ('calculate_cluster_clf_powerlaw_coeffs', 'remap_cluster_bcg_gr_color',
-        'remap_cluster_bcg_gr_ri_color')
+        'remap_cluster_bcg_gr_ri_color', 'remap_cluster_satellite_gr_ri_color')
 
 
 def calculate_cluster_clf_powerlaw_coeffs(mstar, magr, upid):
@@ -137,12 +138,61 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
     return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
 
 
+def prob_remap_cluster_satellite(upid, mstar, host_halo_mvir,
+            x1=(9, 9.75, 10.25, 11), y1=(1., 1., 1., 1.),
+            x2=(13.5, 14, 14.5), y2=(0.0, 0.5, 0.75)):
+    """
+    """
+    ngals = len(mstar)
+    satmask = upid != -1
+    mstar_prob = np.interp(np.log10(mstar), x1, y1)
+    mhost_prob = np.interp(np.log10(host_halo_mvir), x2, y2)
+    mstar_mask = np.random.rand(ngals) < mstar_prob
+    mhost_mask = np.random.rand(ngals) < mhost_prob
+    remapping_mask = mstar_mask & mhost_mask & satmask
+    return remapping_mask
 
 
+def remap_satellites(mstar, gr, ri,
+            gr_red_sequence_median, ri_red_sequence_median,
+            gr_red_sequence_scatter, ri_red_sequence_scatter, nwin=301):
+    """
+    """
+    num_to_remap = len(mstar)
+    bcg_red_sequence_gr, bcg_red_sequence_ri = cluster_bcg_red_sequence_gr_ri(
+        num_to_remap, gr_red_sequence_median,
+        ri_red_sequence_median, gr_red_sequence_scatter)
+
+    input_gr = gr
+    desired_gr = bcg_red_sequence_gr
+    output_gr = conditional_abunmatch(
+        mstar, input_gr, mstar, desired_gr, nwin)
+
+    desired_ri = bcg_red_sequence_ri
+    noisy_input_gr = np.random.normal(loc=output_gr, scale=0.1)
+    output_ri = conditional_abunmatch(
+        mstar, noisy_input_gr, mstar, desired_ri, nwin)
+    return output_gr, output_ri
 
 
+def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, ri, scatter=0.04):
+    """
+    """
+    remapping_mask = prob_remap_cluster_satellite(upid, mstar, host_halo_mvir)
+    gr_peak_sats_to_remap = red_sequence_peak_gr(magr[remapping_mask])
+    ri_peak_sats_to_remap = red_sequence_peak_ri(magr[remapping_mask])
+    mstar_sats_to_remap = mstar[remapping_mask]
+    gr_sats_to_remap = gr[remapping_mask]
+    ri_sats_to_remap = ri[remapping_mask]
 
+    remapped_gr_sats, remapped_ri_sats = remap_satellites(
+        mstar_sats_to_remap, gr_sats_to_remap, ri_sats_to_remap,
+        gr_peak_sats_to_remap, ri_peak_sats_to_remap, scatter, scatter)
 
+    gr[remapping_mask] = remapped_gr_sats
+    ri[remapping_mask] = remapped_ri_sats
+
+    return gr, ri
 
 
 
