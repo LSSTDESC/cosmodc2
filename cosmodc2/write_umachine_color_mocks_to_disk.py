@@ -5,21 +5,29 @@ from time import time
 from astropy.table import Table
 from cosmodc2.sdss_colors import load_umachine_processed_sdss_catalog
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
+from galsampler import halo_bin_indices, source_halo_index_selection
+from galsampler.cython_kernels import galaxy_selection_kernel
 
 
 def write_snapshot_mocks_to_disk(sdss_fname,
-            umachine_mstar_ssfr_mock_fname_list,
-            output_color_mock_fname_list, redshift_list, commit_hash):
+            umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
+            target_halo_fname_list, output_color_mock_fname_list,
+            redshift_list, commit_hash):
     """
     """
 
-    gen = zip(umachine_mstar_ssfr_mock_fname_list,
-            output_color_mock_fname_list, redshift_list)
+    gen = zip(umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
+            target_halo_fname_list, output_color_mock_fname_list, redshift_list)
 
-    for umachine_mock_fname, output_color_mock_fname, redshift in gen:
+    for a, b, c, d, e in gen:
+        umachine_mock_fname = a
+        umachine_halos_fname = b
+        target_halo_fname = c
+        output_color_mock_fname = d
+        redshift = e
+
         new_time_stamp = time()
-
-        print("\n...loading z = {0:.3f} catalogs into memory".format(redshift))
+        print("\n...loading z = {0:.2f} galaxy catalog into memory".format(redshift))
 
         mock = Table.read(umachine_mock_fname, path='data')
         sdss = load_umachine_processed_sdss_catalog(sdss_fname)
@@ -42,6 +50,49 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         mock['restframe_extincted_sdss_gr'] = gr_mock
         mock['restframe_extincted_sdss_ri'] = ri_mock
 
+
+        ###  GalSampler
+        print("\n...loading z = {0:.2f} halo catalogs into memory".format(redshift))
+        source_halos = Table.read(umachine_halos_fname, path='data')
+        target_halos = load_alphaQ_halos(target_halo_fname)
+
+        #  Bin the halos in each simulation by mass
+        dlogM = 0.15
+        mass_bins = 10.**np.arange(10.5, 14.5+dlogM, dlogM)
+        source_halos['mass_bin'] = halo_bin_indices(
+            mass=(source_halos['mvir'], mass_bins))
+        target_halos['mass_bin'] = halo_bin_indices(
+            mass=(target_halos['fof_halo_mass'], mass_bins))
+
+        #  Randomly draw halos from corresponding mass bins
+        nhalo_min = 10
+        source_halo_bin_numbers = source_halos['mass_bin']
+        target_halo_bin_numbers = target_halos['mass_bin']
+        target_halo_ids = target_halos['halo_id']
+        _result = source_halo_index_selection(source_halo_bin_numbers,
+            target_halo_bin_numbers, target_halo_ids, nhalo_min, mass_bins)
+        source_halo_indx, matching_target_halo_ids = _result
+
+        #  Transfer quantities from the source halos to the corresponding target halo
+        target_halos['source_halo_id'] = source_halos['halo_id'][source_halo_indx]
+        target_halos['matching_mvir'] = source_halos['mvir'][source_halo_indx]
+        target_halos['richness'] = source_halos['richness'][source_halo_indx]
+        target_halos['first_galaxy_index'] = source_halos['first_galaxy_index'][source_halo_indx]
+
+        ################################################################################
+        #  Use GalSampler to calculate the indices of the galaxies that will be selected
+        ################################################################################
+
+        print("          Mapping z={0:.2f} galaxies to AlphaQ halos".format(redshift))
+
+        source_galaxy_indx = np.array(galaxy_selection_kernel(
+            target_halos['first_galaxy_index'].astype('i8'),
+            target_halos['richness'].astype('i4'), target_halos['richness'].sum()))
+
+        ########################################################################
+        #  Assemble the output protoDC2 mock
+        ########################################################################
+
         raise NotImplementedError("Still need to GalSample into AlphaQ")
 
         print("          Writing to disk using commit hash {}".format(commit_hash))
@@ -51,3 +102,10 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         time_stamp = time()
         msg = "End-to-end runtime for redshift {0:.1f} = {1:.2f} minutes"
         print(msg.format(redshift, (new_time_stamp-time_stamp)/60.))
+
+
+def load_alphaQ_halos(fname):
+    """
+    """
+    return Table.read(fname, path='data')
+
