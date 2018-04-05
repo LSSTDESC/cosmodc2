@@ -1,7 +1,8 @@
 import sys
 sys.path.insert(0, "/Users/aphearin/work/repositories/python/cosmodc2/build/lib")
+# sys.path.insert(0, "/Users/aphearin/work/repositories/python/halotools/build/lib.macosx-10.9-x86_64-3.6")
 import os
-from cosmodc2 import write_snapshot_mocks_to_disk
+from cosmodc2.write_umachine_color_mocks_to_disk import write_snapshot_mocks_to_disk
 
 sdss_fname = "/Users/aphearin/Dropbox/protoDC2/SDSS/dr10_mgs_colors_processed.txt"
 

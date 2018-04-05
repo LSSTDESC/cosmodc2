@@ -109,7 +109,7 @@ def write_snapshot_mocks_to_disk(sdss_fname,
 
         time_stamp = time()
         msg = "End-to-end runtime for redshift {0:.1f} = {1:.2f} minutes"
-        print(msg.format(redshift, (new_time_stamp-time_stamp)/60.))
+        print(msg.format(redshift, (time_stamp-new_time_stamp)/60.))
 
 
 def load_alphaQ_halos(fname, target_halo_loader):
