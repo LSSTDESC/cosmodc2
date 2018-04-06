@@ -4,7 +4,7 @@ from astropy.utils.misc import NumpyRNGContext
 import numpy as np
 
 
-__all__ = ('bh_mass_from_bulge_mass', )
+__all__ = ('bh_mass_from_bulge_mass', 'monte_carlo_black_hole_mass')
 fixed_seed = 43
 
 
