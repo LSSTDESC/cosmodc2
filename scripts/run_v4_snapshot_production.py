@@ -75,7 +75,8 @@ target_halo_basename_list = [os.path.basename(q) for q in alphaQ_halos_fname_lis
 target_halo_fname_list = list(
     (os.path.join(target_halo_dirname, basename)
     for basename in target_halo_basename_list))
-print('target_halo_basename_list:',target_halo_basename_list)
+if(args.verbose):
+    print('target_halo_basename_list:',target_halo_basename_list)
 
 output_mock_dirname = (
         "/projects/DarkUniverse_esp/kovacs/AlphaQ/galsampler_alphaq_outputs_v4")
