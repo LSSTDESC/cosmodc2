@@ -78,7 +78,7 @@ target_halo_fname_list = list(
 print('target_halo_basename_list:',target_halo_basename_list)
 
 output_mock_dirname = (
-        "/projects/DarkUniverse_esp/kovacs/AlphaQ/galsampler_alphaq_outputs_v4_test")
+        "/projects/DarkUniverse_esp/kovacs/AlphaQ/galsampler_alphaq_outputs_v4")
 
 #output_mock_basename_list = list(
 #    ("umachine_color_mock_v4_m000-499.hdf5", "umachine_color_mock_v4_m000-247.hdf5"))
