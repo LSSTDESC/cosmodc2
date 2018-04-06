@@ -166,7 +166,7 @@ def median_size_vs_luminosity_late_type(magr, redshift,
 
 def mc_size_vs_luminosity_early_type(magr, redshift,
         alpha=alpha_bulge, beta=beta_bulge, gamma=gamma_bulge, mzero=mzero_bulge,
-        scatter=scatter_bulge):
+        scatter=scatter_bulge, seed=fixed_seed):
     """
     Monte Carlo realization of bulge size based on the
     Zhang & Yang (2017) fitting function for median bulge size vs. luminosity
@@ -191,6 +191,9 @@ def mc_size_vs_luminosity_early_type(magr, redshift,
     mzero : float, optional
         transition luminosity parameter of the fitting function
 
+    seed : int, optional
+        Random number seed in the Monte Carlo. Default is 43.
+
     Returns
     -------
     median_size : ndarray
@@ -208,13 +211,14 @@ def mc_size_vs_luminosity_early_type(magr, redshift,
     """
     loc = np.log10(median_size_vs_luminosity(
         magr, redshift, gamma, alpha, beta, mzero))
-    with NumpyRNGContext(fixed_seed):
+    with NumpyRNGContext(seed):
         return 10**np.random.normal(loc=loc, scale=scatter)
 
 
 def mc_size_vs_luminosity_late_type(magr, redshift,
         alpha=alpha_disk, beta=beta_disk,
-        gamma=gamma_disk, mzero=mzero_disk, scatter=scatter_disk):
+        gamma=gamma_disk, mzero=mzero_disk, scatter=scatter_disk,
+        seed=fixed_seed):
     """
     Monte Carlo realization of disk size based on the
     Zhang & Yang (2017) fitting function for median disk size vs. luminosity
@@ -239,6 +243,9 @@ def mc_size_vs_luminosity_late_type(magr, redshift,
     mzero : float, optional
         transition luminosity parameter of the fitting function
 
+    seed : int, optional
+        Random number seed in the Monte Carlo. Default is 43.
+
     Returns
     -------
     median_size : ndarray
@@ -256,5 +263,5 @@ def mc_size_vs_luminosity_late_type(magr, redshift,
     """
     loc = np.log10(median_size_vs_luminosity(
         magr, redshift, gamma, alpha, beta, mzero))
-    with NumpyRNGContext(fixed_seed):
+    with NumpyRNGContext(seed):
         return 10**np.random.normal(loc=loc, scale=scatter)
