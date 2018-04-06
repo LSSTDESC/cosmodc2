@@ -42,7 +42,7 @@ def monte_carlo_black_hole_mass(bulge_mass, seed=fixed_seed):
     ----------
     bulge_mass : ndarray
         Numpy array of shape (ngals, ) storing the stellar mass of the bulge
-        in units of solar mass assuming h=0.7
+        in units of Msun assuming h=0.7
 
     seed : int, optional
         Random number seed in the Monte Carlo. Default is 43.
@@ -50,7 +50,8 @@ def monte_carlo_black_hole_mass(bulge_mass, seed=fixed_seed):
     Returns
     -------
     bh_mass : ndarray
-        Numpy array of shape (ngals, ) storing black hole mass
+        Numpy array of shape (ngals, ) storing black hole mass in units of
+        Msun assuming h=0.7
 
     Examples
     --------

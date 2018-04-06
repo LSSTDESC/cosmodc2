@@ -197,7 +197,8 @@ def mc_size_vs_luminosity_early_type(magr, redshift,
     Returns
     -------
     median_size : ndarray
-        Numpy array of shape (npts, ) storing the output bulge size in units of kpc
+        Numpy array of shape (ngals, ) storing the output half-radius of the
+        bulge in units of physical kpc assuming h=0.7
 
     Notes
     -----
@@ -249,7 +250,8 @@ def mc_size_vs_luminosity_late_type(magr, redshift,
     Returns
     -------
     median_size : ndarray
-        Numpy array of shape (npts, ) storing the output bulge size in units of kpc
+        Numpy array of shape (ngals, ) storing the output half-radius of the
+        disk in units of physical kpc assuming h=0.7
 
     Notes
     -----
