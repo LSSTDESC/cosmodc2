@@ -1,5 +1,6 @@
 """
 """
+import os
 import numpy as np
 from time import time
 from astropy.table import Table
@@ -10,7 +11,7 @@ from galsampler.cython_kernels import galaxy_selection_kernel
 from cosmodc2.load_gio_halos import load_gio_halo_snapshot
 from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.utils import crossmatch
-
+from cosmodc2.lightcone_id import append_lightcone_id, astropy_table_to_lightcone_hdf5
 
 def write_snapshot_mocks_to_disk(sdss_fname,
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -101,9 +102,21 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         output_snapshot_mock = build_output_snapshot_mock(
                 mock, target_halos, source_galaxy_indx, commit_hash, Lbox_target_halos)
 
+        ########################################################################
+        #  Adding a unqiue id to each galaxy
+        ########################################################################
+        step_num = int(os.path.basename(output_color_mock_fname).replace(".hdf5","").split("m000-")[-1])
+
+        append_lightcone_id(0, step_num, output_snapshot_mock)
+
+        ########################################################################
+        #  Write the output protoDC2 mock to disk
+        ########################################################################
         print("...writing to disk using commit hash {}".format(commit_hash))
         output_snapshot_mock.meta['cosmodc2_commit_hash'] = commit_hash
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=True)
+        output_lightcone_fname = output_color_mock_fname.replace('.hdf5','') + "_lightcone.hdf5"
+        astropy_table_to_lightcone_hdf5(output_snapshot_mock, output_lightcone_fname, commit_hash)
 
         # raise NotImplementedError("Still need to GalSample into AlphaQ")
 
