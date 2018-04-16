@@ -10,7 +10,7 @@ fixed_seed = 43
 
 
 def redshift_boost_median_magr(redshift,
-            z_table=[0, 0.25, 0.5, 1], boost_table=[0, -0.2, -1., -1.75], **kwargs):
+            z_table=[0, 0.25, 0.5, 1], boost_table=[0, -0.2, -0.5, -1.], **kwargs):
     """
     Calculate the redshift-dependent multiplicative factor by which the
     median <Mr | M*>(z) relation should be boosted relative to the z=0 relation.
