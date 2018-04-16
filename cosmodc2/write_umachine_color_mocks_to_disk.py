@@ -4,7 +4,6 @@ import os
 import numpy as np
 from time import time
 from astropy.table import Table
-from cosmodc2.sdss_colors import load_umachine_processed_sdss_catalog
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
@@ -13,7 +12,8 @@ from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.utils import crossmatch
 from cosmodc2.lightcone_id import append_lightcone_id, astropy_table_to_lightcone_hdf5
 
-def write_snapshot_mocks_to_disk(sdss_fname,
+
+def write_snapshot_mocks_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             target_halo_fname_list, output_color_mock_fname_list,
             redshift_list, commit_hash, target_halo_loader, Lbox_target_halos):
@@ -34,7 +34,6 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         print("\n...loading z = {0:.2f} galaxy catalog into memory".format(redshift))
 
         mock = Table.read(umachine_mock_fname, path='data')
-        sdss = load_umachine_processed_sdss_catalog(sdss_fname)
 
         upid_mock = mock['upid']
         mstar_mock = mock['obs_sm']
@@ -42,16 +41,10 @@ def write_snapshot_mocks_to_disk(sdss_fname,
         host_halo_mvir_mock = mock['host_halo_mvir']
         redshift_mock = np.zeros(len(mock)) + 0.0
 
-        logmstar_sdss = sdss['sm']
-        sfr_percentile_sdss = sdss['sfr_percentile_fixed_sm']
-        sdss_magr = sdss['restframe_extincted_sdss_abs_magr']
-        sdss_redshift = sdss['z']
-
         print("\n...assigning SDSS restframe colors")
 
         magr, gr_mock, ri_mock = assign_restframe_sdss_gri(
-            upid_mock, mstar_mock, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock,
-            logmstar_sdss, sfr_percentile_sdss, sdss_magr, sdss_redshift)
+            upid_mock, mstar_mock, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock)
         mock['restframe_extincted_sdss_abs_magr'] = magr
         mock['restframe_extincted_sdss_gr'] = gr_mock
         mock['restframe_extincted_sdss_ri'] = ri_mock

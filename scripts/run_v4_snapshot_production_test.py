@@ -4,7 +4,6 @@ sys.path.insert(0, "/Users/aphearin/work/repositories/python/cosmodc2/build/lib"
 import os
 from cosmodc2.write_umachine_color_mocks_to_disk import write_snapshot_mocks_to_disk
 
-sdss_fname = "/Users/aphearin/Dropbox/protoDC2/SDSS/dr10_mgs_colors_processed.txt"
 
 umachine_mstar_ssfr_mock_dirname = (
     "/Volumes/NbodyDisk1/UniverseMachine/protoDC2_v4_mocks/value_added_catalogs")
@@ -42,7 +41,7 @@ commit_hash = "dummy_hash"
 target_halo_loader = "hdf5"
 Lbox_target_halos = 256.
 
-write_snapshot_mocks_to_disk(sdss_fname,
+write_snapshot_mocks_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             target_halo_fname_list, output_color_mock_fname_list,
             redshift_list, commit_hash, target_halo_loader, Lbox_target_halos)
