@@ -3,12 +3,9 @@
 import numpy as np
 from .sawtooth_binning import sawtooth_bin_indices
 from astropy.utils.misc import NumpyRNGContext
-from halotools.empirical_models import conditional_abunmatch
 from scipy.spatial import cKDTree
 from halotools.empirical_models import polynomial_from_table
 from ..sdss_colors.sdss_completeness_model import retrieve_sdss_sample_mask
-from halotools.utils import sliding_conditional_percentile, unsorting_indices
-from halotools.empirical_models import noisy_percentile
 from scipy.stats import gaussian_kde
 
 

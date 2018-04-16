@@ -1,7 +1,6 @@
 """
 """
 from astropy.table import Table
-from halotools.utils import sliding_conditional_percentile
 
 
 default_fname = "/Users/aphearin/Dropbox/protoDC2/SDSS/dr10_mgs_colors_processed.txt"
@@ -43,6 +42,8 @@ def load_umachine_processed_sdss_catalog(fname=default_fname):
     assuming h=0.7 as M*[h=0.7]. Then we have: M*[h=1] = h*h*M*[h=0.7].
     The stellar masses appearing in the returned catalog are M*[h=0.7].
     """
+    from halotools.utils import sliding_conditional_percentile
+
     t = Table.read(fname, format='ascii.commented_header')
     for key in t.keys():
         t.rename_column(key, key.lower())
