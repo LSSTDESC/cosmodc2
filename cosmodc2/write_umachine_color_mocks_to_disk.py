@@ -1,4 +1,4 @@
-"""
+""" Module storing the primary driver script used for the v4 release of DC2.
 """
 import os
 import numpy as np
@@ -18,6 +18,47 @@ def write_snapshot_mocks_to_disk(
             target_halo_fname_list, output_color_mock_fname_list,
             redshift_list, commit_hash, target_halo_loader, Lbox_target_halos):
     """
+    Main driver function used to paint SDSS fluxes onto UniverseMachine,
+    GalSample the mock into AlphaQ, and write each snapshot to disk.
+
+    Parameters
+    ----------
+    umachine_mstar_ssfr_mock_fname_list : list
+        List of length num_snaps storing the absolute path to the
+        value-added UniverseMachine snapshot mock
+
+    umachine_host_halo_fname_list : list
+        List of length num_snaps storing the absolute path to the
+        value-added host halo catalog hosting the UniverseMachine snapshot mock
+
+    target_halo_fname_list : list
+        List of length num_snaps storing the absolute path to the
+        source halos into which UniverseMachine will be GalSampled
+
+    output_color_mock_fname_list : list
+        List of length num_snaps storing the absolute path to the
+        output snapshot mocks
+
+    redshift_list : list
+        List of length num_snaps storing the value of the redshift
+        of the target halo catalog
+
+    commit_hash : string
+        Commit hash of the version of the cosmodc2 repo used when
+        calling this function.
+
+        After updating the cosmodc2 repo to the desired version,
+        the commit_hash can be determined by navigating to the root
+        directory and typing ``git log --pretty=format:'%h' -n 1``
+
+    target_halo_loader : string
+        Format of the target halo catalog. Current options are
+        "gio" and "hdf5"
+
+    Lbox_target_halos : float
+        Box size of the target halos in comoving units of Mpc/h.
+        Should be 256 for AlphaQ and 4.5 for Outer Rim
+
     """
 
     gen = zip(umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -98,7 +139,8 @@ def write_snapshot_mocks_to_disk(
         ########################################################################
         #  Adding a unqiue id to each galaxy
         ########################################################################
-        step_num = int(os.path.basename(output_color_mock_fname).replace(".hdf5","").split("m000-")[-1])
+        step_num = int(os.path.basename(
+            output_color_mock_fname).replace(".hdf5", "").split("m000-")[-1])
 
         append_lightcone_id(0, step_num, output_snapshot_mock)
 
@@ -110,8 +152,6 @@ def write_snapshot_mocks_to_disk(
         output_snapshot_mock.write(output_color_mock_fname, path='data', overwrite=True)
         output_lightcone_fname = output_color_mock_fname.replace('.hdf5','') + "_lightcone.hdf5"
         astropy_table_to_lightcone_hdf5(output_snapshot_mock, output_lightcone_fname, commit_hash)
-
-        # raise NotImplementedError("Still need to GalSample into AlphaQ")
 
         time_stamp = time()
         msg = "End-to-end runtime for redshift {0:.1f} = {1:.2f} minutes"
@@ -141,9 +181,42 @@ def load_alphaQ_halos(fname, target_halo_loader):
     return t
 
 
-def build_output_snapshot_mock(umachine, target_halos, galaxy_indices,
-            commit_hash, Lbox_target):
+def build_output_snapshot_mock(
+            umachine, target_halos, galaxy_indices, commit_hash, Lbox_target):
     """
+    Collect the GalSampled snapshot mock into an astropy table
+
+    Parameters
+    ----------
+    umachine : astropy.table.Table
+        Astropy Table of shape (num_source_gals, )
+        storing the UniverseMachine snapshot mock
+
+    target_halos : astropy.table.Table
+        Astropy Table of shape (num_target_halos, )
+        storing the target halo catalog
+
+    galaxy_indices: ndarray
+        Numpy indexing array of shape (num_target_gals, )
+        storing integers valued between [0, num_source_gals)
+
+    commit_hash : string
+        Commit hash of the version of the cosmodc2 repo used when
+        calling this function.
+
+        After updating the cosmodc2 repo to the desired version,
+        the commit_hash can be determined by navigating to the root
+        directory and typing ``git log --pretty=format:'%h' -n 1``
+
+    Lbox_target : float
+        Box size of the target halos in comoving units of Mpc/h.
+        Should be 256 for AlphaQ and 4.5 for Outer Rim
+
+    Returns
+    -------
+    dc2 : astropy.table.Table
+        Astropy Table of shape (num_target_gals, )
+        storing the GalSampled galaxy catalog
     """
     dc2 = Table(meta={'commit_hash': commit_hash})
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
