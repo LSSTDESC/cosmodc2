@@ -1,4 +1,5 @@
 """
+Module storing the analytical model for SDSS restframe r-band absolute magnitude
 """
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext

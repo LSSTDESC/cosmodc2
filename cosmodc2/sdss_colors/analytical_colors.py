@@ -1,4 +1,5 @@
 """
+Module storing the analytical model for SDSS restframe colors
 """
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext
@@ -9,7 +10,8 @@ __all__ = ('gr_ri_monte_carlo',)
 
 
 def sequence_width(magr, x, y):
-    """
+    """ Numpy kernel used to fit a 2-degree polynomial to an input
+    data table storing the level of scatter in Mr at fixed Mr.
     """
     c2, c1, c0 = np.polyfit(x, y, deg=2)
     result = c0 + c1*magr + c2*magr**2
@@ -24,7 +26,8 @@ def sequence_width(magr, x, y):
 
 
 def sequence_peak(magr, x, y):
-    """
+    """ Numpy kernel used to fit a 2-degree polynomial to an input
+    data table storing the median value <color | Mr>.
     """
     c2, c1, c0 = np.polyfit(x, np.log(y), deg=2)
     result = np.exp(c0 + c1*magr + c2*magr**2)
@@ -39,7 +42,10 @@ def sequence_peak(magr, x, y):
 
 
 def redshift_evolution_factor(magr, redshift, z_table, shift_table):
-    """
+    """ Function responsible for modulating the redshift-dependence
+    of the relation <Mr | M*>(z) by an overall multiplicative factor.
+    The multiplicative factor is determined by linearly interpolating from
+    the set of input points in redshift.
     """
     return np.interp(redshift, z_table, shift_table)
 
@@ -47,35 +53,70 @@ def redshift_evolution_factor(magr, redshift, z_table, shift_table):
 def red_sequence_width_gr(magr,
         x=[-22.5, -21, -20, -18, -15],
         y=[0.05, 0.06, 0.065, 0.06, 0.06]):
+    """
+    Level of scatter about the median value of <g-r | Mr> for red sequence galaxies.
+    """
     return sequence_width(magr, x, y)
 
 
 def main_sequence_width_gr(magr,
         x=[-22.5, -21, -20, -18, -15],
         y=[0.15, 0.15, 0.1, 0.1, 0.1]):
+    """
+    Level of scatter about the median value of <g-r | Mr> for star-forming galaxies.
+    """
     return sequence_width(magr, x, y)
 
 
 def red_sequence_peak_gr(magr,
         x=[-25, -21, -20, -19, -18, -15],
         y=[1.1, 0.95, 0.8, 0.7, 0.7, 0.7]):
+    """
+    Location of the median value of <g-r | Mr> for red sequence galaxies.
+    """
     return sequence_peak(magr, x, y)
 
 
 def main_sequence_peak_gr(magr,
         x=[-25, -21, -20, -19, -18, -15],
         y=[0.8, 0.75, 0.6, 0.4, 0.4, 0.35]):
+    """
+    Location of the median value of <g-r | Mr> for star-forming galaxies.
+    """
     return sequence_peak(magr, x, y)
 
 
 def quiescent_fraction_gr(magr,
         x=[-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15],
         y=[0.9, 0.85, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1]):
+    """
+    Fraction of galaxies on the g-r red sequence as a function of Mr.
+    """
     return np.interp(magr, x, y)
 
 
 def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
             peak_shift_factor=[0, -0.05, -0.1, -0.15], scatter_factor=[1, 1.1, 1.25, 1.3]):
+    """ Generate a Monte Carlo realization of g-r restframe color.
+
+    Parameters
+    ----------
+    magr : ndarray
+        Numpy array of shape (ngals, ) storing the
+        r-band absolute restframe magnitude of every galaxy
+
+    redshift : ndarray
+        Numpy array of shape (ngals, ) storing the redshift of each galaxy
+
+    Returns
+    -------
+    gr : ndarray
+        Numpy array of shape (ngals, ) storing g-r restframe color for every galaxy
+
+    is_quiescent : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the g-r red sequence
+    """
     magr = np.atleast_1d(magr)
 
     ngals = len(magr)
@@ -103,35 +144,70 @@ def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
 def red_sequence_width_ri(magr,
         x=[-22.5, -21, -20, -18, -15],
         y=[0.025, 0.03, 0.03, 0.025, 0.025]):
+    """
+    Level of scatter about the median value of <r-i | Mr> for red sequence galaxies.
+    """
     return sequence_width(magr, x, y)
 
 
 def main_sequence_width_ri(magr,
         x=[-22.5, -21, -20, -18, -15],
         y=[0.025, 0.065, 0.065, 0.06, 0.06]):
+    """
+    Level of scatter about the median value of <r-i | Mr> for star-forming galaxies.
+    """
     return sequence_width(magr, x, y)
 
 
 def red_sequence_peak_ri(magr,
         x=[-23, -21, -20, -19.5, -19, -18, -15],
         y=[0.435, 0.41, 0.4, 0.385, 0.375, 0.35, 0.31]):
+    """
+    Location of the median value of <r-i | Mr> for red sequence galaxies.
+    """
     return sequence_peak(magr, x, y)
 
 
 def main_sequence_peak_ri(magr,
         x=[-25, -21, -20, -19, -18, -15],
         y=[0.4, 0.35, 0.3, 0.24, 0.2, 0.185]):
+    """
+    Location of the median value of <r-i | Mr> for star-forming galaxies.
+    """
     return sequence_peak(magr, x, y)
 
 
 def quiescent_fraction_ri(magr,
         x=[-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15],
         y=[0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1]):
+    """
+    Fraction of galaxies on the r-i red sequence as a function of Mr.
+    """
     return np.interp(magr, x, y)
 
 
 def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
             peak_shift_factor=[0, -0.05, -0.1, -0.15], scatter_factor=[1, 1.1, 1.25, 1.3]):
+    """ Generate a Monte Carlo realization of r-i restframe color.
+
+    Parameters
+    ----------
+    magr : ndarray
+        Numpy array of shape (ngals, ) storing the
+        r-band absolute restframe magnitude of every galaxy
+
+    redshift : ndarray
+        Numpy array of shape (ngals, ) storing the redshift of each galaxy
+
+    Returns
+    -------
+    ri : ndarray
+        Numpy array of shape (ngals, ) storing r-i restframe color for every galaxy
+
+    is_quiescent : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the r-i red sequence
+    """
     magr = np.atleast_1d(magr)
 
     ngals = len(magr)
@@ -158,7 +234,38 @@ def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
 
 def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
             local_random_scale=0.1, nwin=301, seed=43):
-    """
+    """ Generate a Monte Carlo realization of (g-r) and (r-i) restframe colors.
+
+    Parameters
+    ----------
+    magr : ndarray
+        Numpy array of shape (ngals, ) storing the
+        r-band absolute restframe magnitude of every galaxy
+
+    sfr_percentile : ndarray
+        Numpy array of shape (ngals, ) storing the SFR-percentile
+        of each galaxy, Prob(< SFR | M*). This quantity can be calculated using
+        the halotools.utils.sliding_conditional_percentile function.
+
+    redshift : ndarray
+        Numpy array of shape (ngals, ) storing the redshift of each galaxy
+
+    Returns
+    -------
+    gr : ndarray
+        Numpy array of shape (ngals, ) storing g-r restframe color for every galaxy
+
+    ri : ndarray
+        Numpy array of shape (ngals, ) storing r-i restframe color for every galaxy
+
+    is_quiescent_ri : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the r-i red sequence
+
+    is_quiescent_gr : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the g-r red sequence
+
     """
     p = np.random.normal(loc=1-sfr_percentile, scale=local_random_scale)
 

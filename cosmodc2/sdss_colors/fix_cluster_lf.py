@@ -103,7 +103,49 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
         host_mass_table=(13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.25, 0.75, 1),
         gr_red_sequence_median=0.95, gr_red_sequence_scatter=0.04,
         ri_red_sequence_median=0.44, ri_red_sequence_scatter=0.03, nwin=101):
-    """
+    """ Redden centrals in cluster-mass halos
+
+    Parameters
+    ----------
+    upid : ndarray
+        Numpy integer array of shape (ngals, ) storing the upid column
+
+    host_halo_mvir : ndarray
+        Numpy array of shape (ngals, ) storing the host halo mass in
+        units of Msun assuming h=0.7
+
+    gr : ndarray
+        Numpy array of shape (ngals, ) storing restframe g-r color
+
+    ri : ndarray
+        Numpy array of shape (ngals, ) storing restframe r-i color
+
+    is_on_red_sequence_gr : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the g-r red sequence
+
+    is_on_red_sequence_ri : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the r-i red sequence
+
+    Returns
+    -------
+    gr_new : ndarray
+        Numpy array of shape (ngals, ) storing g-r restframe color for every galaxy,
+        reddened for centrals of cluster halos
+
+    ri_new : ndarray
+        Numpy array of shape (ngals, ) storing r-i restframe color for every galaxy,
+        reddened for centrals of cluster halos
+
+    is_quiescent_gr_new : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the g-r red sequence
+
+    is_quiescent_ri_new : ndarray
+        Numpy boolean array of shape (ngals, ) storing whether or not
+        the galaxy is on the r-i red sequence
+
     """
     remapping_mask = prob_remap_cluster_bcg(
         upid, host_halo_mvir, host_mass_table, prob_remap_table)
@@ -175,8 +217,41 @@ def remap_satellites(mstar, gr, ri,
     return output_gr, output_ri
 
 
-def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, ri, scatter=0.04):
-    """
+def remap_cluster_satellite_gr_ri_color(
+            upid, mstar, host_halo_mvir, magr, gr, ri, scatter=0.04):
+    """ Redden satellites in cluster-mass halos
+
+    Parameters
+    ----------
+    upid : ndarray
+        Numpy integer array of shape (ngals, ) storing the upid column
+
+    mstar : ndarray
+        Numpy array of shape (ngals, ) storing the stellar mass in
+        units of Msun assuming h=0.7
+
+    host_halo_mvir : ndarray
+        Numpy array of shape (ngals, ) storing the host halo mass in
+        units of Msun assuming h=0.7
+
+    magr : ndarray
+        Numpy array of shape (ngals, ) storing restframe r-band absolute magnitude
+
+    gr : ndarray
+        Numpy array of shape (ngals, ) storing restframe g-r color
+
+    ri : ndarray
+        Numpy array of shape (ngals, ) storing restframe r-i color
+
+    Returns
+    -------
+    gr_new : ndarray
+        Numpy array of shape (ngals, ) storing g-r restframe color for every galaxy,
+        reddened for satellites of cluster halos
+
+    ri_new : ndarray
+        Numpy array of shape (ngals, ) storing r-i restframe color for every galaxy,
+        reddened for satellites of cluster halos
     """
     remapping_mask = prob_remap_cluster_satellite(upid, mstar, host_halo_mvir)
     gr_peak_sats_to_remap = red_sequence_peak_gr(magr[remapping_mask])
