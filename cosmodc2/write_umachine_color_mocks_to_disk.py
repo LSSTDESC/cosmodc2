@@ -80,7 +80,8 @@ def write_snapshot_mocks_to_disk(
         mstar_mock = mock['obs_sm']
         sfr_percentile_mock = mock['sfr_percentile']
         host_halo_mvir_mock = mock['host_halo_mvir']
-        redshift_mock = np.zeros(len(mock)) + 0.0
+        redshift_mock = np.random.uniform(redshift-0.15, redshift+0.15, len(mock))
+        redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
 
         print("\n...assigning SDSS restframe colors")
 
