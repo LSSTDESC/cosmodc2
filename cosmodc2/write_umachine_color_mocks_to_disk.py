@@ -85,11 +85,13 @@ def write_snapshot_mocks_to_disk(
 
         print("\n...assigning SDSS restframe colors")
 
-        magr, gr_mock, ri_mock = assign_restframe_sdss_gri(
+        magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
             upid_mock, mstar_mock, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock)
         mock['restframe_extincted_sdss_abs_magr'] = magr
         mock['restframe_extincted_sdss_gr'] = gr_mock
         mock['restframe_extincted_sdss_ri'] = ri_mock
+        mock['is_on_red_sequence_gr'] = is_red_gr
+        mock['is_on_red_sequence_ri'] = is_red_ri
 
         ###  GalSampler
         print("\n...loading z = {0:.2f} halo catalogs into memory".format(redshift))
@@ -252,7 +254,8 @@ def build_output_snapshot_mock(
             'host_centric_vx', 'host_centric_vy', 'host_centric_vz',
             'obs_sm', 'obs_sfr', 'sfr_percentile',
             'restframe_extincted_sdss_abs_magr',
-            'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri')
+            'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
+            'is_on_red_sequence_gr', 'is_on_red_sequence_ri')
     for key in source_galaxy_keys:
         dc2[key] = umachine[key][galaxy_indices]
 

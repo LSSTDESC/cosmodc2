@@ -217,8 +217,8 @@ def remap_satellites(mstar, gr, ri,
     return output_gr, output_ri
 
 
-def remap_cluster_satellite_gr_ri_color(
-            upid, mstar, host_halo_mvir, magr, gr, ri, scatter=0.04):
+def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, ri,
+            is_on_red_sequence_gr, is_on_red_sequence_ri, scatter=0.04):
     """ Redden satellites in cluster-mass halos
 
     Parameters
@@ -254,6 +254,9 @@ def remap_cluster_satellite_gr_ri_color(
         reddened for satellites of cluster halos
     """
     remapping_mask = prob_remap_cluster_satellite(upid, mstar, host_halo_mvir)
+    is_on_red_sequence_gr[remapping_mask] = True
+    is_on_red_sequence_ri[remapping_mask] = True
+
     gr_peak_sats_to_remap = red_sequence_peak_gr(magr[remapping_mask])
     ri_peak_sats_to_remap = red_sequence_peak_ri(magr[remapping_mask])
     mstar_sats_to_remap = mstar[remapping_mask]
@@ -267,7 +270,7 @@ def remap_cluster_satellite_gr_ri_color(
     gr[remapping_mask] = remapped_gr_sats
     ri[remapping_mask] = remapped_ri_sats
 
-    return gr, ri
+    return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
 
 
 
