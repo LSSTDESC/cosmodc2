@@ -2,15 +2,16 @@
 onto model galaxies.
 """
 import numpy as np
-from ..sdss_colors import magr_monte_carlo, gr_ri_monte_carlo
-from ..sdss_colors import remap_cluster_bcg_gr_ri_color, remap_cluster_satellite_gr_ri_color
+from .analytical_magr import magr_monte_carlo
+from .analytical_colors import gr_ri_monte_carlo
+from .fix_cluster_lf import remap_cluster_bcg_gr_ri_color, remap_cluster_satellite_gr_ri_color
 
 
 __all__ = ('assign_restframe_sdss_gri', )
 
 
 def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
-            host_halo_mvir_mock, redshift_mock):
+            host_halo_mvir_mock, redshift_mock, **kwargs):
     """ Primary function used to paint g, r, i SDSS flux onto UniverseMachine galaxies.
 
     Parameters
@@ -52,7 +53,7 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
         redshift_mock = np.zeros(ngals).astype('f4') + redshift_mock[0]
 
     #  Calculate model values of Mr
-    magr = magr_monte_carlo(mstar_mock, redshift_mock)
+    magr = magr_monte_carlo(mstar_mock, redshift_mock, **kwargs)
 
     #  Calculate model values of (g-r) and (r-i)
     gr_mock, ri_mock, is_red_ri_mock, is_red_gr_mock = gr_ri_monte_carlo(
