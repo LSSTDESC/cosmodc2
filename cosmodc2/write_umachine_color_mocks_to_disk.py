@@ -247,7 +247,7 @@ def build_output_snapshot_mock(
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
 
-    source_galaxy_keys = ('host_halo_mvir', 'upid',
+    source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
             'host_centric_vx', 'host_centric_vy', 'host_centric_vz',
             'obs_sm', 'obs_sfr', 'sfr_percentile',
