@@ -46,6 +46,35 @@ def redshift_boost_median_magr(redshift,
     return np.interp(redshift, z_table, boost_table)
 
 
+def magr_at_m1_vs_redshift(redshift, magr_at_m1_z0, z_table, boost_table):
+    """
+    """
+    return magr_at_m1_z0 + np.interp(redshift, z_table, boost_table)
+
+
+def high_mass_slope_vs_redshift(redshift, beta_z0, slope_z_table, slope_boost_table):
+    """
+    """
+    return beta_z0 + np.interp(redshift, slope_z_table, slope_boost_table)
+
+
+def median_magr_from_mstar2(mstar, redshift,
+            beta_z0=3.25, gamma=2., m1=10., magr_at_m1_z0=-19.9,
+            slope_z_table=[0.25, 0.5, 1], slope_boost_table=[0, 0.1, 0.2],
+            z_table=[0, 0.25, 0.5, 1], boost_table=[0, -0.2, -0.5, -1.]):
+    """
+    New function intended to replace median_magr_from_mstar, but still not implemented
+    """
+    m_by_m1 = mstar/10.**m1
+    beta = high_mass_slope_vs_redshift(
+        redshift, beta_z0, slope_z_table, slope_boost_table)
+    denom_term1 = m_by_m1**beta
+    denom_term2 = m_by_m1**gamma
+    result = 1. / (denom_term1 + denom_term2)
+    magr_at_m1 = magr_at_m1_vs_redshift(redshift, magr_at_m1_z0, z_table, boost_table)
+    return np.log10(result*mstar) - np.log10(0.5*10**m1) + magr_at_m1
+
+
 def median_magr_from_mstar(mstar, redshift,
             beta=3.25, gamma=2., m1=10., magr_at_m1=-19.9, **kwargs):
     """ Double power-law model for the median of the scaling relation <Mr | M*>(z).
