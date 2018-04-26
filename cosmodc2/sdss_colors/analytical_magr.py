@@ -124,7 +124,7 @@ def median_magr_from_mstar(mstar, redshift,
 
 
 def scatter_magr_from_mstar(mstar, logsm_abscissa=[6, 8, 9],
-                            scatter_ordinates=[1, 0.3, 0.15], **kwargs):
+                            scatter_ordinates=[0.5, 0.3, 0.15], **kwargs):
     """ Scatter about the median scaling relation <Mr | M*>(z).
 
     The scatter model is defined via linear interpolation from a set of
