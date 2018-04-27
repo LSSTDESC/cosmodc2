@@ -8,6 +8,10 @@ c3_gr, c2_gr, c1_gr, c0_gr = 2.91, -6.63, 4.98, 0.48
 c3_ri, c2_ri, c1_ri, c0_ri = -3.54, 5.66, -1.42, 0.49
 c3_iz, c2_iz, c1_iz, c0_iz = 1.83, -1.90, 0.79, 0.21
 
+__all__ = ('mean_des_red_sequence_gr_color_vs_redshift',
+    'mean_des_red_sequence_ri_color_vs_redshift',
+    'mean_des_red_sequence_iz_color_vs_redshift')
+
 
 def mean_des_red_sequence_gr_color_vs_redshift(redshift):
     """
