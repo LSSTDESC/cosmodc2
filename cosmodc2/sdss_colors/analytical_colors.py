@@ -9,8 +9,11 @@ from halotools.empirical_models import conditional_abunmatch
 __all__ = ('gr_ri_monte_carlo',)
 
 
-default_red_peak_gr = [0.95, 0.95, 0.8, 0.7, 0.7, 0.7]
+default_red_peak_gr = [0.9, 0.85, 0.8, 0.7, 0.7, 0.7]
 default_red_peak_ri = [0.41, 0.41, 0.4, 0.385, 0.375, 0.35, 0.31]
+
+fq_gr_abscissa = [-22.5, -22., -21, -20, -19.5, -19, -18.5, -18, -15]
+default_fq_gr = [0.9, 0.775, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1]
 
 
 def sequence_width(magr, x, y):
@@ -71,7 +74,7 @@ def main_sequence_width_gr(magr, ms_scatter_gr,
 
 
 def red_sequence_peak_gr(magr, red_peak_gr,
-        x=[-25, -21, -20, -19, -18, -15]):
+        x=[-22.5, -21, -20, -19, -18, -15]):
     """
     Location of the median value of <g-r | Mr> for red sequence galaxies.
     """
@@ -79,24 +82,23 @@ def red_sequence_peak_gr(magr, red_peak_gr,
 
 
 def main_sequence_peak_gr(magr, ms_peak_gr,
-        x=[-25, -21, -20, -19, -18, -15]):
+        x=[-22.5, -21, -20, -19, -18, -15]):
     """
     Location of the median value of <g-r | Mr> for star-forming galaxies.
     """
     return sequence_peak(magr, x, ms_peak_gr)
 
 
-def quiescent_fraction_gr(magr, fq_gr,
-        x=[-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15]):
+def quiescent_fraction_gr(magr, fq_gr):
     """
     Fraction of galaxies on the g-r red sequence as a function of Mr.
     """
-    return np.interp(magr, x, fq_gr)
+    return np.interp(magr, fq_gr_abscissa, fq_gr)
 
 
 def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
             peak_shift_factor=[0, -0.05, -0.1, -0.15],
-            fq_gr=[0.9, 0.85, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1],
+            fq_gr=default_fq_gr,
             red_peak_gr=default_red_peak_gr,
             ms_peak_gr=[0.8, 0.75, 0.6, 0.4, 0.4, 0.35],
             ms_scatter_gr=[0.08, 0.08, 0.08, 0.08, 0.08],
