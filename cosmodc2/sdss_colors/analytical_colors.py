@@ -50,53 +50,54 @@ def redshift_evolution_factor(magr, redshift, z_table, shift_table):
     return np.interp(redshift, z_table, shift_table)
 
 
-def red_sequence_width_gr(magr,
-        x=[-22.5, -21, -20, -18, -15],
-        y=[0.05, 0.06, 0.065, 0.06, 0.06]):
+def red_sequence_width_gr(magr, red_scatter_gr,
+        x=[-22.5, -21, -20, -18, -15]):
     """
     Level of scatter about the median value of <g-r | Mr> for red sequence galaxies.
     """
-    return sequence_width(magr, x, y)
+    return sequence_width(magr, x, red_scatter_gr)
 
 
-def main_sequence_width_gr(magr,
-        x=[-22.5, -21, -20, -18, -15],
-        y=[0.15, 0.15, 0.1, 0.1, 0.1]):
+def main_sequence_width_gr(magr, ms_scatter_gr,
+        x=[-22.5, -21, -20, -18, -15]):
     """
     Level of scatter about the median value of <g-r | Mr> for star-forming galaxies.
     """
-    return sequence_width(magr, x, y)
+    return sequence_width(magr, x, ms_scatter_gr)
 
 
-def red_sequence_peak_gr(magr,
-        x=[-25, -21, -20, -19, -18, -15],
-        y=[1.1, 0.95, 0.8, 0.7, 0.7, 0.7]):
+def red_sequence_peak_gr(magr, red_peak_gr,
+        x=[-25, -21, -20, -19, -18, -15]):
     """
     Location of the median value of <g-r | Mr> for red sequence galaxies.
     """
-    return sequence_peak(magr, x, y)
+    return sequence_peak(magr, x, red_peak_gr)
 
 
-def main_sequence_peak_gr(magr,
-        x=[-25, -21, -20, -19, -18, -15],
-        y=[0.8, 0.75, 0.6, 0.4, 0.4, 0.35]):
+def main_sequence_peak_gr(magr, ms_peak_gr,
+        x=[-25, -21, -20, -19, -18, -15]):
     """
     Location of the median value of <g-r | Mr> for star-forming galaxies.
     """
-    return sequence_peak(magr, x, y)
+    return sequence_peak(magr, x, ms_peak_gr)
 
 
-def quiescent_fraction_gr(magr,
-        x=[-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15],
-        y=[0.9, 0.85, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1]):
+def quiescent_fraction_gr(magr, fq_gr,
+        x=[-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15]):
     """
     Fraction of galaxies on the g-r red sequence as a function of Mr.
     """
-    return np.interp(magr, x, y)
+    return np.interp(magr, x, fq_gr)
 
 
 def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
-            peak_shift_factor=[0, -0.05, -0.1, -0.15], scatter_factor=[1, 1.1, 1.25, 1.3]):
+            peak_shift_factor=[0, -0.05, -0.1, -0.15],
+            scatter_factor=[1, 1.1, 1.25, 1.3],
+            fq_gr=[0.9, 0.85, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1],
+            red_peak_gr=[1.1, 0.95, 0.8, 0.7, 0.7, 0.7],
+            ms_peak_gr=[0.8, 0.75, 0.6, 0.4, 0.4, 0.35],
+            ms_scatter_gr=[0.15, 0.15, 0.1, 0.1, 0.1],
+            red_scatter_gr=[0.05, 0.06, 0.065, 0.06, 0.06], **kwargs):
     """ Generate a Monte Carlo realization of g-r restframe color.
 
     Parameters
@@ -121,18 +122,18 @@ def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
 
     ngals = len(magr)
     with NumpyRNGContext(seed):
-        is_quiescent = np.random.rand(ngals) < quiescent_fraction_gr(magr)
+        is_quiescent = np.random.rand(ngals) < quiescent_fraction_gr(magr, fq_gr)
 
-    red_sequence_loc = red_sequence_peak_gr(magr[is_quiescent])
+    red_sequence_loc = red_sequence_peak_gr(magr[is_quiescent], red_peak_gr)
     red_sequence_loc = red_sequence_loc + red_sequence_loc*redshift_evolution_factor(
         magr[is_quiescent], redshift[is_quiescent], z_table, peak_shift_factor)
-    red_sequence_scatter = red_sequence_width_gr(magr[is_quiescent])
+    red_sequence_scatter = red_sequence_width_gr(magr[is_quiescent], red_scatter_gr)
     red_sequence = np.random.normal(loc=red_sequence_loc, scale=red_sequence_scatter)
 
-    main_sequence_loc = main_sequence_peak_gr(magr[~is_quiescent])
+    main_sequence_loc = main_sequence_peak_gr(magr[~is_quiescent], ms_peak_gr)
     main_sequence_loc = main_sequence_loc + main_sequence_loc*redshift_evolution_factor(
                 magr[~is_quiescent], redshift[~is_quiescent], z_table, peak_shift_factor)
-    main_sequence_scatter = main_sequence_width_gr(magr[~is_quiescent])
+    main_sequence_scatter = main_sequence_width_gr(magr[~is_quiescent], ms_scatter_gr)
     star_forming_sequence = np.random.normal(loc=main_sequence_loc, scale=main_sequence_scatter)
 
     result = np.zeros(ngals).astype('f4')
@@ -141,53 +142,54 @@ def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
     return result, is_quiescent
 
 
-def red_sequence_width_ri(magr,
-        x=[-22.5, -21, -20, -18, -15],
-        y=[0.025, 0.03, 0.03, 0.025, 0.025]):
+def red_sequence_width_ri(magr, red_scatter_ri,
+        x=[-22.5, -21, -20, -18, -15]):
     """
     Level of scatter about the median value of <r-i | Mr> for red sequence galaxies.
     """
-    return sequence_width(magr, x, y)
+    return sequence_width(magr, x, red_scatter_ri)
 
 
-def main_sequence_width_ri(magr,
-        x=[-22.5, -21, -20, -18, -15],
-        y=[0.025, 0.065, 0.065, 0.06, 0.06]):
+def main_sequence_width_ri(magr, ms_scatter_ri,
+        x=[-22.5, -21, -20, -18, -15]):
     """
     Level of scatter about the median value of <r-i | Mr> for star-forming galaxies.
     """
-    return sequence_width(magr, x, y)
+    return sequence_width(magr, x, ms_scatter_ri)
 
 
-def red_sequence_peak_ri(magr,
-        x=[-23, -21, -20, -19.5, -19, -18, -15],
-        y=[0.435, 0.41, 0.4, 0.385, 0.375, 0.35, 0.31]):
+def red_sequence_peak_ri(magr, red_peak_ri,
+        x=[-23, -21, -20, -19.5, -19, -18, -15]):
     """
     Location of the median value of <r-i | Mr> for red sequence galaxies.
     """
-    return sequence_peak(magr, x, y)
+    return sequence_peak(magr, x, red_peak_ri)
 
 
-def main_sequence_peak_ri(magr,
-        x=[-25, -21, -20, -19, -18, -15],
-        y=[0.4, 0.35, 0.3, 0.24, 0.2, 0.185]):
+def main_sequence_peak_ri(magr, ms_peak_ri,
+        x=[-25, -21, -20, -19, -18, -15]):
     """
     Location of the median value of <r-i | Mr> for star-forming galaxies.
     """
-    return sequence_peak(magr, x, y)
+    return sequence_peak(magr, x, ms_peak_ri)
 
 
-def quiescent_fraction_ri(magr,
-        x=[-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15],
-        y=[0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1]):
+def quiescent_fraction_ri(magr, fq_ri,
+        x=[-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15]):
     """
     Fraction of galaxies on the r-i red sequence as a function of Mr.
     """
-    return np.interp(magr, x, y)
+    return np.interp(magr, x, fq_ri)
 
 
 def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
-            peak_shift_factor=[0, -0.05, -0.1, -0.15], scatter_factor=[1, 1.1, 1.25, 1.3]):
+            peak_shift_factor=[0, -0.05, -0.1, -0.15],
+            scatter_factor=[1, 1.1, 1.25, 1.3],
+            fq_ri=[0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1],
+            red_scatter_ri=[0.025, 0.03, 0.03, 0.025, 0.025],
+            ms_scatter_ri=[0.025, 0.065, 0.065, 0.06, 0.06],
+            red_peak_ri=[0.435, 0.41, 0.4, 0.385, 0.375, 0.35, 0.31],
+            ms_peak_ri=[0.4, 0.35, 0.3, 0.24, 0.2, 0.185], **kwargs):
     """ Generate a Monte Carlo realization of r-i restframe color.
 
     Parameters
@@ -212,18 +214,18 @@ def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
 
     ngals = len(magr)
     with NumpyRNGContext(seed):
-        is_quiescent = np.random.rand(ngals) < quiescent_fraction_ri(magr)
+        is_quiescent = np.random.rand(ngals) < quiescent_fraction_ri(magr, fq_ri)
 
-    red_sequence_loc = red_sequence_peak_ri(magr[is_quiescent])
+    red_sequence_loc = red_sequence_peak_ri(magr[is_quiescent], red_peak_ri)
     red_sequence_loc = red_sequence_loc + red_sequence_loc*redshift_evolution_factor(
         magr[is_quiescent], redshift[is_quiescent], z_table, peak_shift_factor)
-    red_sequence_scatter = red_sequence_width_ri(magr[is_quiescent])
+    red_sequence_scatter = red_sequence_width_ri(magr[is_quiescent], red_scatter_ri)
     red_sequence = np.random.normal(loc=red_sequence_loc, scale=red_sequence_scatter)
 
-    main_sequence_loc = main_sequence_peak_ri(magr[~is_quiescent])
+    main_sequence_loc = main_sequence_peak_ri(magr[~is_quiescent], ms_peak_ri)
     main_sequence_loc = main_sequence_loc + main_sequence_loc*redshift_evolution_factor(
                 magr[~is_quiescent], redshift[~is_quiescent], z_table, peak_shift_factor)
-    main_sequence_scatter = main_sequence_width_ri(magr[~is_quiescent])
+    main_sequence_scatter = main_sequence_width_ri(magr[~is_quiescent], ms_scatter_ri)
     star_forming_sequence = np.random.normal(loc=main_sequence_loc, scale=main_sequence_scatter)
 
     result = np.zeros(ngals).astype('f4')
@@ -233,7 +235,7 @@ def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
 
 
 def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
-            local_random_scale=0.1, nwin=301, seed=43):
+            local_random_scale=0.1, nwin=301, seed=43, **kwargs):
     """ Generate a Monte Carlo realization of (g-r) and (r-i) restframe colors.
 
     Parameters
@@ -269,8 +271,8 @@ def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
     """
     p = np.random.normal(loc=1-sfr_percentile, scale=local_random_scale)
 
-    ri_orig, is_quiescent_ri = r_minus_i(magr, redshift)
-    gr_orig, is_quiescent_gr = g_minus_r(magr, redshift)
+    ri_orig, is_quiescent_ri = r_minus_i(magr, redshift, **kwargs)
+    gr_orig, is_quiescent_gr = g_minus_r(magr, redshift, **kwargs)
     gr = conditional_abunmatch(magr, p, magr, gr_orig, nwin)
 
     noisy_gr = np.random.normal(loc=gr, scale=0.1)
