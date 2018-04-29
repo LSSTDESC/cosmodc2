@@ -101,8 +101,8 @@ def cluster_bcg_red_sequence_gr_ri(num_samples, gr_median, ri_median, scatter):
 def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
         is_on_red_sequence_gr, is_on_red_sequence_ri,
         host_mass_table=(13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.25, 0.75, 1),
-        gr_red_sequence_median=0.95, gr_red_sequence_scatter=0.04,
-        ri_red_sequence_median=0.44, ri_red_sequence_scatter=0.03, nwin=101):
+        gr_red_sequence_median=0.95, gr_red_sequence_scatter=0.015,
+        ri_red_sequence_median=0.42, ri_red_sequence_scatter=0.01, nwin=101):
     """ Redden centrals in cluster-mass halos
 
     Parameters
