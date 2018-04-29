@@ -5,6 +5,7 @@ from scipy.linalg import eigh
 from scipy.stats import norm, binned_statistic
 from halotools.empirical_models import conditional_abunmatch
 from .analytical_colors import red_sequence_peak_gr, red_sequence_peak_ri
+from .analytical_colors import default_red_peak_gr, default_red_peak_ri
 
 
 __all__ = ('calculate_cluster_clf_powerlaw_coeffs', 'remap_cluster_bcg_gr_color',
@@ -100,7 +101,7 @@ def cluster_bcg_red_sequence_gr_ri(num_samples, gr_median, ri_median, scatter):
 
 def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
         is_on_red_sequence_gr, is_on_red_sequence_ri,
-        host_mass_table=(13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.25, 0.75, 1),
+        host_mass_table=(13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.5, 0.75, 1),
         gr_red_sequence_median=0.95, gr_red_sequence_scatter=0.015,
         ri_red_sequence_median=0.42, ri_red_sequence_scatter=0.01, nwin=101):
     """ Redden centrals in cluster-mass halos
@@ -181,14 +182,14 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
 
 
 def prob_remap_cluster_satellite(upid, mstar, host_halo_mvir,
-            x1=(9, 9.75, 10.25, 11), y1=(1., 1., 1., 1.),
-            x2=(13.5, 14, 14.5), y2=(0.0, 0.5, 0.75)):
+            x1=(9, 9.75, 10.25, 11), mstar_sat_prob_remap=(1., 1., 0.5, 0.),
+            x2=(13.5, 14, 14.5), mhalo_sat_prob_remap=(0.0, 0.5, 0.75)):
     """
     """
     ngals = len(mstar)
     satmask = upid != -1
-    mstar_prob = np.interp(np.log10(mstar), x1, y1)
-    mhost_prob = np.interp(np.log10(host_halo_mvir), x2, y2)
+    mstar_prob = np.interp(np.log10(mstar), x1, mstar_sat_prob_remap)
+    mhost_prob = np.interp(np.log10(host_halo_mvir), x2, mhalo_sat_prob_remap)
     mstar_mask = np.random.rand(ngals) < mstar_prob
     mhost_mask = np.random.rand(ngals) < mhost_prob
     remapping_mask = mstar_mask & mhost_mask & satmask
@@ -218,7 +219,7 @@ def remap_satellites(mstar, gr, ri,
 
 
 def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, ri,
-            is_on_red_sequence_gr, is_on_red_sequence_ri, scatter=0.04):
+            is_on_red_sequence_gr, is_on_red_sequence_ri, scatter=0.03):
     """ Redden satellites in cluster-mass halos
 
     Parameters
@@ -257,8 +258,8 @@ def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, r
     is_on_red_sequence_gr[remapping_mask] = True
     is_on_red_sequence_ri[remapping_mask] = True
 
-    gr_peak_sats_to_remap = red_sequence_peak_gr(magr[remapping_mask])
-    ri_peak_sats_to_remap = red_sequence_peak_ri(magr[remapping_mask])
+    gr_peak_sats_to_remap = red_sequence_peak_gr(magr[remapping_mask], default_red_peak_gr)
+    ri_peak_sats_to_remap = red_sequence_peak_ri(magr[remapping_mask], default_red_peak_ri)
     mstar_sats_to_remap = mstar[remapping_mask]
     gr_sats_to_remap = gr[remapping_mask]
     ri_sats_to_remap = ri[remapping_mask]
@@ -271,9 +272,4 @@ def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, r
     ri[remapping_mask] = remapped_ri_sats
 
     return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
-
-
-
-
-
 
