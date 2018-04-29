@@ -8,7 +8,7 @@ __all__ = ('lift_high_mass_mstar', )
 
 
 def lift_high_mass_mstar(mpeak, mstar, redshift,
-        z_table=[0.35, 0.5, 1], slope_table=[0.5, 0.65, 0.8], pivot_table=[13.25, 13, 12.5]):
+        z_table=[0.25, 0.5, 1], slope_table=[0.5, 0.65, 0.7], pivot_table=[13.25, 13, 12.5]):
     """
     """
     logmpeak_pivot = calculate_logmpeak_pivot(redshift, z_table, pivot_table)
