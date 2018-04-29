@@ -92,12 +92,11 @@ def quiescent_fraction_gr(magr, fq_gr,
 
 def g_minus_r(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
             peak_shift_factor=[0, -0.05, -0.1, -0.15],
-            scatter_factor=[1, 1.1, 1.25, 1.3],
             fq_gr=[0.9, 0.85, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1],
-            red_peak_gr=[1.1, 0.95, 0.8, 0.7, 0.7, 0.7],
+            red_peak_gr=[0.95, 0.95, 0.8, 0.7, 0.7, 0.7],
             ms_peak_gr=[0.8, 0.75, 0.6, 0.4, 0.4, 0.35],
-            ms_scatter_gr=[0.15, 0.15, 0.1, 0.1, 0.1],
-            red_scatter_gr=[0.05, 0.06, 0.065, 0.06, 0.06], **kwargs):
+            ms_scatter_gr=[0.08, 0.08, 0.08, 0.08, 0.08],
+            red_scatter_gr=[0.04, 0.04, 0.04, 0.04, 0.04], **kwargs):
     """ Generate a Monte Carlo realization of g-r restframe color.
 
     Parameters
@@ -184,11 +183,10 @@ def quiescent_fraction_ri(magr, fq_ri,
 
 def r_minus_i(magr, redshift, seed=None, z_table=[0.1, 0.25, 1, 3],
             peak_shift_factor=[0, -0.05, -0.1, -0.15],
-            scatter_factor=[1, 1.1, 1.25, 1.3],
             fq_ri=[0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1],
-            red_scatter_ri=[0.025, 0.03, 0.03, 0.025, 0.025],
-            ms_scatter_ri=[0.025, 0.065, 0.065, 0.06, 0.06],
-            red_peak_ri=[0.435, 0.41, 0.4, 0.385, 0.375, 0.35, 0.31],
+            red_scatter_ri=[0.02, 0.02, 0.02, 0.02, 0.02],
+            ms_scatter_ri=[0.02, 0.05, 0.05, 0.05, 0.05],
+            red_peak_ri=[0.41, 0.41, 0.4, 0.385, 0.375, 0.35, 0.31],
             ms_peak_ri=[0.4, 0.35, 0.3, 0.24, 0.2, 0.185], **kwargs):
     """ Generate a Monte Carlo realization of r-i restframe color.
 
