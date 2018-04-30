@@ -19,6 +19,10 @@ def lift_high_mass_mstar(mpeak, mstar, upid, redshift,
     """
     lifting_probability = redshift_lifting_probability(redshift)
     lifting_probability[upid != -1] = 0.
+    cenmask = upid == -1
+    cluster_bcg_outlier_mask = mpeak > 10**13.5
+    cluster_bcg_outlier_mask *= mstar < 10**10
+    lifting_probability[cluster_bcg_outlier_mask & cenmask] = 1.
 
     lifting_mask = np.random.rand(len(lifting_probability)) < lifting_probability
 
