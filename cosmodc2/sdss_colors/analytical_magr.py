@@ -58,8 +58,8 @@ def high_mass_slope_vs_redshift(redshift, beta_z0, slope_z_table, slope_boost_ta
     return beta_z0 + np.interp(redshift, slope_z_table, slope_boost_table)
 
 
-def median_magr_from_mstar(mstar, redshift,
-            beta_z0=2.85, magr_at_m1_z0=-20.2, gamma=2.25, m1=10.,
+def median_magr_from_mstar(mstar, upid, redshift,
+            beta_z0=2.85, magr_at_m1_z0=-20.2, gamma=2.25, m1=10., beta_z0_satellites=2.7,
             slope_z_table=[0.25, 0.5, 1], slope_boost_table=[0, 0.1, 0.2],
             z_table=[0, 0.25, 0.5, 1], boost_table=[0, -0.5, -1, -1.25], **kwargs):
     """ Double power-law model for the median of the scaling relation <Mr | M*>(z).
@@ -96,13 +96,24 @@ def median_magr_from_mstar(mstar, redshift,
     --------
     >>> ngals = int(1e4)
     >>> mstar = 10**np.random.uniform(8, 12, ngals)
+    >>> upid = np.zeros_like(mstar) - 1.
+    >>> upid[-100:] = 100
     >>> redshift = np.random.uniform(0, 3, ngals)
-    >>> median_magr = median_magr_from_mstar(mstar, redshift)
+    >>> median_magr = median_magr_from_mstar(mstar, upid, redshift)
 
     """
     m_by_m1 = mstar/10.**m1
-    beta = high_mass_slope_vs_redshift(
+
+    cenmask = upid == -1
+    beta_cens = high_mass_slope_vs_redshift(
         redshift, beta_z0, slope_z_table, slope_boost_table)
+    beta_sats = high_mass_slope_vs_redshift(
+        redshift, beta_z0_satellites, slope_z_table, slope_boost_table)
+    beta = beta_cens
+    num_sats = np.count_nonzero(~cenmask)
+    if num_sats > 0:
+        beta[~cenmask] = beta_sats[~cenmask]
+
     denom_term1 = m_by_m1**beta
     denom_term2 = m_by_m1**gamma
     result = 1. / (denom_term1 + denom_term2)
@@ -145,7 +156,7 @@ def scatter_magr_from_mstar(mstar, logsm_abscissa=[6, 8, 9],
     return np.interp(np.log10(mstar), logsm_abscissa, scatter_ordinates)
 
 
-def magr_monte_carlo(mstar, redshift, seed=fixed_seed, **kwargs):
+def magr_monte_carlo(mstar, upid, redshift, seed=fixed_seed, **kwargs):
     """ Monte Carlo realization of the scaling relation <Mr | M*>(z).
 
     Parameters
@@ -189,11 +200,12 @@ def magr_monte_carlo(mstar, redshift, seed=fixed_seed, **kwargs):
     --------
     >>> ngals = int(1e4)
     >>> mstar = 10**np.random.uniform(8, 12, ngals)
+    >>> upid = np.zeros_like(mstar) - 1.
     >>> redshift = np.random.uniform(0, 3, ngals)
-    >>> magr = magr_monte_carlo(mstar, redshift)
+    >>> magr = magr_monte_carlo(mstar, upid, redshift)
 
     """
-    median_magr = median_magr_from_mstar(mstar, redshift, **kwargs)
+    median_magr = median_magr_from_mstar(mstar, upid, redshift, **kwargs)
     scatter_magr = scatter_magr_from_mstar(mstar, **kwargs)
 
     with NumpyRNGContext(seed):
