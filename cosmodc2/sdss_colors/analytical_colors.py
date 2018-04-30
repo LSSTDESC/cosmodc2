@@ -19,7 +19,7 @@ fq_ri_abscissa = [-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15]
 default_fq_ri = [0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1]
 
 blueshift_z_table = [0.25, 0.5, 1.0]
-default_blueshift_factor_table = (1., 1.25, 2.)
+default_blueshift_factor_table = (1., 1.5, 3.)
 
 
 def apply_z_evolution_of_fq(fq_z0p0, redshift, z_table, reduction_factor):
