@@ -24,8 +24,8 @@ def high_mass_slope_vs_redshift(redshift, beta_z0, slope_z_table, slope_boost_ta
 
 def median_magr_from_mstar(mstar, upid, redshift,
             beta_z0=2.85, magr_at_m1_z0=-20.2, gamma=2.25, m1=10., beta_z0_satellites=2.7,
-            slope_z_table=[0.25, 0.5, 1], slope_boost_table=[0, 0., 0.],
-            z_table=[0, 0.25, 0.5, 1], boost_table=[0, -0.5, -1, -1.25], **kwargs):
+            slope_z_table=[0.25, 0.5, 1], slope_boost_table=[0, 0.5, 0.5],
+            z_table=[0, 0.25, 0.5, 1], boost_table=[0, -0.5, -1.25, -1.5], **kwargs):
     """ Double power-law model for the median of the scaling relation <Mr | M*>(z).
 
     Parameters
@@ -71,8 +71,9 @@ def median_magr_from_mstar(mstar, upid, redshift,
     cenmask = upid == -1
     beta_cens = high_mass_slope_vs_redshift(
         redshift, beta_z0, slope_z_table, slope_boost_table)
+    slope_boost_table_sats = (0., 0., 0.)
     beta_sats = high_mass_slope_vs_redshift(
-        redshift, beta_z0_satellites, slope_z_table, slope_boost_table)
+        redshift, beta_z0_satellites, slope_z_table, slope_boost_table_sats)
     beta = beta_cens
     num_sats = np.count_nonzero(~cenmask)
     if num_sats > 0:
