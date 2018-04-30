@@ -48,7 +48,7 @@ def zehavi_wp(x, y, z, vz, period, magr, magr_thresh, assumed_littleh_for_magr,
 
     ngals = np.count_nonzero(mask)
 
-    downsampling_factor = 4.e5/float(ngals)
+    downsampling_factor = 1.e5/float(ngals)
     if downsampling_factor < 1.:
         # print("...downsampling sample from original counts = {0:.2e}".format(ngals))
         mask *= (np.random.rand(len(x)) < downsampling_factor)
