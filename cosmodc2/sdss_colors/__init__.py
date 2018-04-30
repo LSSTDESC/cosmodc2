@@ -6,3 +6,4 @@ from .fix_cluster_lf import *
 from .analytical_colors import *
 from .analytical_magr import *
 from .v4_sdss_assign_gri import *
+from .v4_remap_umachine_snaps import *
