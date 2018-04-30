@@ -10,42 +10,6 @@ __all__ = ('magr_monte_carlo', )
 fixed_seed = 43
 
 
-def redshift_boost_median_magr(redshift,
-            z_table=[0, 0.25, 0.5, 1], boost_table=[0, -0.2, -0.5, -1.], **kwargs):
-    """
-    Calculate the redshift-dependent multiplicative factor by which the
-    median <Mr | M*>(z) relation should be boosted relative to the z=0 relation.
-
-    The boost factor model is defined via linear interpolation from a set of
-    control points in redshift.
-
-    Parameters
-    ----------
-    redshift : ndarray
-        Numpy array of shape (ngals, ) storing the redshift of every galaxy in the sample
-
-    z_table : sequence, optional
-        Abscissa of the interpolation table defining the boost factor.
-        Default is [0, 0.25, 0.5, 1].
-
-    boost_table : sequence, optional
-        Ordinates of the interpolation table defining the boost factor.
-
-    Returns
-    -------
-    boost_factor : ndarray
-        Numpy array of shape (ngals, ) storing the multiplicative boost factor
-
-    Examples
-    --------
-    >>> ngals = int(1e4)
-    >>> redshift = np.random.uniform(0, 3, ngals)
-    >>> boost_factor = redshift_boost_median_magr(redshift)
-
-    """
-    return np.interp(redshift, z_table, boost_table)
-
-
 def magr_at_m1_vs_redshift(redshift, magr_at_m1_z0, z_table, boost_table):
     """
     """
