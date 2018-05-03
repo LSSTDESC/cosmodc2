@@ -22,7 +22,8 @@ fq_ri_abscissa = [-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15]
 default_fq_ri = [0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1]
 
 blueshift_z_table = [0.25, 0.5, 1.0]
-default_blueshift_factor_table = (1., 1.5, 3.)
+default_fq_gr_blueshift_table = (1., 1.5, 3.)
+default_fq_ri_blueshift_table = (1., 1.5, 3.)
 
 default_peak_shift_factor_gr = [0, -0.1, -0.3, -0.35]
 default_peak_shift_factor_ri = [0, -0.1, -0.2, -0.2]
@@ -125,7 +126,7 @@ def g_minus_r(magr, redshift, seed=None, z_table=peak_shift_factor_z_table,
             ms_peak_gr=default_ms_peak_gr,
             ms_scatter_gr=[0.08, 0.08, 0.08, 0.08, 0.08],
             red_scatter_gr=[0.04, 0.04, 0.04, 0.04, 0.04],
-            blueshift_factor_table_gr=default_blueshift_factor_table, **kwargs):
+            fq_gr_blueshift_factor_table=default_fq_gr_blueshift_table, **kwargs):
     """ Generate a Monte Carlo realization of g-r restframe color.
 
     Parameters
@@ -151,7 +152,7 @@ def g_minus_r(magr, redshift, seed=None, z_table=peak_shift_factor_z_table,
     ngals = len(magr)
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_gr(
-            magr, redshift, fq_gr, blueshift_factor_table_gr)
+            magr, redshift, fq_gr, fq_gr_blueshift_factor_table)
 
     red_sequence_loc = red_sequence_peak_gr(magr[is_quiescent], red_peak_gr)
     red_sequence_loc = red_sequence_loc + red_sequence_loc*redshift_evolution_factor(
@@ -218,7 +219,7 @@ def r_minus_i(magr, redshift, seed=None, z_table=peak_shift_factor_z_table,
             ms_scatter_ri=[0.02, 0.05, 0.05, 0.05, 0.05],
             red_peak_ri=default_red_peak_ri,
             ms_peak_ri=default_ms_peak_ri,
-            blueshift_factor_table_ri=default_blueshift_factor_table, **kwargs):
+            blueshift_factor_table_ri=default_fq_ri_blueshift_table, **kwargs):
     """ Generate a Monte Carlo realization of r-i restframe color.
 
     Parameters
