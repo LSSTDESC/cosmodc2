@@ -46,6 +46,7 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
 
     ri_mock : ndarray
         Numpy array of shape (ngals, ) storing restframe r-i color
+
     """
     ngals = len(upid_mock)
 
@@ -54,7 +55,7 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
         redshift_mock = np.zeros(ngals).astype('f4') + redshift_mock[0]
 
     #  Calculate model values of Mr
-    magr = magr_monte_carlo(mstar_mock, redshift_mock, **kwargs)
+    magr = magr_monte_carlo(mstar_mock, upid_mock, redshift_mock, **kwargs)
 
     #  Calculate model values of (g-r) and (r-i)
     gr_mock, ri_mock, is_red_ri_mock, is_red_gr_mock = gr_ri_monte_carlo(
