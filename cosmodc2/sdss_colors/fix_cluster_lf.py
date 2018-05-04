@@ -4,8 +4,15 @@ import numpy as np
 from scipy.linalg import eigh
 from scipy.stats import norm, binned_statistic
 from halotools.empirical_models import conditional_abunmatch
-from .analytical_colors import red_sequence_peak_gr, red_sequence_peak_ri
-from .analytical_colors import default_red_peak_gr, default_red_peak_ri
+
+from .analytical_g_minus_r import red_sequence_peak_gr, default_red_peak_gr, default_red_peak_gr_zevol
+from .analytical_g_minus_r import default_red_scatter_gr, default_red_scatter_gr_zevol_table
+
+from .analytical_r_minus_i import red_sequence_peak_ri, default_red_peak_ri, default_red_peak_ri_zevol
+from .analytical_r_minus_i import default_red_scatter_ri, default_red_scatter_ri_zevol_table
+
+from .analytical_g_minus_r import red_sequence_width_gr
+from .analytical_r_minus_i import red_sequence_width_ri
 
 
 __all__ = ('calculate_cluster_clf_powerlaw_coeffs',
@@ -156,14 +163,17 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
 
 
 def prob_remap_cluster_satellite(upid, mstar, host_halo_mvir,
-            x1=(9, 9.75, 10.25, 11), mstar_sat_prob_remap=(1., 1., 0.5, 0.),
-            x2=(13.5, 14, 14.5), mhalo_sat_prob_remap=(0.0, 0.5, 0.75)):
+            mstar_sat_prob_remap_abscissa=(9, 9.75, 10.25, 11),
+            mstar_sat_prob_remap=(1., 1., 0.5, 0.),
+            mhalo_sat_prob_remap_abscissa=(13.25, 13.5, 13.75, 14, 14.5),
+            mhalo_sat_prob_remap=(0.0, 0.35, 0.5, 0.65, 0.85),
+            **kwargs):
     """
     """
     ngals = len(mstar)
     satmask = upid != -1
-    mstar_prob = np.interp(np.log10(mstar), x1, mstar_sat_prob_remap)
-    mhost_prob = np.interp(np.log10(host_halo_mvir), x2, mhalo_sat_prob_remap)
+    mstar_prob = np.interp(np.log10(mstar), mstar_sat_prob_remap_abscissa, mstar_sat_prob_remap)
+    mhost_prob = np.interp(np.log10(host_halo_mvir), mhalo_sat_prob_remap_abscissa, mhalo_sat_prob_remap)
     mstar_mask = np.random.rand(ngals) < mstar_prob
     mhost_mask = np.random.rand(ngals) < mhost_prob
     remapping_mask = mstar_mask & mhost_mask & satmask
@@ -193,7 +203,7 @@ def remap_satellites(mstar, gr, ri,
 
 
 def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, ri,
-            is_on_red_sequence_gr, is_on_red_sequence_ri, scatter=0.03):
+            is_on_red_sequence_gr, is_on_red_sequence_ri, redshift, scatter=0.03, **kwargs):
     """ Redden satellites in cluster-mass halos
 
     Parameters
@@ -228,22 +238,37 @@ def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, r
         Numpy array of shape (ngals, ) storing r-i restframe color for every galaxy,
         reddened for satellites of cluster halos
     """
-    remapping_mask = prob_remap_cluster_satellite(upid, mstar, host_halo_mvir)
+    remapping_mask = prob_remap_cluster_satellite(upid, mstar, host_halo_mvir, **kwargs)
     is_on_red_sequence_gr[remapping_mask] = True
     is_on_red_sequence_ri[remapping_mask] = True
 
-    gr_peak_sats_to_remap = red_sequence_peak_gr(magr[remapping_mask], default_red_peak_gr)
-    ri_peak_sats_to_remap = red_sequence_peak_ri(magr[remapping_mask], default_red_peak_ri)
-    mstar_sats_to_remap = mstar[remapping_mask]
-    gr_sats_to_remap = gr[remapping_mask]
-    ri_sats_to_remap = ri[remapping_mask]
+    gr_peak_sats_to_remap = red_sequence_peak_gr(magr[remapping_mask], default_red_peak_gr,
+            redshift[remapping_mask], default_red_peak_gr_zevol)
+    ri_peak_sats_to_remap = red_sequence_peak_ri(magr[remapping_mask], default_red_peak_ri,
+            redshift[remapping_mask], default_red_peak_ri_zevol)
 
-    remapped_gr_sats, remapped_ri_sats = remap_satellites(
-        mstar_sats_to_remap, gr_sats_to_remap, ri_sats_to_remap,
-        gr_peak_sats_to_remap, ri_peak_sats_to_remap, scatter, scatter)
+    gr_scatter_sats_to_remap = red_sequence_width_gr(
+                magr[remapping_mask], default_red_scatter_gr,
+                redshift[remapping_mask], default_red_scatter_gr_zevol_table)
+    ri_scatter_sats_to_remap = red_sequence_width_ri(
+                magr[remapping_mask], default_red_scatter_ri,
+                redshift[remapping_mask], default_red_scatter_ri_zevol_table)
 
-    gr[remapping_mask] = remapped_gr_sats
-    ri[remapping_mask] = remapped_ri_sats
+    remapped_cluster_satellite_gr = np.random.normal(
+        loc=gr_peak_sats_to_remap, scale=gr_scatter_sats_to_remap)
+    remapped_cluster_satellite_ri = np.random.normal(
+        loc=ri_peak_sats_to_remap, scale=ri_scatter_sats_to_remap)
+
+    # mstar_sats_to_remap = mstar[remapping_mask]
+    # gr_sats_to_remap = gr[remapping_mask]
+    # ri_sats_to_remap = ri[remapping_mask]
+
+    # remapped_gr_sats, remapped_ri_sats = remap_satellites(
+    #     mstar_sats_to_remap, gr_sats_to_remap, ri_sats_to_remap,
+    #     gr_peak_sats_to_remap, ri_peak_sats_to_remap, scatter, scatter)
+
+    gr[remapping_mask] = remapped_cluster_satellite_gr
+    ri[remapping_mask] = remapped_cluster_satellite_ri
 
     return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
 

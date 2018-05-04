@@ -71,6 +71,6 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
     #  Redden the satellites of cluster-mass halos
     gr_mock, ri_mock, is_red_gr_mock, is_red_ri_mock = remap_cluster_satellite_gr_ri_color(
             upid_mock, mstar_mock, host_halo_mvir_mock, magr, gr_mock, ri_mock,
-            is_red_gr_mock, is_red_ri_mock, **kwargs)
+            is_red_gr_mock, is_red_ri_mock, redshift_mock, **kwargs)
 
     return magr, gr_mock, ri_mock, is_red_gr_mock, is_red_ri_mock
