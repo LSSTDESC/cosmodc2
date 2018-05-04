@@ -2,7 +2,6 @@
 """
 from ..stellar_mass_remapping import lift_high_mass_mstar
 from .analytical_magr import magr_monte_carlo
-from .analytical_colors import gr_ri_monte_carlo
 from .v4_sdss_assign_gri import assign_restframe_sdss_gri
 
 
@@ -12,6 +11,7 @@ __all__ = ('v4_paint_colors_onto_umachine_snaps', 'v4_paint_colors_onto_umachine
 def v4_paint_colors_onto_umachine_snaps(mpeak, mstar, upid, redshift, sfr_percentile):
     """
     """
+    raise NotImplementedError("Obsolete function")
     new_mstar = lift_high_mass_mstar(mpeak, mstar, upid,  redshift)
 
     new_magr_rest = magr_monte_carlo(new_mstar, upid, redshift)
