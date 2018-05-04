@@ -8,7 +8,7 @@ from .analytical_colors import red_sequence_peak_gr, red_sequence_peak_ri
 from .analytical_colors import default_red_peak_gr, default_red_peak_ri
 
 
-__all__ = ('calculate_cluster_clf_powerlaw_coeffs', 'remap_cluster_bcg_gr_color',
+__all__ = ('calculate_cluster_clf_powerlaw_coeffs',
         'remap_cluster_bcg_gr_ri_color', 'remap_cluster_satellite_gr_ri_color')
 
 
@@ -49,32 +49,6 @@ def prob_remap_cluster_bcg(upid, host_halo_mvir, host_mass_table, prob_remap_tab
     return remapping_mask
 
 
-def remap_cluster_bcg_gr_color(upid, host_halo_mvir, gr,
-        host_mass_table=(13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.25, 0.75, 1),
-        red_sequence_median=0.95, red_sequence_scatter=0.04, nwin=101):
-    """
-    """
-    remapping_mask = prob_remap_cluster_bcg(
-        upid, host_halo_mvir, host_mass_table, prob_remap_table)
-    num_to_remap = np.count_nonzero(remapping_mask)
-
-    if num_to_remap > 2:
-        bcg_red_sequence = cluster_bcg_red_sequence(
-            num_to_remap, red_sequence_median, red_sequence_scatter)
-
-        x1 = host_halo_mvir[remapping_mask]
-        y1 = gr[remapping_mask]
-        x2 = host_halo_mvir[remapping_mask]
-        y2 = bcg_red_sequence
-        nwin = min(num_to_remap, nwin)
-        if nwin % 2 == 0:
-            nwin -= 1
-        remapped_red_sequence = conditional_abunmatch(x1, y1, x2, y2, nwin)
-        gr[remapping_mask] = remapped_red_sequence
-
-    return gr
-
-
 def cluster_bcg_red_sequence_gr_ri(num_samples, gr_median, ri_median, scatter):
     """
     """
@@ -101,9 +75,9 @@ def cluster_bcg_red_sequence_gr_ri(num_samples, gr_median, ri_median, scatter):
 
 def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
         is_on_red_sequence_gr, is_on_red_sequence_ri,
-        host_mass_table=(13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.5, 0.75, 1),
+        host_mass_table=(13.25, 13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.35, 0.5, 0.75, 1),
         gr_red_sequence_median=0.95, gr_red_sequence_scatter=0.015,
-        ri_red_sequence_median=0.42, ri_red_sequence_scatter=0.01, nwin=101):
+        ri_red_sequence_median=0.42, ri_red_sequence_scatter=0.01, nwin=101, **kwargs):
     """ Redden centrals in cluster-mass halos
 
     Parameters
