@@ -18,15 +18,15 @@ ms_peak_gr_abscissa = [-22.5, -21, -20, -19, -18, -15]
 red_peak_gr_abscissa = ms_peak_gr_abscissa
 
 #  Control points defining the locus of the (g-r) main sequence
-default_ms_peak_gr = [0.8, 0.75, 0.6, 0.4, 0.4, 0.35]
+default_ms_peak_gr = [0.65, 0.65, 0.6, 0.4, 0.4, 0.35]
 
 #  Control points defining the locus of the (g-r) red sequence
 default_red_peak_gr = [0.9, 0.85, 0.8, 0.7, 0.7, 0.7]
 
 #  Control points defining the z-dependent blueshift of the locus of the (g-r) red sequence
 peak_shift_factor_z_table = [0.1, 0.25, 0.50, 1.0]
-default_red_peak_gr_zevol = [0, -0.05, -0.10, -0.10]
-default_ms_peak_gr_zevol = [0.0, -0.10, -0.3, -0.35]
+default_red_peak_gr_zevol = [0, -0.05, -0.15, -0.2]
+default_ms_peak_gr_zevol = [0.0, -0.10, -0.15, -0.2]
 
 #  Control points defining the magr-dependent (g-r) scatter at z = 0
 default_ms_scatter_gr = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08]
@@ -34,7 +34,7 @@ default_red_scatter_gr = [0.04, 0.04, 0.04, 0.04, 0.04, 0.04]
 
 #  Control points defining the z-evolution lf (g-r) scatter
 default_red_scatter_gr_zevol_table = [1., 1., 1., 1.]
-default_ms_scatter_gr_zevol_table = [1., 1., 1.75, 2.]
+default_ms_scatter_gr_zevol_table = [1., 1., 1.5, 1.5]
 scatter_zevol_z_table = peak_shift_factor_z_table
 
 
