@@ -11,7 +11,9 @@ __all__ = ('gr_ri_monte_carlo',)
 
 default_red_peak_gr = [0.9, 0.85, 0.8, 0.7, 0.7, 0.7]
 default_red_peak_ri = [0.41, 0.41, 0.4, 0.385, 0.375, 0.35, 0.31]
+red_peak_ri_abscissa = [-23, -21, -20., -19.5, -19.0, -18.0, -15.]
 
+ms_peak_ri_abscissa = [-22.5, -21, -20, -19, -18, -15]
 default_ms_peak_ri = [0.4, 0.35, 0.3, 0.24, 0.2, 0.185]
 default_ms_peak_gr = [0.8, 0.75, 0.6, 0.4, 0.4, 0.35]
 
