@@ -6,6 +6,9 @@ from halotools.empirical_models import conditional_abunmatch
 from .analytical_g_minus_r import g_minus_r
 from .analytical_r_minus_i import r_minus_i
 
+from .analytical_g_minus_r import quiescent_fraction_gr, default_fq_gr, default_fq_gr_blueshift_table
+from .analytical_r_minus_i import quiescent_fraction_ri, default_fq_ri, default_fq_ri_blueshift_table
+
 
 __all__ = ('gr_ri_monte_carlo',)
 fixed_seed = 43
@@ -51,10 +54,15 @@ def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
 
     ri_orig, is_quiescent_ri = r_minus_i(magr, redshift, seed=seed, **kwargs)
     gr_orig, is_quiescent_gr = g_minus_r(magr, redshift, seed=seed, **kwargs)
-    gr = conditional_abunmatch(magr, p, magr, gr_orig, nwin)
+    gr = conditional_abunmatch(magr, p, magr, np.copy(gr_orig), nwin)
 
     with NumpyRNGContext(seed):
         noisy_gr = np.random.normal(loc=gr, scale=0.1)
-    ri = conditional_abunmatch(magr, noisy_gr, magr, ri_orig, nwin)
+    ri = conditional_abunmatch(magr, noisy_gr, magr, np.copy(ri_orig), nwin)
+
+    fq_gr_model = quiescent_fraction_gr(magr, redshift, default_fq_gr, default_fq_gr_blueshift_table)
+    fq_ri_model = quiescent_fraction_ri(magr, redshift, default_fq_ri, default_fq_ri_blueshift_table)
+    is_quiescent_gr = sfr_percentile < fq_gr_model
+    is_quiescent_ri = sfr_percentile < fq_ri_model
 
     return gr, ri, is_quiescent_ri, is_quiescent_gr
