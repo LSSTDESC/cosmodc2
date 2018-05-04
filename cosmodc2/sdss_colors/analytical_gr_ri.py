@@ -12,7 +12,7 @@ fixed_seed = 43
 
 
 def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
-            local_random_scale=0.1, nwin=2001, seed=fixed_seed, **kwargs):
+            local_random_scale=0.1, nwin=301, seed=fixed_seed, **kwargs):
     """ Generate a Monte Carlo realization of (g-r) and (r-i) restframe colors.
 
     Parameters
