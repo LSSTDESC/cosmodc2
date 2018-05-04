@@ -259,14 +259,6 @@ def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, r
     remapped_cluster_satellite_ri = np.random.normal(
         loc=ri_peak_sats_to_remap, scale=ri_scatter_sats_to_remap)
 
-    # mstar_sats_to_remap = mstar[remapping_mask]
-    # gr_sats_to_remap = gr[remapping_mask]
-    # ri_sats_to_remap = ri[remapping_mask]
-
-    # remapped_gr_sats, remapped_ri_sats = remap_satellites(
-    #     mstar_sats_to_remap, gr_sats_to_remap, ri_sats_to_remap,
-    #     gr_peak_sats_to_remap, ri_peak_sats_to_remap, scatter, scatter)
-
     gr[remapping_mask] = remapped_cluster_satellite_gr
     ri[remapping_mask] = remapped_cluster_satellite_ri
 
