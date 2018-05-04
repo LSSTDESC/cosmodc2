@@ -8,13 +8,16 @@ property_list = ['center_{}', 'mean_v{}']
 property_modifiers =['x', 'y', 'z']
 other_properties = ['tag', 'mass']
 
-def load_gio_halo_snapshot(filename):
+def load_gio_halo_snapshot(filename, all_properties=True):
     import sys
     sys.path.append("/gpfs/mira-home/ekovacs/cosmology/genericio/python")
     import genericio as gio
 
     #gio.gio_inspect(filename) #list all properties
-    properties_list = [p.format(m) for p in property_list for m in property_modifiers]
+    if all_properties:
+        properties_list = [p.format(m) for p in property_list for m in property_modifiers]
+    else:
+        properties_list = []
     halo_properties_list = sorted([property_template.format(p) for p in other_properties + properties_list])
     print('Reading halo file {}'.format(os.path.split(filename)[-1]))
 
