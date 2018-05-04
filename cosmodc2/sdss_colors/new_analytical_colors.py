@@ -34,7 +34,7 @@ default_red_scatter_gr = [0.04, 0.04, 0.04, 0.04, 0.04, 0.04]
 
 #  Control points defining the z-evolution lf (g-r) scatter
 default_red_scatter_gr_zevol_table = [1., 1., 1., 1.]
-default_ms_scatter_gr_zevol_table = [1., 1., 1.35, 1.5]
+default_ms_scatter_gr_zevol_table = [1., 1., 1.75, 2.]
 scatter_zevol_z_table = peak_shift_factor_z_table
 
 
