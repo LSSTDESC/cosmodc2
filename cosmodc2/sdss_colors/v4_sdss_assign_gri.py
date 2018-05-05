@@ -59,7 +59,7 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
 
     #  Calculate model values of (g-r) and (r-i)
     gr_mock, ri_mock, is_red_ri_mock, is_red_gr_mock = gr_ri_monte_carlo(
-        magr, sfr_percentile_mock, redshift_mock, local_random_scale=0.1, **kwargs)
+        magr, sfr_percentile_mock, redshift_mock, **kwargs)
 
     #  Redden the centrals of cluster-mass halos
     _result = remap_cluster_bcg_gr_ri_color(upid_mock, host_halo_mvir_mock,
