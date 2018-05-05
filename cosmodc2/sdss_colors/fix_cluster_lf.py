@@ -80,11 +80,13 @@ def correlated_gr_ri(num_samples, gr_median, ri_median, scatter):
     return gr, ri
 
 
-def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
-        is_on_red_sequence_gr, is_on_red_sequence_ri,
+def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, magr, gr, ri,
+        is_on_red_sequence_gr, is_on_red_sequence_ri, redshift,
         host_mass_table=(13.25, 13.5, 13.75, 14, 14.25), prob_remap_table=(0, 0.35, 0.5, 0.75, 1),
-        gr_red_sequence_median=0.95, gr_red_sequence_scatter=0.015,
-        ri_red_sequence_median=0.42, ri_red_sequence_scatter=0.01, nwin=101, **kwargs):
+        gr_red_sequence_scatter=0.015, ri_red_sequence_scatter=0.01,
+        red_peak_gr=default_red_peak_gr, red_peak_gr_zevol_shift_table=default_red_peak_gr_zevol,
+        red_peak_ri=default_red_peak_ri, red_peak_ri_zevol_shift_table=default_red_peak_ri_zevol,
+        **kwargs):
     """ Redden centrals in cluster-mass halos
 
     Parameters
@@ -136,12 +138,18 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
     if num_to_remap > 0:
         is_on_red_sequence_gr[remapping_mask] = True
         is_on_red_sequence_ri[remapping_mask] = True
+
+        gr_red_sequence_median = red_sequence_peak_gr(magr[remapping_mask], red_peak_gr,
+            redshift[remapping_mask], red_peak_gr_zevol_shift_table)
+        ri_red_sequence_median = red_sequence_peak_ri(magr[remapping_mask], red_peak_ri,
+            redshift[remapping_mask], red_peak_ri_zevol_shift_table)
+
         bcg_red_sequence_gr, bcg_red_sequence_ri = correlated_gr_ri(
             num_to_remap, gr_red_sequence_median,
             ri_red_sequence_median, gr_red_sequence_scatter)
+
         gr[remapping_mask] = bcg_red_sequence_gr
         ri[remapping_mask] = bcg_red_sequence_ri
-
     return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
 
 

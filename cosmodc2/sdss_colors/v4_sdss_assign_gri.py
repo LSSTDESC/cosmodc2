@@ -62,10 +62,8 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
         magr, sfr_percentile_mock, redshift_mock, local_random_scale=0.1, **kwargs)
 
     #  Redden the centrals of cluster-mass halos
-    _result = remap_cluster_bcg_gr_ri_color(
-            upid_mock, host_halo_mvir_mock,
-            np.copy(gr_mock), np.copy(ri_mock),
-            is_red_gr_mock, is_red_ri_mock, **kwargs)
+    _result = remap_cluster_bcg_gr_ri_color(upid_mock, host_halo_mvir_mock,
+                magr, gr_mock, ri_mock, is_red_gr_mock, is_red_ri_mock, redshift_mock, **kwargs)
     gr_mock, ri_mock, is_red_gr_mock, is_red_ri_mock = _result
 
     #  Redden the satellites of cluster-mass halos
