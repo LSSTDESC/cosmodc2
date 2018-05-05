@@ -3,7 +3,6 @@
 import numpy as np
 from scipy.linalg import eigh
 from scipy.stats import norm, binned_statistic
-from halotools.empirical_models import conditional_abunmatch
 
 from .analytical_g_minus_r import red_sequence_peak_gr, default_red_peak_gr, default_red_peak_gr_zevol
 from .analytical_r_minus_i import red_sequence_peak_ri, default_red_peak_ri, default_red_peak_ri_zevol
@@ -11,43 +10,6 @@ from .analytical_r_minus_i import red_sequence_peak_ri, default_red_peak_ri, def
 
 __all__ = ('calculate_cluster_clf_powerlaw_coeffs',
         'remap_cluster_bcg_gr_ri_color', 'remap_cluster_satellite_gr_ri_color')
-
-
-def calculate_cluster_clf_powerlaw_coeffs(mstar, magr, upid):
-    """ Fit the M*-Mr relation over the reliable range with a powerlaw:
-
-    Mr = c0 + c1*np.log10(mstar)
-
-    Return the coefficients c0, c1.
-    """
-    cenmask = upid == -1
-
-    sm_bins = np.logspace(10, 11.5, 30)
-    logsm_bins = np.log10(sm_bins)
-    sm_mids = 10**(0.5*(logsm_bins[:-1] + logsm_bins[1:]))
-    logsm_mids = np.log10(sm_mids)
-
-    median_magr, __, __ = binned_statistic(mstar[cenmask], magr[cenmask],
-        bins=sm_bins, statistic='median')
-    c1, c0 = np.polyfit(logsm_mids, median_magr, deg=1)
-
-    return c0, c1
-
-
-def cluster_bcg_red_sequence(ngals, red_sequence_median, red_sequence_scatter):
-    """
-    """
-    return np.random.normal(loc=red_sequence_median, scale=red_sequence_scatter, size=ngals)
-
-
-def prob_remap_cluster_bcg(upid, host_halo_mvir, host_mass_table, prob_remap_table):
-    """
-    """
-    cenmask = upid == -1
-    prob_remap = np.interp(np.log10(host_halo_mvir), host_mass_table, prob_remap_table)
-    host_halo_mask = np.random.rand(len(upid)) < prob_remap
-    remapping_mask = host_halo_mask & cenmask
-    return remapping_mask
 
 
 def correlated_gr_ri(num_samples, gr_median, ri_median, scatter):
@@ -72,6 +34,16 @@ def correlated_gr_ri(num_samples, gr_median, ri_median, scatter):
     y = np.dot(c, x)
     gr, ri = y[0] + gr_median, y[1] + ri_median
     return gr, ri
+
+
+def prob_remap_cluster_bcg(upid, host_halo_mvir, host_mass_table, prob_remap_table):
+    """
+    """
+    cenmask = upid == -1
+    prob_remap = np.interp(np.log10(host_halo_mvir), host_mass_table, prob_remap_table)
+    host_halo_mask = np.random.rand(len(upid)) < prob_remap
+    remapping_mask = host_halo_mask & cenmask
+    return remapping_mask
 
 
 def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, magr, gr, ri,
@@ -191,3 +163,23 @@ def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, r
         ri[remapping_mask] = cluster_sat_red_sequence_ri
     return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
 
+
+def calculate_cluster_clf_powerlaw_coeffs(mstar, magr, upid):
+    """ Fit the M*-Mr relation over the reliable range with a powerlaw:
+
+    Mr = c0 + c1*np.log10(mstar)
+
+    Return the coefficients c0, c1.
+    """
+    cenmask = upid == -1
+
+    sm_bins = np.logspace(10, 11.5, 30)
+    logsm_bins = np.log10(sm_bins)
+    sm_mids = 10**(0.5*(logsm_bins[:-1] + logsm_bins[1:]))
+    logsm_mids = np.log10(sm_mids)
+
+    median_magr, __, __ = binned_statistic(mstar[cenmask], magr[cenmask],
+        bins=sm_bins, statistic='median')
+    c1, c0 = np.polyfit(logsm_mids, median_magr, deg=1)
+
+    return c0, c1
