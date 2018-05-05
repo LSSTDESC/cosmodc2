@@ -56,7 +56,7 @@ def prob_remap_cluster_bcg(upid, host_halo_mvir, host_mass_table, prob_remap_tab
     return remapping_mask
 
 
-def cluster_bcg_red_sequence_gr_ri(num_samples, gr_median, ri_median, scatter):
+def correlated_gr_ri(num_samples, gr_median, ri_median, scatter):
     """
     """
     cov = np.array([
@@ -131,33 +131,16 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, gr, ri,
     """
     remapping_mask = prob_remap_cluster_bcg(
         upid, host_halo_mvir, host_mass_table, prob_remap_table)
-    is_on_red_sequence_gr[remapping_mask] = True
-    is_on_red_sequence_ri[remapping_mask] = True
-
     num_to_remap = np.count_nonzero(remapping_mask)
-    nwin = min(num_to_remap-1, nwin)
-    if nwin % 2 == 0:
-        nwin -= 1
 
-    if num_to_remap > 4:
-
-        bcg_red_sequence_gr, bcg_red_sequence_ri = cluster_bcg_red_sequence_gr_ri(
+    if num_to_remap > 0:
+        is_on_red_sequence_gr[remapping_mask] = True
+        is_on_red_sequence_ri[remapping_mask] = True
+        bcg_red_sequence_gr, bcg_red_sequence_ri = correlated_gr_ri(
             num_to_remap, gr_red_sequence_median,
             ri_red_sequence_median, gr_red_sequence_scatter)
-
-        halo_mass = host_halo_mvir[remapping_mask]
-
-        input_gr = gr[remapping_mask]
-        desired_gr = bcg_red_sequence_gr
-        remapped_red_sequence_gr = conditional_abunmatch(
-            halo_mass, input_gr, halo_mass, desired_gr, nwin)
-        gr[remapping_mask] = remapped_red_sequence_gr
-
-        desired_ri = bcg_red_sequence_ri
-        noisy_input_gr = np.random.normal(loc=remapped_red_sequence_gr, scale=0.1)
-        remapped_red_sequence_ri = conditional_abunmatch(
-            halo_mass, noisy_input_gr, halo_mass, desired_ri, nwin)
-        ri[remapping_mask] = remapped_red_sequence_ri
+        gr[remapping_mask] = bcg_red_sequence_gr
+        ri[remapping_mask] = bcg_red_sequence_ri
 
     return gr, ri, is_on_red_sequence_gr, is_on_red_sequence_ri
 
@@ -186,7 +169,7 @@ def remap_satellites(mstar, gr, ri,
     """
     """
     num_to_remap = len(mstar)
-    bcg_red_sequence_gr, bcg_red_sequence_ri = cluster_bcg_red_sequence_gr_ri(
+    bcg_red_sequence_gr, bcg_red_sequence_ri = correlated_gr_ri(
         num_to_remap, gr_red_sequence_median,
         ri_red_sequence_median, gr_red_sequence_scatter)
 
