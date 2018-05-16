@@ -11,7 +11,7 @@ default_fq_gr = [0.9, 0.775, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1]
 
 #  Define how the red fraction evolves with redshift for g-r color
 blueshift_fq_z_table = [0.25, 0.5, 1.0]
-default_fq_gr_blueshift_table = (1., 1.5, 3.)
+default_fq_gr_blueshift_table = (1., 2.5, 10.)
 
 #  Control points in r-band luminosity at which the (g-r) sequence peaks are defined
 ms_peak_gr_abscissa = [-22.5, -21, -20, -19, -18, -15]
@@ -25,8 +25,8 @@ default_red_peak_gr = [0.9, 0.85, 0.8, 0.7, 0.7, 0.7]
 
 #  Control points defining the z-dependent blueshift of the locus of the (g-r) red sequence
 peak_shift_factor_z_table = [0.1, 0.25, 0.50, 1.0]
-default_red_peak_gr_zevol = [0, -0.05, -0.15, -0.2]
-default_ms_peak_gr_zevol = [0.0, -0.10, -0.15, -0.2]
+default_red_peak_gr_zevol = [0, -0.05, -0.2, -0.25]
+default_ms_peak_gr_zevol = [0.0, -0.10, -0.25, -0.4]
 
 #  Control points defining the magr-dependent (g-r) scatter at z = 0
 default_ms_scatter_gr = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08]
@@ -34,7 +34,7 @@ default_red_scatter_gr = [0.04, 0.04, 0.04, 0.04, 0.04, 0.04]
 
 #  Control points defining the z-evolution lf (g-r) scatter
 default_red_scatter_gr_zevol_table = [1., 1., 1., 1.]
-default_ms_scatter_gr_zevol_table = [1., 1., 1.5, 1.5]
+default_ms_scatter_gr_zevol_table = [1., 1., 1.1, 1.2]
 scatter_zevol_z_table = peak_shift_factor_z_table
 
 
