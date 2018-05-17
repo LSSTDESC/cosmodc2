@@ -6,8 +6,10 @@ from halotools.empirical_models import conditional_abunmatch
 from .analytical_g_minus_r import g_minus_r
 from .analytical_r_minus_i import r_minus_i
 
-from .analytical_g_minus_r import quiescent_fraction_gr, default_fq_gr, default_fq_gr_blueshift_table
-from .analytical_r_minus_i import quiescent_fraction_ri, default_fq_ri, default_fq_ri_blueshift_table
+from .analytical_g_minus_r import (quiescent_fraction_gr, default_fq_gr,
+    default_fq_gr_blueshift_table, default_fq_gr_floor)
+from .analytical_r_minus_i import (quiescent_fraction_ri, default_fq_ri,
+    default_fq_ri_blueshift_table, default_fq_ri_floor)
 
 
 __all__ = ('gr_ri_monte_carlo',)
@@ -60,8 +62,10 @@ def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
         noisy_gr = np.random.normal(loc=gr, scale=0.1)
     ri = conditional_abunmatch(magr, noisy_gr, magr, np.copy(ri_orig), nwin)
 
-    fq_gr_model = quiescent_fraction_gr(magr, redshift, default_fq_gr, default_fq_gr_blueshift_table)
-    fq_ri_model = quiescent_fraction_ri(magr, redshift, default_fq_ri, default_fq_ri_blueshift_table)
+    fq_gr_model = quiescent_fraction_gr(magr, redshift, default_fq_gr,
+        default_fq_gr_blueshift_table, default_fq_gr_floor)
+    fq_ri_model = quiescent_fraction_ri(magr, redshift, default_fq_ri,
+        default_fq_ri_blueshift_table, default_fq_ri_floor)
     is_quiescent_gr = sfr_percentile < fq_gr_model
     is_quiescent_ri = sfr_percentile < fq_ri_model
 
