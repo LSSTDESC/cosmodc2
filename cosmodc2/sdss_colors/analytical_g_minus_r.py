@@ -8,6 +8,7 @@ from astropy.utils.misc import NumpyRNGContext
 #  Control points defining the (g-r) red fraction as a function of r-band luminosity
 fq_gr_abscissa = [-22.5, -22., -21, -20, -19.5, -19, -18.5, -18, -15]
 default_fq_gr = [0.9, 0.775, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1]
+default_fq_gr_floor = 0.08
 
 #  Define how the red fraction evolves with redshift for g-r color
 blueshift_fq_z_table = [0.25, 0.5, 1.0]
@@ -46,13 +47,13 @@ def apply_z_evolution_of_fq(fq_z0p0, redshift, z_table, reduction_factor):
     return np.where(result < 0, 0., result)
 
 
-def quiescent_fraction_gr(magr, redshift, fq_gr, blueshift_factor):
+def quiescent_fraction_gr(magr, redshift, fq_gr, blueshift_factor, fq_gr_floor):
     """
     Fraction of galaxies on the g-r red sequence as a function of Mr.
     """
     fq_z0 = np.interp(magr, fq_gr_abscissa, fq_gr)
-    return apply_z_evolution_of_fq(fq_z0, redshift, blueshift_fq_z_table, blueshift_factor)
-
+    fq_at_z = apply_z_evolution_of_fq(fq_z0, redshift, blueshift_fq_z_table, blueshift_factor)
+    return np.where(fq_at_z <= fq_gr_floor, fq_gr_floor, fq_at_z)
 
 def red_sequence_peak_gr(magr, red_peak_gr, redshift, red_peak_gr_zevol_shift_table,
             x=red_peak_gr_abscissa):
@@ -106,7 +107,7 @@ def g_minus_r(magr, redshift, seed=None,
             ms_peak_gr_zevol_shift_table=default_ms_peak_gr_zevol,
             ms_scatter_gr=default_ms_scatter_gr,
             ms_scatter_gr_zevol_table=default_ms_scatter_gr_zevol_table,
-            **kwargs):
+            fq_gr_floor=default_fq_gr_floor, **kwargs):
     """ Generate a Monte Carlo realization of g-r restframe color.
 
     Parameters
@@ -139,7 +140,7 @@ def g_minus_r(magr, redshift, seed=None,
     ngals = len(magr)
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_gr(
-            magr, redshift, fq_gr, fq_gr_blueshift_factor_table)
+            magr, redshift, fq_gr, fq_gr_blueshift_factor_table, fq_gr_floor)
 
     red_sequence_loc = red_sequence_peak_gr(
         magr[is_quiescent], red_peak_gr, redshift[is_quiescent], red_peak_gr_zevol_shift_table)
