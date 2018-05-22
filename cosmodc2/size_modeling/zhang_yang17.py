@@ -10,18 +10,18 @@ __all__ = ('median_size_vs_luminosity_late_type', 'mc_size_vs_luminosity_early_t
 
 fixed_seed = 43
 
-#  Disk parameters (see paragraph below Equation (3) of 1707.04979)
-alpha_disk = 0.3
-beta_disk = 1.77
-gamma_disk = 9.73
-mzero_disk = -24.2
+#  Disk parameters (see B/T < 0.5 row of Table 1 of 1707.04979)
+alpha_disk = 0.32
+beta_disk = 1.75
+gamma_disk = 12.63
+mzero_disk = -24.8
 scatter_disk = 0.2
 
-#  Bulge parameters (see paragraph below Equation (3) of 1707.04979)
-alpha_bulge = 0.29
-beta_bulge = 0.77
-gamma_bulge = 3.04
-mzero_bulge = -21.8
+#  Bulge parameters (see B/T > 0.5 row of Table 1 of 1707.04979)
+alpha_bulge = 0.33
+beta_bulge = 1.0
+gamma_bulge = 3.25
+mzero_bulge = -22.5
 scatter_bulge = 0.15
 
 #  Redshift-dependence parameters
