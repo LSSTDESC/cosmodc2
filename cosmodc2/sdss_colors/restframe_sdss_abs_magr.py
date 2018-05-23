@@ -1,7 +1,6 @@
 """
 """
 import numpy as np
-from scipy.spatial import cKDTree
 from halotools.empirical_models import polynomial_from_table
 from astropy.utils.misc import NumpyRNGContext
 from halotools.empirical_models import conditional_abunmatch
@@ -136,6 +135,8 @@ def sdss_selection_indices(mstar_mock, sfr_percentile_mock, logsm_sdss, sfr_perc
         the nearest SDSS galaxies
 
     """
+    from scipy.spatial import cKDTree
+
     sdss_tree = cKDTree(np.vstack((logsm_sdss, sfr_percentile_sdss)).T)
 
     nn_distinces, nn_indices = sdss_tree.query(
@@ -327,5 +328,3 @@ def mock_magr(upid_mock, mstar_mock, sfr_percentile_mock, host_halo_mvir_mock,
         mstar_mock, magr_mock_from_data, remapped_magr_mock)
 
     return cam_smoothed_magr_mock
-
-

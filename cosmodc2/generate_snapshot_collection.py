@@ -7,7 +7,6 @@ This is the module used to generate the mocks in the v3 release of protoDC2.
 """
 import os
 from time import time
-from scipy.spatial import cKDTree
 import numpy as np
 import string
 from astropy.table import Table
@@ -332,6 +331,8 @@ def load_bpl_halos(bpl_halos_fname, Lbox):
 def um1_to_um2_matching_indices(source_mstar, source_percentile, target_mstar, target_percentile):
     """
     """
+    from scipy.spatial import cKDTree
+
     X1 = np.vstack((source_mstar, source_percentile)).T
     tree = cKDTree(X1)
 
@@ -346,6 +347,8 @@ def transfer_colors_to_umachine_mstar_ssfr_mock(
         keys_to_match, keys_to_transfer):
     """
     """
+    from scipy.spatial import cKDTree
+
     X = np.vstack((umachine_z0p1_color_mock[key] for key in keys_to_match)).T
     tree = cKDTree(X)
 

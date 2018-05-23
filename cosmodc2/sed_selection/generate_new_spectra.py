@@ -2,7 +2,6 @@
 """
 import numpy as np
 from astropy.table import Table
-from scipy.spatial import cKDTree
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -38,6 +37,8 @@ def random_linear_combo_spectra(spectra, num_random=None,
 def matching_spectrum_search(gr, ri, fake_sed_library):
     """
     """
+    from scipy.spatial import cKDTree
+
     gr_tree = fake_sed_library['g']-fake_sed_library['r']
     ri_tree = fake_sed_library['r']-fake_sed_library['i']
     sed_tree = cKDTree(np.vstack((gr_tree, ri_tree)).T)

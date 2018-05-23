@@ -1,7 +1,6 @@
 """
 """
 import numpy as np
-from scipy.stats import binned_statistic
 
 
 __all__ = ('lift_high_mass_mstar', )
@@ -57,6 +56,8 @@ def calculate_logmpeak_pivot(redshift, z_table, pivot_table):
 def fit_high_mass_smhm(mpeak, mstar, logmpeak_low=12.5, logmpeak_high=14.5):
     """
     """
+    from scipy.stats import binned_statistic
+
     median_logsm, logmpeak_bins, __ = binned_statistic(
         np.log10(mpeak), np.log10(mstar), bins=25)
 

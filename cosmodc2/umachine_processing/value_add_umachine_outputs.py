@@ -5,7 +5,6 @@ from halotools.utils import crossmatch
 from halotools.mock_observables import relative_positions_and_velocities
 from galsampler.utils import compute_richness
 from galsampler.source_galaxy_selection import _galaxy_table_indices
-from scipy.spatial import cKDTree
 
 
 __all__ = ('calculate_value_added_galaxy_halo_catalogs',
@@ -90,6 +89,8 @@ def um1_to_um2_matching_indices(source_mstar, source_percentile,
             target_mstar, target_percentile):
     """
     """
+    from scipy.spatial import cKDTree
+
     X1 = np.vstack((source_mstar, source_percentile)).T
     tree = cKDTree(X1)
 

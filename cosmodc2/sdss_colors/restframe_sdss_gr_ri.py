@@ -3,10 +3,8 @@
 import numpy as np
 from .sawtooth_binning import sawtooth_bin_indices
 from astropy.utils.misc import NumpyRNGContext
-from scipy.spatial import cKDTree
 from halotools.empirical_models import polynomial_from_table
 from ..sdss_colors.sdss_completeness_model import retrieve_sdss_sample_mask
-from scipy.stats import gaussian_kde
 
 
 __all__ = ('mc_sdss_gr_ri', )
@@ -108,6 +106,9 @@ def mc_true_sdss_gr_ri(sdss_redshift, sdss_magr, sdss_gr, sdss_ri,
     to select galaxies with matching {Mr, g-r-percentile}, and use the colors
     {g-r, r-i} of the selected SDSS galaxies to paint on to the mock galaxies.
     """
+    from scipy.spatial import cKDTree
+    from scipy.stats import gaussian_kde
+
     mock_gr = np.zeros_like(mock_magr)
     mock_ri = np.zeros_like(mock_magr)
 

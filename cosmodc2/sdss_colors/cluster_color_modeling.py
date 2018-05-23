@@ -1,8 +1,6 @@
 """
 """
 import numpy as np
-from scipy.linalg import eigh
-from scipy.stats import norm, binned_statistic
 
 from .analytical_g_minus_r import red_sequence_peak_gr, default_red_peak_gr, default_red_peak_gr_zevol
 from .analytical_r_minus_i import red_sequence_peak_ri, default_red_peak_ri, default_red_peak_ri_zevol
@@ -15,6 +13,8 @@ __all__ = ('calculate_cluster_clf_powerlaw_coeffs',
 def correlated_gr_ri(num_samples, gr_median, ri_median, scatter):
     """
     """
+    from scipy.linalg import eigh
+    from scipy.stats import norm
     cov = np.array([
             [5.50, 1.50],
             [1.50,  1.25]
@@ -171,6 +171,8 @@ def calculate_cluster_clf_powerlaw_coeffs(mstar, magr, upid):
 
     Return the coefficients c0, c1.
     """
+    from scipy.stats import binned_statistic
+
     cenmask = upid == -1
 
     sm_bins = np.logspace(10, 11.5, 30)
