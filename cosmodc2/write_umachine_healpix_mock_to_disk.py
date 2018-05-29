@@ -1,12 +1,14 @@
 """ Module storing the primary driver script used for the v4 release of DC2.
 """
 import os
+import psutil
 import numpy as np
 import h5py
 from time import time
 from astropy.table import Table
 from astropy.cosmology import FlatLambdaCDM
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
+from cosmodc2.stellar_mass_remapping import lift_high_mass_mstar
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
 #from cosmodc2.load_gio_halos import load_gio_halo_snapshot
@@ -69,6 +71,10 @@ def write_umachine_healpix_mock_to_disk(
     output_mock = {}
     gen = zip(umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list, redshift_list, snapshots)
     start_time = time()
+    process = psutil.Process(os.getpid())
+    
+    #determine seed from output filename
+    seed = get_random_seed(os.path.basename(output_color_mock_fname))
 
     for a, b, c, d in gen:
         umachine_mock_fname = a
@@ -80,7 +86,7 @@ def write_umachine_healpix_mock_to_disk(
 
         print("\n...loading z = {0:.2f} galaxy catalog into memory".format(redshift))
 
-        #should check if this needs to be done again?
+        #could check if this needs to be done again (sometimes same snap is used several times)
         mock = Table.read(umachine_mock_fname, path='data')
 
         upid_mock = mock['upid']
@@ -89,11 +95,18 @@ def write_umachine_healpix_mock_to_disk(
         host_halo_mvir_mock = mock['host_halo_mvir']
         redshift_mock = np.random.uniform(redshift-0.15, redshift+0.15, len(mock))
         redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
+        mpeak_mock = mock['mpeak']
+
+        print("\n...re-assigning high-mass mstar values")
+        new_mstar = lift_high_mass_mstar(mpeak_mock, mstar_mock, upid_mock, redshift_mock)
+        mock['obs_sm'] = new_mstar
 
         print("\n...assigning SDSS restframe colors")
 
+        #seed should be changed for each new shell
+        seed = seed + 2
         magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
-            upid_mock, mstar_mock, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock)
+            upid_mock, new_mstar, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock, seed=seed)
         mock['restframe_extincted_sdss_abs_magr'] = magr
         mock['restframe_extincted_sdss_gr'] = gr_mock
         mock['restframe_extincted_sdss_ri'] = ri_mock
@@ -121,7 +134,7 @@ def write_umachine_healpix_mock_to_disk(
         target_halo_bin_numbers = target_halos['mass_bin']
         target_halo_ids = target_halos['halo_id']
         _result = source_halo_index_selection(source_halo_bin_numbers,
-            target_halo_bin_numbers, target_halo_ids, nhalo_min, mass_bins)
+                      target_halo_bin_numbers, target_halo_ids, nhalo_min, mass_bins, seed=seed)
         source_halo_indx, matching_target_halo_ids = _result
 
         #  Transfer quantities from the source halos to the corresponding target halo
@@ -145,34 +158,37 @@ def write_umachine_healpix_mock_to_disk(
 
         print("...building output snapshot mock for snapshot {}".format(snapshot))
         output_mock[snapshot] = build_output_snapshot_mock(
-                mock, target_halos, source_galaxy_indx, commit_hash, Lbox_target_halos)
+                mock, target_halos, source_galaxy_indx, Lbox_target_halos)
 
         time_stamp = time()
         msg = "Lightcone-shell runtime = {0:.2f} minutes"
         print(msg.format((time_stamp-new_time_stamp)/60.))  
 
+        mem = "Memory usage =  {0:.2f} GB"
+        print(mem.format(process.memory_info().rss/1.e9))
+
     ########################################################################
     #  Write the output mock to disk
     ########################################################################
     if len(output_mock) > 0:
-        write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash)
+        write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed)
 
     time_stamp = time()
     msg = "End-to-end runtime = {0:.2f} minutes"
     print(msg.format((time_stamp-start_time)/60.))
 
-def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash):
-    """
-    """
-    print("...writing to file {} using commit hash {}".format(output_color_mock_fname, commit_hash))
-    hdfFile=h5py.File(output_color_mock_fname, 'w')
-    for k, v in output_mock.items():
-        gGroup=hdfFile.create_group(k)
-        for tk in v.keys():
-            gGroup[tk] = v[tk].quantity.value
 
-    hdfFile.close()
+def get_random_seed(filename, seed_max=4294967095): #reduce max seed by 200 to allow for 60 light-cone shells
+    import hashlib
+    s = hashlib.md5(filename).hexdigest()
+    seed = int(s, 16)
 
+    #enforce seed is below seed_max and odd
+    seed = seed%seed_max
+    if seed%2 == 0:
+        seed = seed +1
+    return seed
+    
 
 def get_astropy_table(table_data, check=False):
     """
@@ -196,7 +212,7 @@ def get_astropy_table(table_data, check=False):
 
 
 def build_output_snapshot_mock(
-            umachine, target_halos, galaxy_indices, commit_hash, Lbox_target, redshift_method='halo'):
+            umachine, target_halos, galaxy_indices, Lbox_target, redshift_method='halo'):
     """
     Collect the GalSampled snapshot mock into an astropy table
 
@@ -232,10 +248,19 @@ def build_output_snapshot_mock(
         Astropy Table of shape (num_target_gals, )
         storing the GalSampled galaxy catalog
     """
-    dc2 = Table(meta={'commit_hash': commit_hash})
+    #dc2 = Table(meta={'commit_hash': commit_hash, 'seed': seed})
+    dc2 = Table()
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
         target_halos['halo_id'], target_halos['richness'])
+
+    #copy lightcone information 
+    dc2['target_halo_fof_halo_id'] = np.repeat(
+        target_halos['fof_halo_id'], target_halos['richness'])
+    dc2['lightcone_rotation'] = np.repeat(
+        target_halos['rot'], target_halos['richness'])
+    dc2['lightcone_replication'] = np.repeat(
+        target_halos['rep'], target_halos['richness'])
 
     idxA, idxB = crossmatch(dc2['target_halo_id'], target_halos['halo_id'])
 
@@ -287,7 +312,7 @@ def build_output_snapshot_mock(
     dc2_z, dc2_vz = enforce_periodicity_of_box(z_init, Lbox_target, velocity=vz_init)
     dc2['z'] = dc2_z
     dc2['vz'] = dc2_vz
-              
+
     #compute galaxy redshift, ra and dec
     if redshift_method is not None:
         r = np.sqrt(dc2_x*dc2_x + dc2_y*dc2_y + dc2_z*dc2_z)
@@ -311,4 +336,21 @@ def build_output_snapshot_mock(
         dc2['ra'] = np.arctan(dc2_y/dc2_x)*180.0/np.pi
 
     return dc2
+
+
+def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed):
+    """
+    """
+    print("...writing to file {} using commit hash {}".format(output_color_mock_fname, commit_hash))
+    hdfFile=h5py.File(output_color_mock_fname, 'w')
+    hdfFile.create_group('metaData')
+    hdfFile['metaData']['commit_hash'] = commit_hash
+    hdfFile['metaData']['seed'] = seed
+
+    for k, v in output_mock.items():
+        gGroup=hdfFile.create_group(k)
+        for tk in v.keys():
+            gGroup[tk] = v[tk].quantity.value
+
+    hdfFile.close()
 
