@@ -4,6 +4,7 @@ import os
 import numpy as np
 from time import time
 from astropy.table import Table
+from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
@@ -76,11 +77,16 @@ def write_snapshot_mocks_to_disk(
 
         mock = Table.read(umachine_mock_fname, path='data')
 
+        #  Remap stellar mass
+        mock.rename_column('obs_sm', '_obs_sm_orig_um')
+        mock['obs_sm'] = remap_stellar_mass_in_snapshot(
+            redshift, mock['mpeak'], mock['_obs_sm_orig_um_snap'])
+
         upid_mock = mock['upid']
         mstar_mock = mock['obs_sm']
         sfr_percentile_mock = mock['sfr_percentile']
         host_halo_mvir_mock = mock['host_halo_mvir']
-        redshift_mock = np.random.uniform(redshift-0.15, redshift+0.15, len(mock))
+        redshift_mock = np.random.uniform(redshift-0.1, redshift+0.1, len(mock))
         redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
 
         print("\n...assigning SDSS restframe colors")
@@ -255,7 +261,8 @@ def build_output_snapshot_mock(
             'obs_sm', 'obs_sfr', 'sfr_percentile',
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
-            'is_on_red_sequence_gr', 'is_on_red_sequence_ri')
+            'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
+            '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         dc2[key] = umachine[key][galaxy_indices]
 
