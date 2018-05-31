@@ -92,12 +92,11 @@ if len(snapshots) > 0:
 
     redshift_list = [float(z) for z in redshift_strings]
     commit_hash = args.commit_hash
-    Lbox_target_halos = 256.
 
     write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_healpix_mock_fname,
-            redshift_list, commit_hash, Lbox_target_halos)
+            redshift_list, commit_hash)
 else:
     print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))
 

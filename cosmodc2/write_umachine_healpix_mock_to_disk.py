@@ -24,7 +24,7 @@ OmegaM = 0.2648
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
-            redshift_list, commit_hash, Lbox_target_halos):
+            redshift_list, commit_hash):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -61,10 +61,6 @@ def write_umachine_healpix_mock_to_disk(
         the commit_hash can be determined by navigating to the root
         directory and typing ``git log --pretty=format:'%h' -n 1``
 
-
-    Lbox_target_halos : float
-        Box size of the target halos in comoving units of Mpc/h.
-        Should be 256 for AlphaQ and 4.5 for Outer Rim
 
     """
 
@@ -158,7 +154,7 @@ def write_umachine_healpix_mock_to_disk(
 
         print("...building output snapshot mock for snapshot {}".format(snapshot))
         output_mock[snapshot] = build_output_snapshot_mock(
-                mock, target_halos, source_galaxy_indx, Lbox_target_halos)
+                mock, target_halos, source_galaxy_indx)
 
         time_stamp = time()
         msg = "Lightcone-shell runtime = {0:.2f} minutes"
@@ -212,7 +208,7 @@ def get_astropy_table(table_data, check=False):
 
 
 def build_output_snapshot_mock(
-            umachine, target_halos, galaxy_indices, Lbox_target, redshift_method='halo'):
+            umachine, target_halos, galaxy_indices, redshift_method='halo'):
     """
     Collect the GalSampled snapshot mock into an astropy table
 
@@ -237,10 +233,6 @@ def build_output_snapshot_mock(
         After updating the cosmodc2 repo to the desired version,
         the commit_hash can be determined by navigating to the root
         directory and typing ``git log --pretty=format:'%h' -n 1``
-
-    Lbox_target : float
-        Box size of the target halos in comoving units of Mpc/h.
-        Should be 256 for AlphaQ and 4.5 for Outer Rim
 
     Returns
     -------
@@ -295,27 +287,18 @@ def build_output_snapshot_mock(
     for key in source_galaxy_keys:
         dc2[key] = umachine[key][galaxy_indices]
 
-    x_init = dc2['target_halo_x'] + dc2['host_centric_x']
-    vx_init = dc2['target_halo_vx'] + dc2['host_centric_vx']
-    dc2_x, dc2_vx = enforce_periodicity_of_box(x_init, Lbox_target, velocity=vx_init)
-    dc2['x'] = dc2_x
-    dc2['vx'] = dc2_vx
+    dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
+    dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
 
-    y_init = dc2['target_halo_y'] + dc2['host_centric_y']
-    vy_init = dc2['target_halo_vy'] + dc2['host_centric_vy']
-    dc2_y, dc2_vy = enforce_periodicity_of_box(y_init, Lbox_target, velocity=vy_init)
-    dc2['y'] = dc2_y
-    dc2['vy'] = dc2_vy
+    dc2['y'] = dc2['target_halo_y'] + dc2['host_centric_y']
+    dc2['vy'] = dc2['target_halo_vy'] + dc2['host_centric_vy']
 
-    z_init = dc2['target_halo_z'] + dc2['host_centric_z']
-    vz_init = dc2['target_halo_vz'] + dc2['host_centric_vz']
-    dc2_z, dc2_vz = enforce_periodicity_of_box(z_init, Lbox_target, velocity=vz_init)
-    dc2['z'] = dc2_z
-    dc2['vz'] = dc2_vz
+    dc2['z'] = dc2['target_halo_z'] + dc2['host_centric_z']
+    dc2['vz'] = dc2['target_halo_vz'] + dc2['host_centric_vz']
 
     #compute galaxy redshift, ra and dec
     if redshift_method is not None:
-        r = np.sqrt(dc2_x*dc2_x + dc2_y*dc2_y + dc2_z*dc2_z)
+        r = np.sqrt(dc2['x']*dc2['x'] + dc2['y']*dc2['y'] + dc2['z']*dc2['z'])
         if redshift_method=='halo':
             #set galaxy redshifts to halo redshifts
             dc2['redshift'] = np.repeat(target_halos['halo_redshift'], target_halos['richness'])
@@ -332,8 +315,8 @@ def build_output_snapshot_mock(
                 #TBD add pecliar velocity correction
                 print('Not implemented')
     
-        dc2['dec'] = np.arccos(dc2_z/r)*180.0/np.pi
-        dc2['ra'] = np.arctan(dc2_y/dc2_x)*180.0/np.pi
+        dc2['dec'] = np.arccos(dc2['z'] /r)*180.0/np.pi
+        dc2['ra'] = np.arctan(dc2['y']/dc2['x'])*180.0/np.pi
 
     return dc2
 
