@@ -3,7 +3,33 @@
 import numpy as np
 
 
-__all__ = ('lift_high_mass_mstar', )
+__all__ = ('lift_high_mass_mstar', 'remap_stellar_mass_in_snapshot')
+
+
+def remap_stellar_mass_in_snapshot(snapshot_redshift, mpeak, mstar,
+        z_table=[0.25, 0.5, 0.75, 1],
+        slope_table=[0.45, 0.5, 0.65, 0.7], pivot_table=[13.5, 13.25, 13, 12.75]):
+    """
+    """
+    logmpeak_pivot = np.interp(snapshot_redshift, z_table, pivot_table)
+    slope = np.interp(snapshot_redshift, z_table, slope_table)
+    logmpeak_low, logmpeak_high = logmpeak_pivot - 0.05, logmpeak_pivot + 0.05
+
+    prob_remap = np.interp(
+        np.log10(mpeak), [logmpeak_low, logmpeak_high], [0, 1])
+    remapping_mask = np.random.rand(len(mpeak)) < prob_remap
+
+    pivot_mask = (mpeak > 10**logmpeak_low) & (mpeak < 10**logmpeak_high)
+    logsm_pivot = np.median(np.log10(mstar[pivot_mask]))
+
+    new_median_logsm = slope*(np.log10(mpeak[remapping_mask]) - logmpeak_pivot) + logsm_pivot
+
+    new_mstar = 10**np.random.normal(loc=new_median_logsm, scale=0.15)
+    result = np.zeros_like(mstar)
+    result[remapping_mask] = new_mstar
+    result[~remapping_mask] = mstar[~remapping_mask]
+
+    return np.where(result < mstar, mstar, result)
 
 
 def redshift_lifting_probability(redshift, z_low=0.25, z_high=0.5):
