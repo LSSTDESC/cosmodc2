@@ -7,6 +7,8 @@ from astropy.utils.misc import NumpyRNGContext
 default_logsm_table = np.array((6, 7, 8, 9, 10, 11, 12)).astype('f4')
 fixed_seed = 43
 
+__all__ = ('magr_monte_carlo', )
+
 
 def sigmoid(x, x0=0, k=1, ymin=0, ymax=1):
     """

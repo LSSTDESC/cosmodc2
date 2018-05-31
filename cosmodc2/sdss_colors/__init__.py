@@ -4,6 +4,6 @@ from .restframe_sdss_gr_ri import mc_sdss_gr_ri
 from .sdss_measurements import *
 from .cluster_color_modeling import *
 from .analytical_gr_ri import *
-from .analytical_magr import *
+from .sigmoid_magr_model import *
 from .v4_sdss_assign_gri import *
 from .v4_remap_umachine_snaps import *

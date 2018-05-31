@@ -2,8 +2,7 @@
 onto model galaxies.
 """
 import numpy as np
-from .analytical_magr import magr_monte_carlo
-from ..stellar_mass_remapping import lift_high_mass_mstar
+from .sigmoid_magr_model import magr_monte_carlo
 from .analytical_gr_ri import gr_ri_monte_carlo
 from .cluster_color_modeling import remap_cluster_bcg_gr_ri_color, remap_cluster_satellite_gr_ri_color
 
