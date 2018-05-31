@@ -65,7 +65,7 @@ def z_crit_vs_mstar(
 
 
 def delta_magr_highz_vs_mstar(
-        logsm, delta_magr_highz_table=[-6, -5, -4, -1, 0, 0, 0], **kwargs):
+        logsm, delta_magr_highz_table=[-6, -5, -4, -1, -0.5, -0.5, -0.5], **kwargs):
     x = np.append(default_logsm_table, [13, 14, 15])
     zhigh = delta_magr_highz_table[-1]
     y = np.append(delta_magr_highz_table, [zhigh, zhigh, zhigh])
