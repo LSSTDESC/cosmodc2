@@ -78,7 +78,7 @@ def write_snapshot_mocks_to_disk(
         mock = Table.read(umachine_mock_fname, path='data')
 
         #  Remap stellar mass
-        mock.rename_column('obs_sm', '_obs_sm_orig_um')
+        mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
         mock['obs_sm'] = remap_stellar_mass_in_snapshot(
             redshift, mock['mpeak'], mock['_obs_sm_orig_um_snap'])
 
