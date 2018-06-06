@@ -47,9 +47,9 @@ if(${mode} == "test") then
 else
     if(${mode} == "qtest") then
 	echo "Running ${script_name} in ${mode} mode"
-	qsub -n 1 -t 5 -A ExtCosmology --env PYTHONPATH=${pythondirs} /soft/libraries/anaconda/bin/python ./${script_name} -h
+	qsub -n 1 -t 5 -A ExtCosmology --env PYTHONPATH=${pythondirs} ${python} ./${script_name} -h
     else
 	echo "Running ${script_name} to create ${nsnap} snapshots in ${mode} mode with time limit of ${timelimit} minutes"
-	qsub -n 1 -t ${timelimit} -A ExtCosmology --env PYTHONPATH=${pythondirs} /soft/libraries/anaconda/bin/python ./${script_name} ${args} -nsnap ${nsnap}
+	qsub -n 1 -t ${timelimit} -A ExtCosmology --env PYTHONPATH=${pythondirs} ${python} ./${script_name} ${args} -nsnap ${nsnap}
     endif
 endif
