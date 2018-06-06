@@ -4,22 +4,24 @@ import os
 import psutil
 import numpy as np
 import h5py
+import re
 from time import time
 from astropy.table import Table
 from astropy.cosmology import FlatLambdaCDM
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
-from cosmodc2.stellar_mass_remapping import lift_high_mass_mstar
+from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
-#from cosmodc2.load_gio_halos import load_gio_halo_snapshot
 from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.utils import crossmatch
-#from cosmodc2.lightcone_id import append_lightcone_id, astropy_table_to_lightcone_hdf5
 
 fof_halo_mass ='fof_halo_mass'
-fof_max = 14.5
+mass = 'mass'
+fof_max = 15.5
 H0 = 71.0
 OmegaM = 0.2648
+OmegaB = 0.0448
+cutoff_id_offset = 1.e7  #offset to guarantee unique galaxy ids across cutout files 
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -46,7 +48,7 @@ def write_umachine_healpix_mock_to_disk(
     snapshots : list
         List of snapshots in lightcone healpix cutout 
 
-    output_color_mock_fname_list : string
+    output_color_mock_fname : string
         Absolute path to the output healpix mock
 
     redshift_list : list
@@ -68,6 +70,10 @@ def write_umachine_healpix_mock_to_disk(
     gen = zip(umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list, redshift_list, snapshots)
     start_time = time()
     process = psutil.Process(os.getpid())
+
+    #determine number of healpix cutout to use as offset for galaxy ids
+    cutout_number = int(re.findall(r'\d+',os.path.splitext(os.path.basename(output_color_mock_fname))[0])[0])
+    galaxy_id_offset = cutout_number*cutoff_id_offset
     
     #determine seed from output filename
     seed = get_random_seed(os.path.basename(output_color_mock_fname))
@@ -94,7 +100,8 @@ def write_umachine_healpix_mock_to_disk(
         mpeak_mock = mock['mpeak']
 
         print("\n...re-assigning high-mass mstar values")
-        new_mstar = lift_high_mass_mstar(mpeak_mock, mstar_mock, upid_mock, redshift_mock)
+        new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, mstar_mock)
+        mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
         mock['obs_sm'] = new_mstar
 
         print("\n...assigning SDSS restframe colors")
@@ -122,7 +129,7 @@ def write_umachine_healpix_mock_to_disk(
         source_halos['mass_bin'] = halo_bin_indices(
             mass=(source_halos['mvir'], mass_bins))
         target_halos['mass_bin'] = halo_bin_indices(
-            mass=(target_halos['fof_halo_mass'], mass_bins))
+            mass=(target_halos[fof_halo_mass], mass_bins))
 
         #  Randomly draw halos from corresponding mass bins
         nhalo_min = 10
@@ -154,7 +161,8 @@ def write_umachine_healpix_mock_to_disk(
 
         print("...building output snapshot mock for snapshot {}".format(snapshot))
         output_mock[snapshot] = build_output_snapshot_mock(
-                mock, target_halos, source_galaxy_indx)
+                mock, target_halos, source_galaxy_indx, galaxy_id_offset)
+        galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
         time_stamp = time()
         msg = "Lightcone-shell runtime = {0:.2f} minutes"
@@ -197,6 +205,10 @@ def get_astropy_table(table_data, check=False):
     t['halo_redshift'] = 1/t['a'] - 1.
     t['halo_id'] = np.arange(len(table_data['id'])).astype(int)
 
+    #rename column mass if found
+    if mass in t.colnames:
+        t.rename_column(mass, fof_halo_mass)
+
     if check:
         #compute comoving distance from z and from position  
         cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
@@ -208,7 +220,7 @@ def get_astropy_table(table_data, check=False):
 
 
 def build_output_snapshot_mock(
-            umachine, target_halos, galaxy_indices, redshift_method='halo'):
+            umachine, target_halos, galaxy_indices, galaxy_id_offset, redshift_method='halo'):
     """
     Collect the GalSampled snapshot mock into an astropy table
 
@@ -283,7 +295,8 @@ def build_output_snapshot_mock(
             'obs_sm', 'obs_sfr', 'sfr_percentile',
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
-            'is_on_red_sequence_gr', 'is_on_red_sequence_ri')
+            'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
+            '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         dc2[key] = umachine[key][galaxy_indices]
 
@@ -295,6 +308,11 @@ def build_output_snapshot_mock(
 
     dc2['z'] = dc2['target_halo_z'] + dc2['host_centric_z']
     dc2['vz'] = dc2['target_halo_vz'] + dc2['host_centric_vz']
+
+    dc2['restframe_extincted_sdss_abs_magg'] = dc2['restframe_extincted_sdss_gr'] - dc2['restframe_extincted_sdss_abs_magr']
+    dc2['restframe_extincted_sdss_abs_magi'] = -dc2['restframe_extincted_sdss_ri'] + dc2['restframe_extincted_sdss_abs_magr']
+
+    dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['halo_id'])).astype(int)
 
     #compute galaxy redshift, ra and dec
     if redshift_method is not None:
@@ -329,6 +347,13 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile.create_group('metaData')
     hdfFile['metaData']['commit_hash'] = commit_hash
     hdfFile['metaData']['seed'] = seed
+    hdfFile['metaData']['versionMajor'] = 0
+    hdfFile['metaData']['versionMinor'] = 0
+    hdfFile['metaData']['versionMinorMinor'] = 0
+    hdfFile['metaData']['H_0'] = H0
+    hdfFile['metaData']['Omega_matter'] = OmegaM
+    hdfFile['metaData']['Omega_b'] = OmegaB
+    hdfFile['metaData']['skyArea'] = 4./8./96.*180*180/np.pi   #96 = healpix area factor
 
     for k, v in output_mock.items():
         gGroup=hdfFile.create_group(k)

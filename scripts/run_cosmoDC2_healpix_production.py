@@ -23,18 +23,16 @@ parser.add_argument("commit_hash",
     help="Commit hash to save in output files")
 parser.add_argument("-input_master_dirname",
     help="Directory name (relative to home) storing sub-directories of input files",
-    default=os.path.join(home, 'cosmology/DC2/LC_Test'))
+    default='cosmology/DC2/LC_Test')
 parser.add_argument("-healpix_cutout_dirname",
     help="Directory name (relative to home) storing healpix cutout files",
     default='healpix_cutouts')
-    #default='/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/LC_Test/healpix_cutouts')
 parser.add_argument("-um_input_catalogs_dirname",
     help="Directory name (relative to home) storing um input catalogs",
     default='protoDC2_v4_um_sfr_catalogs_and_halos')
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to home) storing output mock healpix files",
     default='um_healpix_mocks')
-    #default='/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/LC_Test/um_healpix_mocks')
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
@@ -45,9 +43,11 @@ parser.add_argument("-verbose",
 
 args = parser.parse_args()
 
+#setup directory names
+input_master_dirname = os.path.join(home, args.input_master_dirname)
 pkldirname = os.path.join(home, args.pkldirname)
-healpix_cutout_dirname = os.path.join(args.input_master_dirname, args.healpix_cutout_dirname)
-output_mock_dirname = os.path.join(args.input_master_dirname, args.output_mock_dirname)
+healpix_cutout_dirname = os.path.join(input_master_dirname, args.healpix_cutout_dirname)
+output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirname)
 
 #get list of snapshots 
 healpix_cutout_fname = os.path.join(healpix_cutout_dirname, args.healpix_fname)
@@ -59,7 +59,7 @@ if(args.verbose):
 
 if len(snapshots) > 0:
     umachine_mstar_ssfr_mock_dirname = (
-        os.path.join(args.input_master_dirname, args.um_input_catalogs_dirname))
+        os.path.join(input_master_dirname, args.um_input_catalogs_dirname))
         #'/projects/DarkUniverse_esp/kovacs/AlphaQ/protoDC2_v4_um_sfr_catalogs_and_halos')
     sfr_files = sorted([os.path.basename(f) for f in glob.glob(umachine_mstar_ssfr_mock_dirname+'/sfr*')])
     um_expansion_factors = np.asarray([float(f.split('sfr_catalog_')[-1].split('_value_added.hdf5')[0]) for f in sfr_files])
@@ -75,7 +75,7 @@ if len(snapshots) > 0:
         print('umachine_mstar_ssfr_mock_basename_list:',umachine_mstar_ssfr_mock_basename_list)
 
     umachine_host_halo_dirname = (
-        os.path.join(args.input_master_dirname, args.um_input_catalogs_dirname))
+        os.path.join(input_master_dirname, args.um_input_catalogs_dirname))
         #'/projects/DarkUniverse_esp/kovacs/AlphaQ/protoDC2_v4_um_sfr_catalogs_and_halos')
     umachine_host_halo_basename_list = [sfr_files[n].replace('sfr', 'halo') for n in closest_snapshots]
     umachine_host_halo_fname_list = list(
