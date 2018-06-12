@@ -72,11 +72,13 @@ def write_umachine_healpix_mock_to_disk(
     process = psutil.Process(os.getpid())
 
     #determine number of healpix cutout to use as offset for galaxy ids
-    cutout_number = int(re.findall(r'\d+',os.path.splitext(os.path.basename(output_color_mock_fname))[0])[0])
+    output_mock_basename = os.path.basename(output_color_mock_fname)
+    cutout_number = int(re.findall(r'\d+',os.path.splitext(output_mock_basename)[0])[0])
     galaxy_id_offset = cutout_number*cutoff_id_offset
     
     #determine seed from output filename
-    seed = get_random_seed(os.path.basename(output_color_mock_fname))
+    seed = get_random_seed(output_mock_basename)
+    fof_halo_mass_max = 0.
 
     for a, b, c, d in gen:
         umachine_mock_fname = a
@@ -86,9 +88,12 @@ def write_umachine_healpix_mock_to_disk(
 
         new_time_stamp = time()
 
+        #seed should be changed for each new shell
+        seed = seed + 2
+
+        #Get galaxy properties from UM catalogs and target halo properties
         print("\n...loading z = {0:.2f} galaxy catalog into memory".format(redshift))
 
-        #could check if this needs to be done again (sometimes same snap is used several times)
         mock = Table.read(umachine_mock_fname, path='data')
 
         upid_mock = mock['upid']
@@ -106,8 +111,6 @@ def write_umachine_healpix_mock_to_disk(
 
         print("\n...assigning SDSS restframe colors")
 
-        #seed should be changed for each new shell
-        seed = seed + 2
         magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
             upid_mock, new_mstar, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock, seed=seed)
         mock['restframe_extincted_sdss_abs_magr'] = magr
@@ -121,6 +124,7 @@ def write_umachine_healpix_mock_to_disk(
         source_halos = Table.read(umachine_halos_fname, path='data')
         #
         target_halos = get_astropy_table(healpix_data[snapshot])
+        fof_halo_mass_max = max(np.max(target_halos[fof_halo_mass].quantity.value), fof_halo_mass_max)
 
         print("...Finding halo--halo correspondence with GalSampler")
         #  Bin the halos in each simulation by mass
@@ -149,7 +153,7 @@ def write_umachine_healpix_mock_to_disk(
         ################################################################################
         #  Use GalSampler to calculate the indices of the galaxies that will be selected
         ################################################################################
-        print("...GalSampling z={0:.2f} galaxies to AlphaQ halos".format(redshift))
+        print("...GalSampling z={0:.2f} galaxies to OuterRim halos".format(redshift))
 
         source_galaxy_indx = np.array(galaxy_selection_kernel(
             target_halos['first_galaxy_index'].astype('i8'),
@@ -176,6 +180,8 @@ def write_umachine_healpix_mock_to_disk(
     ########################################################################
     if len(output_mock) > 0:
         write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed)
+
+    print('Maximum halo mass for {} ={}\n'.format(output_mock_basename, fof_halo_mass_max))
 
     time_stamp = time()
     msg = "End-to-end runtime = {0:.2f} minutes"
@@ -333,8 +339,9 @@ def build_output_snapshot_mock(
                 #TBD add pecliar velocity correction
                 print('Not implemented')
     
-        dc2['dec'] = np.arccos(dc2['z'] /r)*180.0/np.pi
-        dc2['ra'] = np.arctan(dc2['y']/dc2['x'])*180.0/np.pi
+        dc2['dec'] = 90. - np.arccos(dc2['z'] /r)*180.0/np.pi #co-latitude
+        dc2['ra'] = np.arctan2(dc2['y'], dc2['x'])*180.0/np.pi
+        dc2['ra'][(dc2['ra']<0)] += 360.   #force value 0->360
 
     return dc2
 

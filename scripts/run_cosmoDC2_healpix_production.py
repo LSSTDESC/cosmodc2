@@ -23,13 +23,13 @@ parser.add_argument("commit_hash",
     help="Commit hash to save in output files")
 parser.add_argument("-input_master_dirname",
     help="Directory name (relative to home) storing sub-directories of input files",
-    default='cosmology/DC2/LC_Test')
+    default='cosmology/DC2/OR_Test')
 parser.add_argument("-healpix_cutout_dirname",
     help="Directory name (relative to home) storing healpix cutout files",
     default='healpix_cutouts')
 parser.add_argument("-um_input_catalogs_dirname",
     help="Directory name (relative to home) storing um input catalogs",
-    default='protoDC2_v4_um_sfr_catalogs_and_halos')
+    default='um_snapshots')
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to home) storing output mock healpix files",
     default='um_healpix_mocks')
@@ -49,55 +49,57 @@ pkldirname = os.path.join(home, args.pkldirname)
 healpix_cutout_dirname = os.path.join(input_master_dirname, args.healpix_cutout_dirname)
 output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirname)
 
-#get list of snapshots 
-healpix_cutout_fname = os.path.join(healpix_cutout_dirname, args.healpix_fname)
-print('Processing healpix cutout {}'.format(healpix_cutout_fname))
-healpix_data, redshift_strings, snapshots  = get_healpix_cutout_info(pkldirname, healpix_cutout_fname, sim_name='AlphaQ')
-expansion_factors = [1./(1+float(z)) for z in redshift_strings]
-if(args.verbose):
-    print("target z's and a's:", redshift_strings, expansion_factors)
-
-if len(snapshots) > 0:
-    umachine_mstar_ssfr_mock_dirname = (
-        os.path.join(input_master_dirname, args.um_input_catalogs_dirname))
-        #'/projects/DarkUniverse_esp/kovacs/AlphaQ/protoDC2_v4_um_sfr_catalogs_and_halos')
-    sfr_files = sorted([os.path.basename(f) for f in glob.glob(umachine_mstar_ssfr_mock_dirname+'/sfr*')])
-    um_expansion_factors = np.asarray([float(f.split('sfr_catalog_')[-1].split('_value_added.hdf5')[0]) for f in sfr_files])
-    closest_snapshots = [np.abs(um_expansion_factors - a).argmin() for a in expansion_factors]
-    if(args.verbose):
-        print('index of closest snapshots:',closest_snapshots)
+#loop over z-ranges
+z_range_dirs = [os.path.basename(d) for d in glob.glob(healpix_cutout_dirname+'/*') if 'z' in d]
+for zdir in z_range_dirs:
     
-    umachine_mstar_ssfr_mock_basename_list = [sfr_files[n] for n in closest_snapshots]
-    umachine_mstar_ssfr_mock_fname_list = list(
-        (os.path.join(umachine_mstar_ssfr_mock_dirname, basename)
-         for basename in umachine_mstar_ssfr_mock_basename_list))
+    #get list of snapshots 
+    healpix_cutout_fname = os.path.join(healpix_cutout_dirname, zdir, args.healpix_fname)
+    print('Processing healpix cutout {}'.format(healpix_cutout_fname))
+    healpix_data, redshift_strings, snapshots  = get_healpix_cutout_info(pkldirname, healpix_cutout_fname, sim_name='AlphaQ')
+    expansion_factors = [1./(1+float(z)) for z in redshift_strings]
     if(args.verbose):
-        print('umachine_mstar_ssfr_mock_basename_list:',umachine_mstar_ssfr_mock_basename_list)
+        print("target z's and a's:", redshift_strings, expansion_factors)
 
-    umachine_host_halo_dirname = (
-        os.path.join(input_master_dirname, args.um_input_catalogs_dirname))
-        #'/projects/DarkUniverse_esp/kovacs/AlphaQ/protoDC2_v4_um_sfr_catalogs_and_halos')
-    umachine_host_halo_basename_list = [sfr_files[n].replace('sfr', 'halo') for n in closest_snapshots]
-    umachine_host_halo_fname_list = list(
-        (os.path.join(umachine_host_halo_dirname, basename)
-         for basename in umachine_host_halo_basename_list))
-    if(args.verbose):
-        print('umachine_host_halo_fname_list:',umachine_host_halo_basename_list)
+    if len(snapshots) > 0:
+        umachine_mstar_ssfr_mock_dirname = (
+            os.path.join(input_master_dirname, args.um_input_catalogs_dirname))
+        sfr_files = sorted([os.path.basename(f) for f in glob.glob(umachine_mstar_ssfr_mock_dirname+'/sfr*')])
+        um_expansion_factors = np.asarray([float(f.split('sfr_catalog_')[-1].split('_value_added.hdf5')[0]) for f in sfr_files])
+        closest_snapshots = [np.abs(um_expansion_factors - a).argmin() for a in expansion_factors]
+        if(args.verbose):
+            print('index of closest snapshots:',closest_snapshots)
+    
+        umachine_mstar_ssfr_mock_basename_list = [sfr_files[n] for n in closest_snapshots]
+        umachine_mstar_ssfr_mock_fname_list = list(
+            (os.path.join(umachine_mstar_ssfr_mock_dirname, basename)
+             for basename in umachine_mstar_ssfr_mock_basename_list))
+        if(args.verbose):
+            print('umachine_mstar_ssfr_mock_basename_list:',umachine_mstar_ssfr_mock_basename_list)
 
-    healpix_basename = os.path.basename(args.healpix_fname)
-    output_mock_basename = ''.join(["umachine_color_mock_", healpix_basename.replace('_fof_halo_mass', '')])
-    output_healpix_mock_fname = os.path.join(output_mock_dirname, output_mock_basename)
-    if(args.verbose):
-        print('output_healpix_mock_fname:', output_healpix_mock_fname)
+        umachine_host_halo_dirname = (
+            os.path.join(input_master_dirname, args.um_input_catalogs_dirname))
+        umachine_host_halo_basename_list = [sfr_files[n].replace('sfr', 'halo') for n in closest_snapshots]
+        umachine_host_halo_fname_list = list(
+            (os.path.join(umachine_host_halo_dirname, basename)
+             for basename in umachine_host_halo_basename_list))
+        if(args.verbose):
+            print('umachine_host_halo_fname_list:',umachine_host_halo_basename_list)
 
-    redshift_list = [float(z) for z in redshift_strings]
-    commit_hash = args.commit_hash
+        healpix_basename = os.path.basename(args.healpix_fname)
+        output_mock_basename = ''.join(["umachine_color_mock_", zdir, '_', healpix_basename.replace('_fof_halo_mass', '')])
+        output_healpix_mock_fname = os.path.join(output_mock_dirname, output_mock_basename)
+        if(args.verbose):
+            print('output_healpix_mock_fname:', output_healpix_mock_fname)
 
-    write_umachine_healpix_mock_to_disk(
+        redshift_list = [float(z) for z in redshift_strings]
+        commit_hash = args.commit_hash
+
+        write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_healpix_mock_fname,
             redshift_list, commit_hash)
-else:
-    print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))
+    else:
+        print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))
 
           
