@@ -8,10 +8,10 @@ from astropy.utils.misc import NumpyRNGContext
 #  Control points defining the (g-r) red fraction as a function of r-band luminosity
 fq_ri_abscissa = [-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15]
 default_fq_ri = [0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1]
-default_fq_ri_floor = 0.08
+default_fq_ri_floor_table = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08]
 
 #  Define how the red fraction evolves with redshift for g-r color
-blueshift_fq_z_table = [0.25, 0.5, 1.0]
+default_blueshift_fq_ri_z_table = [0.25, 0.5, 1.0]
 default_fq_ri_blueshift_table = (1., 2.5, 10.)
 
 #  Control points in r-band luminosity at which the (r-i) sequence peaks are defined
@@ -39,6 +39,12 @@ default_ms_scatter_ri_zevol_table = [1., 1., 1., 1.]
 scatter_zevol_z_table = peak_shift_factor_z_table
 
 
+def redshift_dependent_fq_ri_floor(magr, fq_ri_floor_table):
+    """
+    """
+    return np.interp(magr, fq_ri_abscissa, fq_ri_floor_table)
+
+
 def apply_z_evolution_of_fq(fq_z0p0, redshift, z_table, reduction_factor):
     """
     """
@@ -47,12 +53,14 @@ def apply_z_evolution_of_fq(fq_z0p0, redshift, z_table, reduction_factor):
     return np.where(result < 0, 0., result)
 
 
-def quiescent_fraction_ri(magr, redshift, fq_ri, blueshift_factor, fq_ri_floor):
+def quiescent_fraction_ri(magr, redshift, fq_ri, blueshift_factor, fq_ri_floor_table,
+            blueshift_fq_ri_z_table=default_blueshift_fq_ri_z_table):
     """
     Fraction of galaxies on the g-r red sequence as a function of Mr.
     """
     fq_z0 = np.interp(magr, fq_ri_abscissa, fq_ri)
-    fq_at_z = apply_z_evolution_of_fq(fq_z0, redshift, blueshift_fq_z_table, blueshift_factor)
+    fq_at_z = apply_z_evolution_of_fq(fq_z0, redshift, blueshift_fq_ri_z_table, blueshift_factor)
+    fq_ri_floor = redshift_dependent_fq_ri_floor(magr, fq_ri_floor_table)
     return np.where(fq_at_z <= fq_ri_floor, fq_ri_floor, fq_at_z)
 
 
@@ -108,7 +116,8 @@ def r_minus_i(magr, redshift, seed=None,
             ms_peak_ri_zevol_shift_table=default_ms_peak_ri_zevol,
             ms_scatter_ri=default_ms_scatter_ri,
             ms_scatter_ri_zevol_table=default_ms_scatter_ri_zevol_table,
-            fq_ri_floor=default_fq_ri_floor, **kwargs):
+            fq_ri_floor_table=default_fq_ri_floor_table,
+            blueshift_fq_ri_z_table=default_blueshift_fq_ri_z_table, **kwargs):
     """ Generate a Monte Carlo realization of g-r restframe color.
 
     Parameters
@@ -141,7 +150,8 @@ def r_minus_i(magr, redshift, seed=None,
     ngals = len(magr)
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_ri(
-            magr, redshift, fq_ri, fq_ri_blueshift_factor_table, fq_ri_floor)
+            magr, redshift, fq_ri, fq_ri_blueshift_factor_table, fq_ri_floor_table,
+            blueshift_fq_ri_z_table=blueshift_fq_ri_z_table)
 
     red_sequence_loc = red_sequence_peak_ri(
         magr[is_quiescent], red_peak_ri, redshift[is_quiescent], red_peak_ri_zevol_shift_table)
