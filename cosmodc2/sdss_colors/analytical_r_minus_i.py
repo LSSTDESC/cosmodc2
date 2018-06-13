@@ -5,14 +5,14 @@ import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 
 
-#  Control points defining the (g-r) red fraction as a function of r-band luminosity
+#  Control points defining the (r-i) red fraction as a function of r-band luminosity
 fq_ri_abscissa = [-25, -22.5, -21, -20, -19.5, -19, -18.5, -18, -15]
 default_fq_ri = [0.9, 0.8, 0.65, 0.60, 0.465, 0.35, 0.2, 0.1, 0.1]
-default_fq_ri_floor_table = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08]
+default_fq_ri_floor_table = [0.2, 0.15, 0.125, 0.12, 0.12, 0.12, 0.08, 0.08, 0.08]
 
-#  Define how the red fraction evolves with redshift for g-r color
-default_blueshift_fq_ri_z_table = [0.25, 0.5, 1.0]
-default_fq_ri_blueshift_table = (1., 2.5, 10.)
+#  Define how the red fraction evolves with redshift for r-i color
+default_blueshift_fq_ri_z_table = [0.3, 0.55, 0.75, 1.0, 2]
+default_fq_ri_blueshift_table = (1., 1.5, 3.5, 5., 10)
 
 #  Control points in r-band luminosity at which the (r-i) sequence peaks are defined
 ms_peak_ri_abscissa = [-22.5, -21, -20, -19, -18, -15]
@@ -29,11 +29,11 @@ peak_shift_factor_z_table = [0.1, 0.35, 0.65, 1.0]
 default_red_peak_ri_zevol = [0, -0.02, -0.05, -0.2]
 default_ms_peak_ri_zevol = [0.0, -0.02, -0.1, -0.25]
 
-#  Control points defining the magr-dependent (g-r) scatter at z = 0
+#  Control points defining the magr-dependent (r-i) scatter at z = 0
 default_ms_scatter_ri = [0.02, 0.05, 0.05, 0.05, 0.05, 0.05]
 default_red_scatter_ri = [0.02, 0.02, 0.02, 0.02, 0.02, 0.02]
 
-#  Control points defining the z-evolution lf (g-r) scatter
+#  Control points defining the z-evolution lf (r-i) scatter
 default_red_scatter_ri_zevol_table = [1., 1., 1., 1.]
 default_ms_scatter_ri_zevol_table = [1., 1., 1., 1.]
 scatter_zevol_z_table = peak_shift_factor_z_table
