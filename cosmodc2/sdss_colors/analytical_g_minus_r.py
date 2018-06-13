@@ -25,9 +25,9 @@ default_ms_peak_gr = [0.65, 0.65, 0.6, 0.4, 0.4, 0.35]
 default_red_peak_gr = [0.9, 0.85, 0.8, 0.7, 0.7, 0.7]
 
 #  Control points defining the z-dependent blueshift of the locus of the (g-r) red sequence
-peak_shift_factor_z_table = [0.1, 0.25, 0.50, 1.0]
-default_red_peak_gr_zevol = [0, -0.05, -0.2, -0.25]
-default_ms_peak_gr_zevol = [0.0, -0.10, -0.25, -0.4]
+peak_shift_factor_z_table = [0.1, 0.35, 0.65, 1.0]
+default_red_peak_gr_zevol = [0, -0.03, -0.08, -0.25]
+default_ms_peak_gr_zevol = [0.0, -0.03, -0.12, -0.35]
 
 #  Control points defining the magr-dependent (g-r) scatter at z = 0
 default_ms_scatter_gr = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08]
