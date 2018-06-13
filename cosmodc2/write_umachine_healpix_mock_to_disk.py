@@ -21,7 +21,8 @@ fof_max = 15.5
 H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
-cutoff_id_offset = 1.e7  #offset to guarantee unique galaxy ids across cutout files 
+cutoff_id_offset = 1e7  #offset to guarantee unique galaxy ids across cutout files 
+Nside = 128  #fine pixelization for determining sky area 
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -349,6 +350,8 @@ def build_output_snapshot_mock(
 def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed):
     """
     """
+    import healpy as hp
+
     print("...writing to file {} using commit hash {}".format(output_color_mock_fname, commit_hash))
     hdfFile=h5py.File(output_color_mock_fname, 'w')
     hdfFile.create_group('metaData')
@@ -360,7 +363,15 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile['metaData']['H_0'] = H0
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
-    hdfFile['metaData']['skyArea'] = 4./8./96.*180*180/np.pi   #96 = healpix area factor
+
+    #compute sky area from ra and dec ranges of galaxies
+    pixels = set()
+    for ra, dec in zip(output_mock['ra'], output_mock['dec']):
+        pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
+    frac = len(pixels)/hp.nside2npix(Nside)
+    skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
+
+    hdfFile['metaData']['skyArea'] = skyarea
 
     for k, v in output_mock.items():
         gGroup=hdfFile.create_group(k)
