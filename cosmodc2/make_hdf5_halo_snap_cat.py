@@ -29,7 +29,7 @@ args = parser.parse_args()
 halo_file_template = 'm000-{}.fofproperties'
 halo_filename = os.path.join(args.halo_catalog_dirname, halo_file_template.format(args.snapshot))
 
-halo_table = load_gio_halo_snapshot(halo_filename, all_properties=False)
+halo_table = load_gio_halo_snapshot(halo_filename)
 
 output_filename = os.path.join(args.output_dirname,  halo_file_template.format(args.snapshot)+'.hdf5')
 halo_table.write(output_filename, path='data', overwrite=True)

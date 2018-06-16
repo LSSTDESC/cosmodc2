@@ -94,31 +94,7 @@ def write_umachine_healpix_mock_to_disk(
 
         #Get galaxy properties from UM catalogs and target halo properties
         print("\n...loading z = {0:.2f} galaxy catalog into memory".format(redshift))
-
         mock = Table.read(umachine_mock_fname, path='data')
-
-        upid_mock = mock['upid']
-        mstar_mock = mock['obs_sm']
-        sfr_percentile_mock = mock['sfr_percentile']
-        host_halo_mvir_mock = mock['host_halo_mvir']
-        redshift_mock = np.random.uniform(redshift-0.15, redshift+0.15, len(mock))
-        redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
-        mpeak_mock = mock['mpeak']
-
-        print("\n...re-assigning high-mass mstar values")
-        new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, mstar_mock)
-        mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
-        mock['obs_sm'] = new_mstar
-
-        print("\n...assigning SDSS restframe colors")
-
-        magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
-            upid_mock, new_mstar, sfr_percentile_mock, host_halo_mvir_mock, redshift_mock, seed=seed)
-        mock['restframe_extincted_sdss_abs_magr'] = magr
-        mock['restframe_extincted_sdss_gr'] = gr_mock
-        mock['restframe_extincted_sdss_ri'] = ri_mock
-        mock['is_on_red_sequence_gr'] = is_red_gr
-        mock['is_on_red_sequence_ri'] = is_red_ri
 
         ###  GalSampler
         print("\n...loading z = {0:.2f} halo catalogs into memory".format(redshift))
@@ -169,6 +145,49 @@ def write_umachine_healpix_mock_to_disk(
                 mock, target_halos, source_galaxy_indx, galaxy_id_offset)
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
+        print('{}'.format( ' '.join(list(output_mock[snapshot].keys()))))
+
+        ########################################################################
+        #  This is where code would go to supplement the mock with
+        #  additional synthetic subhalos below the resolution limit of the
+        #  UniverseMachine simulation
+
+
+        ########################################################################
+
+        print("\n...re-assigning high-mass mstar values")
+
+        #  For mock central galaxies that have been assigned to a very massive target halo,
+        #  we use the target halo mass instead of the source halo mpeak to assign M*
+        outer_rim_mass_mask = output_mock[snapshot]['upid'] == -1
+        outer_rim_mass_mask &= output_mock[snapshot]['target_halo_mass'] > output_mock[snapshot]['mpeak']
+        mpeak_mock = np.where(outer_rim_mass_mask, output_mock[snapshot]['target_halo_mass'], output_mock[snapshot]['mpeak'])
+        new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, output_mock[snapshot]['obs_sm'])
+        output_mock[snapshot].rename_column('obs_sm', '_obs_sm_orig_um_snap')
+        output_mock[snapshot]['obs_sm'] = new_mstar
+
+        print("\n...assigning SDSS restframe colors")
+        #redshift_mock = np.random.uniform(redshift-0.15, redshift+0.15, len(output_mock[snapshot]))
+        #redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
+        #use actual redshifts from output mock
+        redshift_mock = output_mock[snapshot]['redshift']
+        magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
+            output_mock[snapshot]['upid'], output_mock[snapshot]['obs_sm'], output_mock[snapshot]['sfr_percentile'],
+            output_mock[snapshot]['target_halo_mass'], redshift_mock, seed=seed)
+        output_mock[snapshot]['restframe_extincted_sdss_abs_magr'] = magr
+        output_mock[snapshot]['restframe_extincted_sdss_gr'] = gr_mock
+        output_mock[snapshot]['restframe_extincted_sdss_ri'] = ri_mock
+        output_mock[snapshot]['is_on_red_sequence_gr'] = is_red_gr
+        output_mock[snapshot]['is_on_red_sequence_ri'] = is_red_ri
+
+        #  Map gr and ri color to gri flux
+        output_mock[snapshot]['restframe_extincted_sdss_abs_magg'] = (
+            output_mock[snapshot]['restframe_extincted_sdss_gr'] -
+            output_mock[snapshot]['restframe_extincted_sdss_abs_magr'])
+        output_mock[snapshot]['restframe_extincted_sdss_abs_magi'] = (
+            -output_mock[snapshot]['restframe_extincted_sdss_ri'] +
+            output_mock[snapshot]['restframe_extincted_sdss_abs_magr'])
+
         time_stamp = time()
         msg = "Lightcone-shell runtime = {0:.2f} minutes"
         print(msg.format((time_stamp-new_time_stamp)/60.))  
@@ -189,7 +208,7 @@ def write_umachine_healpix_mock_to_disk(
     print(msg.format((time_stamp-start_time)/60.))
 
 
-def get_random_seed(filename, seed_max=4294967095): #reduce max seed by 200 to allow for 60 light-cone shells
+def get_random_seed(filename, seed_max=4294967095):  #reduce max seed by 200 to allow for 60 light-cone shells
     import hashlib
     s = hashlib.md5(filename).hexdigest()
     seed = int(s, 16)
@@ -197,7 +216,7 @@ def get_random_seed(filename, seed_max=4294967095): #reduce max seed by 200 to a
     #enforce seed is below seed_max and odd
     seed = seed%seed_max
     if seed%2 == 0:
-        seed = seed +1
+        seed = seed + 1
     return seed
     
 
@@ -221,7 +240,7 @@ def get_astropy_table(table_data, check=False):
         cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
         r = np.sqrt(t['x']*t['x'] + t['y']*t['y'] + t['z']*t['z'])
         comoving_distance = cosmology.comoving_distance(t['halo_redshift'])*H0/100.
-        print('r == comoving_distance(z) is {}',np.isclose(r, comoving_distance))
+        print('r == comoving_distance(z) is {}', np.isclose(r, comoving_distance))
               
     return t
 
@@ -303,9 +322,13 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
-            '_obs_sm_orig_um_snap', 'halo_id')
+            'halo_id')
+    umachine_keys = list(umachine.keys())
     for key in source_galaxy_keys:
-        dc2[key] = umachine[key][galaxy_indices]
+        if key in umachine_keys:
+            dc2[key] = umachine[key][galaxy_indices]
+        else:
+            dc2[key] = 0.
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
@@ -315,9 +338,6 @@ def build_output_snapshot_mock(
 
     dc2['z'] = dc2['target_halo_z'] + dc2['host_centric_z']
     dc2['vz'] = dc2['target_halo_vz'] + dc2['host_centric_vz']
-
-    dc2['restframe_extincted_sdss_abs_magg'] = dc2['restframe_extincted_sdss_gr'] - dc2['restframe_extincted_sdss_abs_magr']
-    dc2['restframe_extincted_sdss_abs_magi'] = -dc2['restframe_extincted_sdss_ri'] + dc2['restframe_extincted_sdss_abs_magr']
 
     dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['halo_id'])).astype(int)
 
@@ -336,13 +356,13 @@ def build_output_snapshot_mock(
             CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
             #use interpolation to get redshifts
             dc2['redshift'] = np.interp(r, zgrid, CDgrid)
-            if redshift_method=='pec':
+            if redshift_method == 'pec':
                 #TBD add pecliar velocity correction
                 print('Not implemented')
     
-        dc2['dec'] = 90. - np.arccos(dc2['z'] /r)*180.0/np.pi #co-latitude
+        dc2['dec'] = 90. - np.arccos(dc2['z']/r)*180.0/np.pi #co-latitude
         dc2['ra'] = np.arctan2(dc2['y'], dc2['x'])*180.0/np.pi
-        dc2['ra'][(dc2['ra']<0)] += 360.   #force value 0->360
+        dc2['ra'][(dc2['ra'] < 0)] += 360.   #force value 0->360
 
     return dc2
 
@@ -353,7 +373,7 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     import healpy as hp
 
     print("...writing to file {} using commit hash {}".format(output_color_mock_fname, commit_hash))
-    hdfFile=h5py.File(output_color_mock_fname, 'w')
+    hdfFile = h5py.File(output_color_mock_fname, 'w')
     hdfFile.create_group('metaData')
     hdfFile['metaData']['commit_hash'] = commit_hash
     hdfFile['metaData']['seed'] = seed
@@ -366,15 +386,16 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
 
     #compute sky area from ra and dec ranges of galaxies
     pixels = set()
-    for ra, dec in zip(output_mock['ra'], output_mock['dec']):
-        pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
+    for k in output_mock.keys():
+        for ra, dec in zip(output_mock[k]['ra'], output_mock[k]['dec']):
+            pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
     frac = len(pixels)/hp.nside2npix(Nside)
     skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
 
     hdfFile['metaData']['skyArea'] = skyarea
 
     for k, v in output_mock.items():
-        gGroup=hdfFile.create_group(k)
+        gGroup = hdfFile.create_group(k)
         for tk in v.keys():
             gGroup[tk] = v[tk].quantity.value
 
