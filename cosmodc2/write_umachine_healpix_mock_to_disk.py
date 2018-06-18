@@ -137,6 +137,56 @@ def write_umachine_healpix_mock_to_disk(
             target_halos['richness'].astype('i4'), target_halos['richness'].sum()))
 
         ########################################################################
+        #  Assign stellar mass, using Outer Rim halo mass for very massive halos
+        ########################################################################
+        print("\n...re-assigning high-mass mstar values")
+
+        #  For mock central galaxies that have been assigned to a very massive target halo,
+        #  we use the target halo mass instead of the source halo mpeak to assign M*
+ 
+        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
+        #  with -1 in all other entries pertaining to unselected galaxies
+        mock_target_halo_mass = np.zeros(len(mock)) - 1.
+        mock_target_halo_mass[source_galaxy_indx] = np.repeat(
+            target_halos['fof_halo_mass'], target_halos['richness'])
+
+        #  Calculate a boolean mask for those centrals that get mapped to very massive target halos
+        cenmask = mock['upid'] == -1
+        massive_target_halo_mask = mock_target_halo_mass > np.max(mock['mpeak'])
+        remap_mpeak_mask = cenmask & massive_target_halo_mask
+        mpeak_mock = np.where(remap_mpeak_mask, mock_target_halo_mass, mock['mpeak'])
+        assert np.all(mpeak_mock > 0), "Bookkeeping error in remapping target halo mass onto cluster BCGs"
+
+        #  Map stellar mass onto mock
+        new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, mock['obs_sm'])
+        mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
+        mock['obs_sm'] = new_mstar
+
+        ###################################################
+        #  Map restframe Mr, g-r, r-i onto mock
+        ###################################################
+        #  Use the target halo redshift for those galaxies that have been selected;
+        #  otherwise use the redshift of the snapshot of the source simulation
+        redshift_mock = np.array([redshift]*len(mock))
+        redshift_mock[source_galaxy_indx] = np.repeat(
+            target_halos['halo_redshift'], target_halos['richness'])
+
+        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,                                                      
+        #  with mock['mpeak'] in all other entries pertaining to unselected galaxies 
+        mock_remapped_halo_mass = mock['mpeak']
+        mock_remapped_halo_mass[source_galaxy_indx] = np.repeat(
+            target_halos['fof_halo_mass'], target_halos['richness'])
+
+        magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
+            mock['upid'], mock['obs_sm'], mock['sfr_percentile'],
+            mock_remapped_halo_mass, redshift_mock, seed=seed)
+        mock['restframe_extincted_sdss_abs_magr'] = magr
+        mock['restframe_extincted_sdss_gr'] = gr_mock
+        mock['restframe_extincted_sdss_ri'] = ri_mock
+        mock['is_on_red_sequence_gr'] = is_red_gr
+        mock['is_on_red_sequence_ri'] = is_red_ri
+ 
+        ########################################################################
         #  Assemble the output mock by snapshot
         ########################################################################
 
@@ -145,48 +195,7 @@ def write_umachine_healpix_mock_to_disk(
                 mock, target_halos, source_galaxy_indx, galaxy_id_offset)
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
-        print('{}'.format( ' '.join(list(output_mock[snapshot].keys()))))
-
-        ########################################################################
-        #  This is where code would go to supplement the mock with
-        #  additional synthetic subhalos below the resolution limit of the
-        #  UniverseMachine simulation
-
-
-        ########################################################################
-
-        print("\n...re-assigning high-mass mstar values")
-
-        #  For mock central galaxies that have been assigned to a very massive target halo,
-        #  we use the target halo mass instead of the source halo mpeak to assign M*
-        outer_rim_mass_mask = output_mock[snapshot]['upid'] == -1
-        outer_rim_mass_mask &= output_mock[snapshot]['target_halo_mass'] > output_mock[snapshot]['mpeak']
-        mpeak_mock = np.where(outer_rim_mass_mask, output_mock[snapshot]['target_halo_mass'], output_mock[snapshot]['mpeak'])
-        new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, output_mock[snapshot]['obs_sm'])
-        output_mock[snapshot].rename_column('obs_sm', '_obs_sm_orig_um_snap')
-        output_mock[snapshot]['obs_sm'] = new_mstar
-
-        print("\n...assigning SDSS restframe colors")
-        #redshift_mock = np.random.uniform(redshift-0.15, redshift+0.15, len(output_mock[snapshot]))
-        #redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
-        #use actual redshifts from output mock
-        redshift_mock = output_mock[snapshot]['redshift']
-        magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
-            output_mock[snapshot]['upid'], output_mock[snapshot]['obs_sm'], output_mock[snapshot]['sfr_percentile'],
-            output_mock[snapshot]['target_halo_mass'], redshift_mock, seed=seed)
-        output_mock[snapshot]['restframe_extincted_sdss_abs_magr'] = magr
-        output_mock[snapshot]['restframe_extincted_sdss_gr'] = gr_mock
-        output_mock[snapshot]['restframe_extincted_sdss_ri'] = ri_mock
-        output_mock[snapshot]['is_on_red_sequence_gr'] = is_red_gr
-        output_mock[snapshot]['is_on_red_sequence_ri'] = is_red_ri
-
-        #  Map gr and ri color to gri flux
-        output_mock[snapshot]['restframe_extincted_sdss_abs_magg'] = (
-            output_mock[snapshot]['restframe_extincted_sdss_gr'] -
-            output_mock[snapshot]['restframe_extincted_sdss_abs_magr'])
-        output_mock[snapshot]['restframe_extincted_sdss_abs_magi'] = (
-            -output_mock[snapshot]['restframe_extincted_sdss_ri'] +
-            output_mock[snapshot]['restframe_extincted_sdss_abs_magr'])
+        #print('{}'.format( ' '.join(list(output_mock[snapshot].keys()))))
 
         time_stamp = time()
         msg = "Lightcone-shell runtime = {0:.2f} minutes"
@@ -204,7 +213,7 @@ def write_umachine_healpix_mock_to_disk(
     print('Maximum halo mass for {} ={}\n'.format(output_mock_basename, fof_halo_mass_max))
 
     time_stamp = time()
-    msg = "End-to-end runtime = {0:.2f} minutes"
+    msg = "\nEnd-to-end runtime = {0:.2f} minutes\n"
     print(msg.format((time_stamp-start_time)/60.))
 
 
@@ -322,13 +331,22 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
-            'halo_id')
-    umachine_keys = list(umachine.keys())
+            '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
-        if key in umachine_keys:
+        try:
             dc2[key] = umachine[key][galaxy_indices]
-        else:
-            dc2[key] = 0.
+        except KeyError:
+            msg = ("The build_output_snapshot_mock function was passed a umachine mock\n"
+                "that does not contain the ``{0}`` key")
+            raise KeyError(msg.format(key))
+
+    #Use gr and ri color to compute gi flux
+    dc2['restframe_extincted_sdss_abs_magg'] = (
+        dc2['restframe_extincted_sdss_gr'] -
+        dc2['restframe_extincted_sdss_abs_magr'])
+    dc2['restframe_extincted_sdss_abs_magi'] = (
+        -dc2['restframe_extincted_sdss_ri'] +
+        dc2['restframe_extincted_sdss_abs_magr'])
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
@@ -344,7 +362,7 @@ def build_output_snapshot_mock(
     #compute galaxy redshift, ra and dec
     if redshift_method is not None:
         r = np.sqrt(dc2['x']*dc2['x'] + dc2['y']*dc2['y'] + dc2['z']*dc2['z'])
-        if redshift_method=='halo':
+        if redshift_method == 'halo':
             #set galaxy redshifts to halo redshifts
             dc2['redshift'] = np.repeat(target_halos['halo_redshift'], target_halos['richness'])
         else:              #compute galaxy redshift from position 
