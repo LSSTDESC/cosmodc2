@@ -35,8 +35,8 @@ def median_magr_from_mstar(mstar, upid, redshift, **kwargs):
     return magr_z0 + delta_magr
 
 
-def median_magr_from_mstar_z0(logsm, logm0=10., magr_at_m0=-20,
-            low_mass_slope=2., high_mass_slope=1.6, logsm_k=2.5, **kwargs):
+def median_magr_from_mstar_z0(logsm, logm0=10., magr_at_m0=-20.1,
+            low_mass_slope=2., high_mass_slope=1.8, logsm_k=2.5, **kwargs):
     """
     """
     x = np.atleast_1d(logsm) - logm0
