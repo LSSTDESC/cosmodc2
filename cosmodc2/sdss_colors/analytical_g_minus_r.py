@@ -8,7 +8,7 @@ from astropy.utils.misc import NumpyRNGContext
 #  Control points defining the (g-r) red fraction as a function of r-band luminosity
 fq_gr_abscissa = [-22.5, -22., -21, -20, -19.5, -19, -18.5, -18, -15]
 default_fq_gr = [0.9, 0.775, 0.6, 0.55, 0.525, 0.50, 0.25, 0.2, 0.1]
-default_fq_gr_floor_table = [0.2, 0.15, 0.125, 0.12, 0.12, 0.12, 0.08, 0.08, 0.08]
+default_fq_gr_floor_table = [0.25, 0.25, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.15]
 
 #  Define how the red fraction evolves with redshift for g-r color
 default_blueshift_fq_gr_z_table = [0.3, 0.55, 0.75, 1.0, 2]
