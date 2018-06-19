@@ -3,7 +3,7 @@
 if ($#argv < 1 ) then
     echo 'Usage: run_cosmoDC2_mocks filename commit_hash [mode] [timelimit]'
     echo 'Script runs or submits job for creating cosmoDC2 healpix mock'
-    echo 'filename = base filename of healpix cutout (cutout_xxx.hdf5) to run'
+    echo 'filename = filename of healpix cutout (cutout_xxx) to run (.hdf5 assumed)'
     echo 'commit_hash = commit tag for cosmodc2 repo ()'
     echo 'mode = test or qsub (default) or qtest'
     echo 'timelimit = timelimit for qsub mode (default = 5 minutes)'
@@ -14,7 +14,8 @@ if ($#argv < 1 ) then
     exit
 endif
 
-set filename = ${1}
+set jobname = ${1}
+set filename = "${1}.hdf5"
 set commit_hash = ${2}
 set mode = "qsub"
 set timelimit = "5"
@@ -48,9 +49,9 @@ if(${mode} == "test") then
 else
     if(${mode} == "qtest") then
 	echo "Running ${script_name} -h in ${mode} mode"
-	qsub -n 1 -t 5 -A ExtCosmology --env PYTHONPATH=${pythondirs} ${python} ./${script_name} -h
+	qsub -n 1 -t 5 -A ExtCosmology -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} -h
     else
 	echo "Running ${script_name} to create ${filename} in ${mode} mode with time limit of ${timelimit} minutes"
-	qsub -n 1 -t ${timelimit} -A ExtCosmology --env PYTHONPATH=${pythondirs} ${python} ./${script_name} ${args}
+	qsub -n 1 -t ${timelimit} -A ExtCosmology -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} ${args}
     endif
 endif

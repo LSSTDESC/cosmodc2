@@ -171,9 +171,9 @@ def write_umachine_healpix_mock_to_disk(
         redshift_mock[source_galaxy_indx] = np.repeat(
             target_halos['halo_redshift'], target_halos['richness'])
 
-        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,                                                      
-        #  with mock['mpeak'] in all other entries pertaining to unselected galaxies 
-        mock_remapped_halo_mass = mock['mpeak']
+        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
+        #  with mock['host_halo_mvir'] in all other entries pertaining to unselected galaxies 
+        mock_remapped_halo_mass = mock['host_halo_mvir']
         mock_remapped_halo_mass[source_galaxy_indx] = np.repeat(
             target_halos['fof_halo_mass'], target_halos['richness'])
 
