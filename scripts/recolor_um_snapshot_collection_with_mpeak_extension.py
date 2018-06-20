@@ -4,7 +4,7 @@ import sys
 import os
 import fnmatch
 import numpy as np
-from astropy.table import Table
+from astropy.table import Table, vstack
 from time import time
 
 dependency_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots"
@@ -14,10 +14,11 @@ sys.path.insert(0, os.path.join(dependency_dirname, "cosmodc2"))
 
 from cosmodc2.sdss_colors import v4_paint_colors_onto_umachine_snaps
 from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
+from cosmodc2.synthetic_subhalos import create_synthetic_mock
 
 
 input_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots/galsampler_alphaq_outputs_v4/baseline_umachine_snapshot_mocks_v4.6"
-output_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots/galsampler_alphaq_outputs_v4/recolored_mocks_v4p11"
+output_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots/galsampler_alphaq_outputs_v4/recolored_mocks_v4p12"
 
 
 def fname_generator(root_dirname, basename_filepat):
@@ -67,6 +68,9 @@ for fname in input_fnames:
     mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
     mock['obs_sm'] = new_mstar_real
 
+    fake_gals = create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)
+    mock = vstack((mock, fake_gals))
+
     result = v4_paint_colors_onto_umachine_snaps(
             mock['mpeak'], mock['obs_sm'], mock['upid'],
             redshift, mock['sfr_percentile'], mock['host_halo_mvir'])
@@ -80,7 +84,7 @@ for fname in input_fnames:
 
     mock['redshift'] = redshift
 
-    outbase = 'recolored_' + basename.replace('_v4_', '_v4.11_')
+    outbase = 'recolored_' + basename.replace('_v4_', '_v4.12_')
     outname = os.path.join(output_dirname, outbase)
     msg = "...writing recolored mock to the following path on disk:\n{0}"
     print(msg.format(outname))
