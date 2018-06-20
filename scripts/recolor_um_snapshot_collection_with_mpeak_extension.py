@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(dependency_dirname, "cosmodc2"))
 
 
 from cosmodc2.sdss_colors import v4_paint_colors_onto_umachine_snaps
-from cosmodc2.synthetic_subhalos import model_extended_mpeak
+from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
 
 
 input_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots/galsampler_alphaq_outputs_v4/baseline_umachine_snapshot_mocks_v4.6"
@@ -57,15 +57,15 @@ for fname in input_fnames:
     print(msg.format(snapnum, redshift))
     mock = Table.read(fname, path='data')
 
-    corrected_mpeak, mpeak_extension = model_extended_mpeak(mock['mpeak'], 9.75)
+    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.75)
     mock.rename_column('mpeak', '_mpeak_orig_um_snap')
     mock['mpeak'] = corrected_mpeak
 
-    msg = "...painting colors onto galaxies at z = {0:.2f}"
-    print(msg.format(redshift))
-
-    mock['redshift'] = np.random.normal(loc=redshift, scale=0.05)
-    mock['redshift'][mock['redshift'] <= 0] = 0.
+    #  Add call to map_mstar_onto_lowmass_extension function after pre-determining low-mass slope
+    new_mstar_real, mstar_synthetic = map_mstar_onto_lowmass_extension(
+        corrected_mpeak, mock['obs_sm'], mpeak_synthetic)
+    mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
+    mock['obs_sm'] = new_mstar_real
 
     result = v4_paint_colors_onto_umachine_snaps(
             mock['mpeak'], mock['obs_sm'], mock['upid'],
@@ -77,6 +77,8 @@ for fname in input_fnames:
     mock['restframe_extincted_sdss_ri'] = ri_mock
     mock['is_on_red_sequence_ri'] = is_red_ri_mock
     mock['is_on_red_sequence_gr'] = is_red_gr_mock
+
+    mock['redshift'] = redshift
 
     outbase = 'recolored_' + basename.replace('_v4_', '_v4.11_')
     outname = os.path.join(output_dirname, outbase)

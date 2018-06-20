@@ -5,12 +5,12 @@ from halotools.utils import unsorting_indices
 
 
 default_mpeak_mstar_fit_low_mpeak, default_mpeak_mstar_fit_high_mpeak = 11, 11.5
-
+default_desired_logm_completeness = 9.75
 
 __all__ = ('model_extended_mpeak', )
 
 
-def model_extended_mpeak(mpeak, desired_logm_completeness,
+def model_extended_mpeak(mpeak, desired_logm_completeness=default_desired_logm_completeness,
             logm_min_fit=11.75, logm_max_fit=12.25, Lbox=256.):
     """ Given an input set of subhalo mpeak values, and a desired completeness limit,
     fit the input distribution with a power law at the low mass end,
@@ -86,16 +86,17 @@ def fit_lowmass_mstar_mpeak_relation(mpeak_orig, mstar_orig,
     return c0, c1, mid
 
 
-def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extension, c0, c1,
-            mpeak_mstar_fit_low_mpeak=default_mpeak_mstar_fit_low_mpeak,
-            mpeak_mstar_fit_high_mpeak=default_mpeak_mstar_fit_high_mpeak):
+def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extension,
+            c0=9., c1=2.3, mpeak_mstar_fit_low_mpeak=default_mpeak_mstar_fit_low_mpeak,
+            mpeak_mstar_fit_high_mpeak=default_mpeak_mstar_fit_high_mpeak, synthetic_scatter=0.4,
+            **kwargs):
     """
     """
     mid = 0.5*(mpeak_mstar_fit_low_mpeak + mpeak_mstar_fit_high_mpeak)
     composite_mpeak = np.concatenate((corrected_mpeak, mpeak_extension))
     new_median_logsm = c0 + c1*(np.log10(composite_mpeak)-mid)
 
-    new_mstar_lowmass = 10**np.random.normal(loc=new_median_logsm, scale=0.4)
+    new_mstar_lowmass = 10**np.random.normal(loc=new_median_logsm, scale=synthetic_scatter)
 
     reassign_mstar_prob = np.interp(np.log10(composite_mpeak),
         [mpeak_mstar_fit_low_mpeak, mpeak_mstar_fit_high_mpeak], [1, 0])
@@ -105,7 +106,9 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
     new_mstar[:len(obs_sm_orig)] = obs_sm_orig
     new_mstar[reassign_mstar_mask] = new_mstar_lowmass[reassign_mstar_mask]
 
-    return new_mstar[:len(obs_sm_orig)], new_mstar[len(obs_sm_orig):]
+    new_mstar_real = new_mstar[:len(obs_sm_orig)]
+    new_mstar_synthetic = new_mstar[len(obs_sm_orig):]
+    return new_mstar_real, new_mstar_synthetic
 
 
 
