@@ -4,6 +4,9 @@ import numpy as np
 from halotools.utils import unsorting_indices
 
 
+default_mpeak_mstar_fit_low_mpeak, default_mpeak_mstar_fit_high_mpeak = 11, 11.5
+
+
 __all__ = ('model_extended_mpeak', )
 
 
@@ -66,4 +69,46 @@ def model_extended_mpeak(mpeak, desired_logm_completeness,
 
     corrected_mpeak = 10**model_logmpeak[unsorting_indices(idx_sorted)]
     return corrected_mpeak, mpeak_extension
+
+
+def fit_lowmass_mstar_mpeak_relation(mpeak_orig, mstar_orig,
+            mpeak_mstar_fit_low_mpeak=default_mpeak_mstar_fit_low_mpeak,
+            mpeak_mstar_fit_high_mpeak=default_mpeak_mstar_fit_high_mpeak):
+    """
+    """
+    mid = 0.5*(mpeak_mstar_fit_low_mpeak + mpeak_mstar_fit_high_mpeak)
+    mask = (mpeak_orig >= 10**mpeak_mstar_fit_low_mpeak)
+    mask &= (mpeak_orig < 10**mpeak_mstar_fit_high_mpeak)
+    #  Add noise to mpeak to avoid particle discreteness effects in the fit
+    _x = np.random.normal(loc=np.log10(mpeak_orig[mask])-mid, scale=0.002)
+    _y = np.log10(mstar_orig[mask])
+    c1, c0 = np.polyfit(_x, _y, deg=1)
+    return c0, c1, mid
+
+
+def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extension, c0, c1,
+            mpeak_mstar_fit_low_mpeak=default_mpeak_mstar_fit_low_mpeak,
+            mpeak_mstar_fit_high_mpeak=default_mpeak_mstar_fit_high_mpeak):
+    """
+    """
+    mid = 0.5*(mpeak_mstar_fit_low_mpeak + mpeak_mstar_fit_high_mpeak)
+    composite_mpeak = np.concatenate((corrected_mpeak, mpeak_extension))
+    new_median_logsm = c0 + c1*(np.log10(composite_mpeak)-mid)
+
+    new_mstar_lowmass = 10**np.random.normal(loc=new_median_logsm, scale=0.4)
+
+    reassign_mstar_prob = np.interp(np.log10(composite_mpeak),
+        [mpeak_mstar_fit_low_mpeak, mpeak_mstar_fit_high_mpeak], [1, 0])
+    reassign_mstar_mask = np.random.rand(len(composite_mpeak)) < reassign_mstar_prob
+
+    new_mstar = np.zeros_like(composite_mpeak)
+    new_mstar[:len(obs_sm_orig)] = obs_sm_orig
+    new_mstar[reassign_mstar_mask] = new_mstar_lowmass[reassign_mstar_mask]
+
+    return new_mstar[:len(obs_sm_orig)], new_mstar[len(obs_sm_orig):]
+
+
+
+
+
 
