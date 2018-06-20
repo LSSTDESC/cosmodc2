@@ -65,7 +65,6 @@ for fname in input_fnames:
     #  Add call to map_mstar_onto_lowmass_extension function after pre-determining low-mass slope
     new_mstar_real, mstar_synthetic = map_mstar_onto_lowmass_extension(
         corrected_mpeak, mock['obs_sm'], mpeak_synthetic)
-    mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
     mock['obs_sm'] = new_mstar_real
 
     fake_gals = create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)
