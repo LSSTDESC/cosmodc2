@@ -48,6 +48,7 @@ basename_string = "umachine_color_mock_v4_m000-{0}.hdf5"
 
 start = time()
 for fname in input_fnames:
+    snapstart = time()
     snapnum = fname[-8:-5]
     redshift = redshift_dict[snapnum]
     basename = basename_string.format(str(snapnum).zfill(3))
@@ -89,6 +90,10 @@ for fname in input_fnames:
     print(msg.format(outname))
 
     mock.write(outname, path='data', overwrite=True)
+    snapend = time()
+    snap_runtime = (snapend-snapstart)/60.
+    print("Total runtime for snapnum {0} = {1:.1f} minutes".format(snapnum, snap_runtime))
+
 
 end = time()
 runtime = (end-start)/60.
