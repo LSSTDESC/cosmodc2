@@ -59,7 +59,7 @@ for fname in input_fnames:
     print(msg.format(snapnum, redshift))
     mock = Table.read(fname, path='data')
 
-    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.75)
+    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.9)
     mock.rename_column('mpeak', '_mpeak_orig_um_snap')
     mock['mpeak'] = corrected_mpeak
 
@@ -68,8 +68,7 @@ for fname in input_fnames:
         corrected_mpeak, mock['obs_sm'], mpeak_synthetic)
     mock['obs_sm'] = new_mstar_real
 
-    fake_gals = create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)
-    mock = vstack((mock, fake_gals))
+    mock = vstack((mock, create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)))
 
     result = v4_paint_colors_onto_umachine_snaps(
             mock['mpeak'], mock['obs_sm'], mock['upid'],
@@ -83,6 +82,7 @@ for fname in input_fnames:
     mock['is_on_red_sequence_gr'] = is_red_gr_mock
 
     mock['redshift'] = redshift
+    mock['lightcone_id'] = np.arange(len(mock)).astype(long)
 
     outbase = 'recolored_' + basename.replace('_v4_', '_v4.12_')
     outname = os.path.join(output_dirname, outbase)
