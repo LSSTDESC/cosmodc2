@@ -17,7 +17,7 @@ from halotools.utils import crossmatch
 
 fof_halo_mass ='fof_halo_mass'
 mass = 'mass'
-fof_max = 15.5
+fof_max = 14.5
 H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
@@ -342,7 +342,7 @@ def build_output_snapshot_mock(
 
     #Use gr and ri color to compute gi flux
     dc2['restframe_extincted_sdss_abs_magg'] = (
-        dc2['restframe_extincted_sdss_gr'] -
+        dc2['restframe_extincted_sdss_gr'] +
         dc2['restframe_extincted_sdss_abs_magr'])
     dc2['restframe_extincted_sdss_abs_magi'] = (
         -dc2['restframe_extincted_sdss_ri'] +
@@ -384,11 +384,23 @@ def build_output_snapshot_mock(
 
     return dc2
 
+def get_skyarea(output_mock):
+    """
+    """
+    import healpy as hp    
+    #compute sky area from ra and dec ranges of galaxies
+    pixels = set()
+    for k in output_mock.keys():
+        for ra, dec in zip(output_mock[k]['ra'], output_mock[k]['dec']):
+            pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
+    frac = len(pixels)/float(hp.nside2npix(Nside))
+    skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
+
+    return skyarea
 
 def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed):
     """
     """
-    import healpy as hp
 
     print("...writing to file {} using commit hash {}".format(output_color_mock_fname, commit_hash))
     hdfFile = h5py.File(output_color_mock_fname, 'w')
@@ -401,16 +413,7 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile['metaData']['H_0'] = H0
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
-
-    #compute sky area from ra and dec ranges of galaxies
-    pixels = set()
-    for k in output_mock.keys():
-        for ra, dec in zip(output_mock[k]['ra'], output_mock[k]['dec']):
-            pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
-    frac = len(pixels)/hp.nside2npix(Nside)
-    skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
-
-    hdfFile['metaData']['skyArea'] = skyarea
+    hdfFile['metaData']['skyArea'] = get_skyarea(output_mock)
 
     for k, v in output_mock.items():
         gGroup = hdfFile.create_group(k)
