@@ -29,5 +29,7 @@ def nearby_hostmass_selection_indices(hostmass, desired_hostmass):
 
     X2 = np.vstack((desired_hostmass, )).T
     nn_distinces, nn_indices = tree.query(X2)
+    nn_indices = np.minimum(len(hostmass)-1, nn_indices)
+    nn_indices = np.maximum(0, nn_indices)
 
     return nn_indices
