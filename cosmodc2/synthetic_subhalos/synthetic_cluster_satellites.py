@@ -1,8 +1,11 @@
 import numpy as np
 from scipy.spatial import cKDTree
+from astropy.table import Table
+from halotools.empirical_models import NFWPhaseSpace
 
 
-__all__ = ('nearby_hostmass_selection_indices', )
+__all__ = ('nearby_hostmass_selection_indices', 'calculate_synthetic_richness',
+        'create_synthetic_satellites')
 
 
 def nearby_hostmass_selection_indices(hostmass, desired_hostmass):
@@ -56,9 +59,45 @@ def calculate_synthetic_richness(halo_richness, logmhalo,
     return np.array(halo_richness*boost_factor, dtype=int)
 
 
+def create_synthetic_satellites(mock, Lbox=256., **kwargs):
+    """
+    """
+    host_halo_id, idx, counts = np.unique(
+        mock['target_halo_id'], return_counts=True, return_index=True)
+    host_mass = mock['target_halo_mass'][idx]
+    host_richness = counts
 
+    synthetic_richness = calculate_synthetic_richness(
+        host_richness, np.log10(host_mass), **kwargs)
+    synthetic_hostmass = np.repeat(host_mass, synthetic_richness)
 
+    sat_sample_mask = mock['upid'] != -1
+    selection_indices = nearby_hostmass_selection_indices(
+        mock['target_halo_mass'][sat_sample_mask], synthetic_hostmass)
 
+    sats = Table()
+    for key in mock.keys():
+        sats[key] = mock[key][sat_sample_mask][selection_indices]
 
+    nfw = NFWPhaseSpace()
+    nfw_sats = nfw.mc_generate_nfw_phase_space_points(
+        mass=sats['target_halo_mass'])
+    sats['host_centric_x'] = nfw_sats['x']
+    sats['host_centric_y'] = nfw_sats['y']
+    sats['host_centric_z'] = nfw_sats['z']
+    sats['host_centric_vx'] = nfw_sats['vx']
+    sats['host_centric_vy'] = nfw_sats['vy']
+    sats['host_centric_vz'] = nfw_sats['vz']
 
+    sats['x'] = sats['host_centric_x'] + sats['target_halo_x']
+    sats['y'] = sats['host_centric_y'] + sats['target_halo_y']
+    sats['z'] = sats['host_centric_z'] + sats['target_halo_z']
+    sats['vx'] = sats['host_centric_vx'] + sats['target_halo_vx']
+    sats['vy'] = sats['host_centric_vy'] + sats['target_halo_vy']
+    sats['vz'] = sats['host_centric_vz'] + sats['target_halo_vz']
 
+    sats['x'] = np.mod(sats['x'], Lbox)
+    sats['y'] = np.mod(sats['y'], Lbox)
+    sats['z'] = np.mod(sats['z'], Lbox)
+
+    return sats
