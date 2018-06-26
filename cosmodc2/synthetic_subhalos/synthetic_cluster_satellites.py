@@ -39,7 +39,7 @@ def nearby_hostmass_selection_indices(hostmass, desired_hostmass):
 
 
 def calculate_synthetic_richness(halo_richness, logmhalo,
-        cluster_satboost_logm_table, cluster_satboost_table, **kwargs):
+        cluster_satboost_logm_table, cluster_satboost_table):
     """
     Parameters
     ----------
@@ -69,7 +69,8 @@ def create_synthetic_cluster_satellites(mock, Lbox=256.,
     host_richness = counts
 
     synthetic_richness = calculate_synthetic_richness(
-        host_richness, np.log10(host_mass), **kwargs)
+        host_richness, np.log10(host_mass), cluster_satboost_logm_table,
+        cluster_satboost_table)
     if np.sum(synthetic_richness) > 0:
         synthetic_hostmass = np.repeat(host_mass, synthetic_richness)
 
