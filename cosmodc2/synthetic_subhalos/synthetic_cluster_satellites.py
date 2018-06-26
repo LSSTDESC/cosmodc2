@@ -33,3 +33,32 @@ def nearby_hostmass_selection_indices(hostmass, desired_hostmass):
     nn_indices = np.maximum(0, nn_indices)
 
     return nn_indices
+
+
+def calculate_synthetic_richness(halo_richness, logmhalo,
+        cluster_satboost_logm_table=[13.5, 13.75, 14],
+        cluster_satboost_table=[0., 0.1, 0.2], **kwargs):
+    """
+    Parameters
+    ----------
+    halo_richness : ndarray
+        Numpy array of shape (nhalos, ) storing the richness of each halo
+
+    logmhalo : ndarray
+        Numpy array of shape (nhalos, ) storing the log mass of each halo
+
+    Returns
+    -------
+    synthetic_richness : ndarray
+        Numpy integer array of shape (nhalos, ) storing the synthetic richness
+    """
+    boost_factor = np.interp(logmhalo, cluster_satboost_logm_table, cluster_satboost_table)
+    return np.array(halo_richness*boost_factor, dtype=int)
+
+
+
+
+
+
+
+
