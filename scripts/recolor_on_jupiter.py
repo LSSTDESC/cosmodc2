@@ -67,13 +67,15 @@ for fname in input_fnames:
         corrected_mpeak, mock['obs_sm'], mpeak_synthetic)
     mock['obs_sm'] = new_mstar_real
 
-    print("Generating synthetic cluster satellites")
+    print("...generating synthetic cluster satellites")
     fake_cluster_sats = create_synthetic_cluster_satellites(mock)
     if len(fake_cluster_sats) > 0:
         mock = vstack((mock, fake_cluster_sats))
 
+    print("...stacking tables")
     mock = vstack((mock, create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)))
 
+    print("...recoloring")
     result = v4_paint_colors_onto_umachine_snaps(
             mock['mpeak'], mock['obs_sm'], mock['upid'],
             redshift, mock['sfr_percentile'], mock['host_halo_mvir'])
@@ -96,7 +98,7 @@ for fname in input_fnames:
     mock.write(outname, path='data', overwrite=True)
     snapend = time()
     snap_runtime = (snapend-snapstart)/60.
-    print("Total runtime for snapnum {0} = {1:.1f} minutes".format(snapnum, snap_runtime))
+    print("Total runtime for snapnum {0} = {1:.1f} minutes\n".format(snapnum, snap_runtime))
 
 
 end = time()
