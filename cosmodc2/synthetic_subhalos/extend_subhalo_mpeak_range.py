@@ -89,10 +89,12 @@ def fit_lowmass_mstar_mpeak_relation(mpeak_orig, mstar_orig,
 
 
 def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extension,
-            c0=9., c1=2.3, mpeak_mstar_fit_low_mpeak=default_mpeak_mstar_fit_low_mpeak,
+            c0=9., c1=2.2, mpeak_mstar_fit_low_mpeak=default_mpeak_mstar_fit_low_mpeak,
             mpeak_mstar_fit_high_mpeak=default_mpeak_mstar_fit_high_mpeak, synthetic_scatter=0.4,
             **kwargs):
     """
+    c1 controls the new low-mass slope. Smaller values of c1 puts more stellar mass
+    into galaxies in low-mass subhalos.
     """
     mid = 0.5*(mpeak_mstar_fit_low_mpeak + mpeak_mstar_fit_high_mpeak)
     composite_mpeak = np.concatenate((corrected_mpeak, mpeak_extension))
