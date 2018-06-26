@@ -12,7 +12,7 @@ sys.path.insert(0, '/homes/ahearin/repositories/cosmodc2')
 
 from cosmodc2.sdss_colors import v4_paint_colors_onto_umachine_snaps
 from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
-from cosmodc2.synthetic_subhalos import create_synthetic_mock
+from cosmodc2.synthetic_subhalos import create_synthetic_mock, create_synthetic_cluster_satellites
 
 
 input_dirname = "/homes/ahearin/protoDC2/baseline_umachine_snapshot_mocks_v4.6"
@@ -57,7 +57,7 @@ for fname in input_fnames:
     print(msg.format(snapnum, redshift))
     mock = Table.read(fname, path='data')
 
-    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.85)
+    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.8)
     mock.rename_column('mpeak', '_mpeak_orig_um_snap')
     mock['mpeak'] = corrected_mpeak
 
@@ -65,6 +65,11 @@ for fname in input_fnames:
     new_mstar_real, mstar_synthetic = map_mstar_onto_lowmass_extension(
         corrected_mpeak, mock['obs_sm'], mpeak_synthetic)
     mock['obs_sm'] = new_mstar_real
+
+    print("Generating synthetic cluster satellites")
+    fake_cluster_sats = create_synthetic_cluster_satellites(mock)
+    if len(fake_cluster_sats) > 0:
+        mock = vstack((mock, fake_cluster_sats))
 
     mock = vstack((mock, create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)))
 
