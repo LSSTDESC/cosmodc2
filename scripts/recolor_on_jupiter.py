@@ -37,7 +37,8 @@ input_fnames = sorted(matching_basenames)[::-1]
 if len(input_fnames) < 29:
     raise ValueError("Bad basename_pattern = {0}".format(basename_pattern))
 
-X = np.loadtxt('z2ts.txt', delimiter=',')
+snapnum_data_fname = '/homes/ahearin/repositories/cosmodc2/data/z2ts.txt'
+X = np.loadtxt(snapnum_data_fname, delimiter=',')
 snapnums = X[:, 1].astype(int)
 redshifts = X[:, 0].astype(float)
 redshift_dict = {str(snapnum).zfill(3): float(redshift) for snapnum, redshift in zip(snapnums, redshifts)}
@@ -100,7 +101,7 @@ for fname in input_fnames:
 
 end = time()
 runtime = (end-start)/60.
-print("Total runtime to recolor {0} snapshots = {1:.1f} seconds".format(
+print("Total runtime to recolor {0} snapshots = {1:.1f} minutes".format(
     len(input_fnames), runtime))
 
 
