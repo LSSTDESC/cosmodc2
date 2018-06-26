@@ -37,7 +37,7 @@ input_fnames = sorted(matching_basenames)[::-1]
 if len(input_fnames) < 29:
     raise ValueError("Bad basename_pattern = {0}".format(basename_pattern))
 
-snapnum_data_fname = '/homes/ahearin/repositories/cosmodc2/data/z2ts.txt'
+snapnum_data_fname = '/homes/ahearin/repositories/cosmodc2/cosmodc2/data/z2ts.txt'
 X = np.loadtxt(snapnum_data_fname, delimiter=',')
 snapnums = X[:, 1].astype(int)
 redshifts = X[:, 0].astype(float)
