@@ -7,8 +7,8 @@ __all__ = ('remap_stellar_mass_in_snapshot', )
 
 
 def remap_stellar_mass_in_snapshot(snapshot_redshift, mpeak, mstar,
-        z_table=[0.25, 0.5, 0.75, 1],
-        slope_table=[0.45, 0.5, 0.65, 0.7], pivot_table=[13.5, 13.25, 13, 12.75]):
+        z_table=[0.1, 0.2, 0.5, 0.65, 1],
+        slope_table=[0.5, 0.7, 0.7, 0.75, 0.75], pivot_table=[13., 13., 13., 12.75, 12.75]):
     """
     """
     mpeak = np.atleast_1d(mpeak)

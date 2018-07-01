@@ -5,6 +5,8 @@ from astropy.utils.misc import NumpyRNGContext
 
 
 default_logsm_table = np.array((6, 7, 8, 9, 10, 11, 12)).astype('f4')
+default_magr_at_m0_ztable = [0.1, 0.25, 0.5, 1]
+default_magr_at_m0_table = [-20.1, -20.55, -20.7, -20.7]
 fixed_seed = 43
 
 __all__ = ('magr_monte_carlo', )
@@ -26,17 +28,21 @@ def magr_monte_carlo(mstar, upid, redshift, scatter=0.15, **kwargs):
     return result
 
 
-def median_magr_from_mstar(mstar, upid, redshift, **kwargs):
+def median_magr_from_mstar(mstar, upid, redshift,
+            magr_at_m0_ztable=default_magr_at_m0_ztable,
+            magr_at_m0_table=default_magr_at_m0_table, **kwargs):
     """
     """
     logsm = np.log10(mstar)
+    magr_at_m0 = np.interp(redshift, magr_at_m0_ztable, magr_at_m0_table)
+    __ = kwargs.setdefault('magr_at_m0', magr_at_m0)
     magr_z0 = median_magr_from_mstar_z0(logsm, **kwargs)
     delta_magr = delta_magr_vs_mstar_redshift(logsm, redshift, **kwargs)
     return magr_z0 + delta_magr
 
 
-def median_magr_from_mstar_z0(logsm, logm0=10., magr_at_m0=-20,
-            low_mass_slope=2., high_mass_slope=1.6, logsm_k=2.5, **kwargs):
+def median_magr_from_mstar_z0(logsm, logm0=10., magr_at_m0=-20.1,
+            low_mass_slope=1.75, high_mass_slope=1.8, logsm_k=2.5, **kwargs):
     """
     """
     x = np.atleast_1d(logsm) - logm0
@@ -67,7 +73,7 @@ def z_crit_vs_mstar(
 
 
 def delta_magr_highz_vs_mstar(
-        logsm, delta_magr_highz_table=[-6, -5, -4, -1, -0.5, -0.5, -0.5], **kwargs):
+        logsm, delta_magr_highz_table=[-2, -2, -1.5, -1, -0.5, -0.25, 0.], **kwargs):
     x = np.append(default_logsm_table, [13, 14, 15])
     zhigh = delta_magr_highz_table[-1]
     y = np.append(delta_magr_highz_table, [zhigh, zhigh, zhigh])

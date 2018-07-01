@@ -4,7 +4,7 @@ import sys
 import os
 import fnmatch
 import numpy as np
-from astropy.table import Table
+from astropy.table import Table, vstack
 from time import time
 
 dependency_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots"
@@ -13,10 +13,12 @@ sys.path.insert(0, os.path.join(dependency_dirname, "cosmodc2"))
 
 
 from cosmodc2.sdss_colors import v4_paint_colors_onto_umachine_snaps
+from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
+from cosmodc2.synthetic_subhalos import create_synthetic_mock
 
 
 input_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots/galsampler_alphaq_outputs_v4/baseline_umachine_snapshot_mocks_v4.6"
-output_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots/galsampler_alphaq_outputs_v4/recolored_mocks_v4p11"
+output_dirname = "/global/project/projectdirs/hacc/kovacs/um_snapshots/galsampler_alphaq_outputs_v4/recolored_mocks_v4p13"
 
 
 def fname_generator(root_dirname, basename_filepat):
@@ -46,6 +48,7 @@ basename_string = "umachine_color_mock_v4_m000-{0}.hdf5"
 
 start = time()
 for fname in input_fnames:
+    snapstart = time()
     snapnum = fname[-8:-5]
     redshift = redshift_dict[snapnum]
     basename = basename_string.format(str(snapnum).zfill(3))
@@ -56,11 +59,16 @@ for fname in input_fnames:
     print(msg.format(snapnum, redshift))
     mock = Table.read(fname, path='data')
 
-    msg = "...painting colors onto galaxies at z = {0:.2f}"
-    print(msg.format(redshift))
+    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.85)
+    mock.rename_column('mpeak', '_mpeak_orig_um_snap')
+    mock['mpeak'] = corrected_mpeak
 
-    mock['redshift'] = np.random.normal(loc=redshift, scale=0.05)
-    mock['redshift'][mock['redshift'] <= 0] = 0.
+    #  Add call to map_mstar_onto_lowmass_extension function after pre-determining low-mass slope
+    new_mstar_real, mstar_synthetic = map_mstar_onto_lowmass_extension(
+        corrected_mpeak, mock['obs_sm'], mpeak_synthetic)
+    mock['obs_sm'] = new_mstar_real
+
+    mock = vstack((mock, create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)))
 
     result = v4_paint_colors_onto_umachine_snaps(
             mock['mpeak'], mock['obs_sm'], mock['upid'],
@@ -73,12 +81,19 @@ for fname in input_fnames:
     mock['is_on_red_sequence_ri'] = is_red_ri_mock
     mock['is_on_red_sequence_gr'] = is_red_gr_mock
 
-    outbase = 'recolored_' + basename.replace('_v4_', '_v4.11_')
+    mock['redshift'] = redshift
+    mock['lightcone_id'] = np.arange(len(mock)).astype(long)
+
+    outbase = 'recolored_' + basename.replace('_v4_', '_v4.13_')
     outname = os.path.join(output_dirname, outbase)
     msg = "...writing recolored mock to the following path on disk:\n{0}"
     print(msg.format(outname))
 
     mock.write(outname, path='data', overwrite=True)
+    snapend = time()
+    snap_runtime = (snapend-snapstart)/60.
+    print("Total runtime for snapnum {0} = {1:.1f} minutes".format(snapnum, snap_runtime))
+
 
 end = time()
 runtime = (end-start)/60.
