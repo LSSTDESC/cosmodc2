@@ -1,10 +1,10 @@
 #!/bin/csh
 #
 if ($#argv < 1 ) then
-    echo 'Usage: run_cosmoDC2_mocks filename commit_hash [mode] [timelimit]'
+    echo 'Usage: run_cosmoDC2_mocks filename z_range [mode] [timelimit] '
     echo 'Script runs or submits job for creating cosmoDC2 healpix mock'
     echo 'filename = filename of healpix cutout (cutout_xxx) to run (.hdf5 assumed)'
-    echo 'commit_hash = commit tag for cosmodc2 repo ()'
+    echo 'z_range = z-range value to process [0, 1, 2]'
     echo 'mode = test or qsub (default) or qtest'
     echo 'timelimit = timelimit for qsub mode (default = 5 minutes)'
     echo 'qsub runs production script in batch mode'
@@ -16,7 +16,7 @@ endif
 
 set jobname = ${1}
 set filename = "${1}.hdf5"
-set commit_hash = ${2}
+set z_range = ${2}
 set mode = "qsub"
 set timelimit = "5"
 if ($#argv > 2 ) then
@@ -36,7 +36,7 @@ endif
 
 set script_name = "run_cosmoDC2_healpix_production.py"
 set python = "/soft/libraries/anaconda-unstable/bin/python"
-set args = "${filename} ${commit_hash}"
+set args = "${filename} -zrange_value ${z_range}"
 
 set pythondirs = /gpfs/mira-home/ekovacs/.local/lib/python2.7/site-packages:/gpfs/mira-home/ekovacs/cosmology/cosmodc2:/gpfs/mira-home/ekovacs/cosmology/galsampler/build/lib.linux-x86_64-2.7:/gpfs/mira-home/ekovacs/cosmology/halotools/build/lib.linux-x86_64-2.7
 

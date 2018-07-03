@@ -4,11 +4,26 @@ import glob
 import argparse
 import numpy as np
 from os.path import expanduser
+import subprocess
+
+def retrieve_commit_hash(path_to_repo):
+    """ Return the commit hash of the git branch currently live in the input path.
+    Parameters
+    ----------
+    path_to_repo : string
+    Returns
+    -------
+    commit_hash : string
+    """
+    cmd = 'cd {0} && git rev-parse HEAD'.format(path_to_repo)
+    return subprocess.check_output(cmd, shell=True).strip()
+
 
 home = expanduser("~")
+path_to_cosmodc2 = os.path.join(home, 'cosmology/cosmodc2')
 if 'mira-home' in home:
     sys.path.insert(0, '/gpfs/mira-home/ekovacs/.local/lib/python2.7/site-packages')
-sys.path.insert(0, os.path.join(home, 'cosmology/cosmodc2'))
+sys.path.insert(0, path_to_cosmodc2)
 sys.path.insert(0, os.path.join(home, 'cosmology/galsampler/build/lib.linux-x86_64-2.7'))
 sys.path.insert(0, os.path.join(home, 'cosmology/halotools/build/lib.linux-x86_64-2.7'))
 
@@ -19,8 +34,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("healpix_fname",
     help="Filename of healpix cutout to run")
-parser.add_argument("commit_hash",
-    help="Commit hash to save in output files")
+#parser.add_argument("commit_hash",
+#    help="Commit hash to save in output files")
 parser.add_argument("-input_master_dirname",
     help="Directory name (relative to home) storing sub-directories of input files",
     default='cosmology/DC2/OR_Test')
@@ -33,11 +48,13 @@ parser.add_argument("-um_input_catalogs_dirname",
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to home) storing output mock healpix files",
     default='um_healpix_mocks')
+    #default='um_healpix_mocks_mh_14.5_min_9.8')
+    #default='um_healpix_mocks_mh_14.5_min_10.1')
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
 parser.add_argument("-zrange_value",
-    help="Selected z-range to use",
+    help="z-range to run",
     choices=['0', '1', '2'],
     default='all')                
 
@@ -52,6 +69,9 @@ input_master_dirname = os.path.join(home, args.input_master_dirname)
 pkldirname = os.path.join(home, args.pkldirname)
 healpix_cutout_dirname = os.path.join(input_master_dirname, args.healpix_cutout_dirname)
 output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirname)
+
+commit_hash = retrieve_commit_hash(path_to_cosmodc2)[0:7]
+print('Using commit hash {}'.format(commit_hash))
 
 #loop over z-ranges
 if args.zrange_value == 'all':
@@ -101,13 +121,12 @@ for zdir in z_range_dirs:
             print('output_healpix_mock_fname:', output_healpix_mock_fname)
 
         redshift_list = [float(z) for z in redshift_strings]
-        commit_hash = args.commit_hash
 
         write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_healpix_mock_fname,
             redshift_list, commit_hash)
+
     else:
         print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))
-
-          
+        
