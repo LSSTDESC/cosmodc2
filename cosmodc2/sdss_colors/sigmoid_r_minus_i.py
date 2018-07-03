@@ -33,7 +33,7 @@ scatter_zevol_z_table = peak_shift_factor_z_table
 default_mr_z0_fq_ri_pivot = -20
 default_mr_z0_fq_ri_k = 1
 default_fq_ri_z0_floor = 0.2
-default_fq_ri_z0_ceil = 0.8
+default_fq_ri_z0_ceil = 0.85
 
 default_fq_ri_z1_floor = 0.2
 default_fq_ri_z1_ceil = 0.25

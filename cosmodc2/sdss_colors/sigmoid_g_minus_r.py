@@ -30,10 +30,10 @@ default_ms_scatter_gr_zevol_table = [1., 1., 1.1, 1.2]
 scatter_zevol_z_table = peak_shift_factor_z_table
 
 
-default_mr_z0_fq_gr_pivot = -20
-default_mr_z0_fq_gr_k = 1
+default_mr_z0_fq_gr_pivot = -20.25
+default_mr_z0_fq_gr_k = 1.
 default_fq_gr_z0_floor = 0.2
-default_fq_gr_z0_ceil = 0.9
+default_fq_gr_z0_ceil = 0.95
 
 default_fq_gr_z1_floor = 0.2
 default_fq_gr_z1_ceil = 0.25
