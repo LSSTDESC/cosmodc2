@@ -2,8 +2,8 @@
 """
 import numpy as np
 
-from .analytical_g_minus_r import red_sequence_peak_gr, default_red_peak_gr, default_red_peak_gr_zevol
-from .analytical_r_minus_i import red_sequence_peak_ri, default_red_peak_ri, default_red_peak_ri_zevol
+from .sigmoid_g_minus_r import red_sequence_peak_gr, default_red_peak_gr, default_red_peak_gr_zevol
+from .sigmoid_r_minus_i import red_sequence_peak_ri, default_red_peak_ri, default_red_peak_ri_zevol
 
 
 __all__ = ('calculate_cluster_clf_powerlaw_coeffs',
