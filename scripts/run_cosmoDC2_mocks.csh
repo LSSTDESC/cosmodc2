@@ -49,9 +49,9 @@ if(${mode} == "test") then
 else
     if(${mode} == "qtest") then
 	echo "Running ${script_name} -h in ${mode} mode"
-	qsub -n 1 -t 5 -A ExtCosmology -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} -h
+	qsub -n 1 -t 5 -A ExtCosmology_2 -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} -h
     else
 	echo "Running ${script_name} to create ${filename} in ${mode} mode with time limit of ${timelimit} minutes"
-	qsub -n 1 -t ${timelimit} -A ExtCosmology -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} ${args}
+	qsub -n 1 -t ${timelimit} -A ExtCosmology_2 -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} ${args}
     endif
 endif

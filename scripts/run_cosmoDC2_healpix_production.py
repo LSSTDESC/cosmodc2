@@ -36,6 +36,10 @@ parser.add_argument("-output_mock_dirname",
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
+parser.add_argument("-zrange_value",
+    help="Selected z-range to use",
+    choices=['0', '1', '2'],
+    default='all')                
 
 parser.add_argument("-verbose",
     help="Turn on extra printing",
@@ -50,7 +54,11 @@ healpix_cutout_dirname = os.path.join(input_master_dirname, args.healpix_cutout_
 output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirname)
 
 #loop over z-ranges
-z_range_dirs = [os.path.basename(d) for d in glob.glob(healpix_cutout_dirname+'/*') if 'z' in d]
+if args.zrange_value == 'all':
+    z_range_dirs = [os.path.basename(d) for d in glob.glob(healpix_cutout_dirname+'/*') if 'z' in d]
+else:
+    z_range_dirs = [os.path.basename(d) for d in glob.glob(healpix_cutout_dirname+'/z_{}*'.format(args.zrange_value))]
+
 for zdir in z_range_dirs:
     
     #get list of snapshots 
