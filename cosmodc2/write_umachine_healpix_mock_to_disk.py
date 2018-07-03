@@ -319,6 +319,7 @@ def build_output_snapshot_mock(
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
         target_halos['halo_id'], target_halos['richness'])
+    assert np.array_equal(dc2['target_halo_id'], umachine['target_halo_id'][galaxy_indices]) 
 
     #copy lightcone information
     dc2['target_halo_fof_halo_id'] = np.repeat(
@@ -350,6 +351,7 @@ def build_output_snapshot_mock(
 
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
+    assert np.allclose(dc2['target_halo_mass'], umachine['target_halo_mass'][galaxy_indices])
 
     source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
