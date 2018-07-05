@@ -40,24 +40,25 @@ parser.add_argument("-input_master_dirname",
     help="Directory name (relative to home) storing sub-directories of input files",
     default='cosmology/DC2/OR_Test')
 parser.add_argument("-healpix_cutout_dirname",
-    help="Directory name (relative to home) storing healpix cutout files",
+    help="Directory name (relative to input_master_dirname) storing healpix cutout files",
     default='healpix_cutouts')
 parser.add_argument("-um_input_catalogs_dirname",
-    help="Directory name (relative to home) storing um input catalogs",
+    help="Directory name (relative to input_master_dirname) storing um input catalogs",
     default='um_snapshots')
 parser.add_argument("-output_mock_dirname",
-    help="Directory name (relative to home) storing output mock healpix files",
+    help="Directory name (relative to input_master_dirname) storing output mock healpix files",
     default='um_healpix_mocks')
-    #default='um_healpix_mocks_mh_14.5_min_9.8')
-    #default='um_healpix_mocks_mh_14.5_min_10.1')
+    #default='um_healpix_mocks_mh_14.5_no_low)
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
 parser.add_argument("-zrange_value",
     help="z-range to run",
-    choices=['0', '1', '2'],
+    choices=['0', '1', '2', 'all'],
     default='all')                
-
+parser.add_argument("-synthetic_mass_min",
+    help="Value of minimum halo mass for synthetic halos",
+    type=float, default=10.1)
 parser.add_argument("-verbose",
     help="Turn on extra printing",
         action='store_true', default=False)
@@ -72,6 +73,8 @@ output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirnam
 
 commit_hash = retrieve_commit_hash(path_to_cosmodc2)[0:7]
 print('Using commit hash {}'.format(commit_hash))
+synthetic_halo_minimum_mass = args.synthetic_mass_min
+print('Using synthetic_halo_minimum_mass {}'.format(synthetic_halo_minimum_mass))
 
 #loop over z-ranges
 if args.zrange_value == 'all':
@@ -125,7 +128,7 @@ for zdir in z_range_dirs:
         write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_healpix_mock_fname,
-            redshift_list, commit_hash)
+            redshift_list, commit_hash, synthetic_halo_minimum_mass=synthetic_halo_minimum_mass)
 
     else:
         print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))

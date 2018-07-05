@@ -31,7 +31,8 @@ Nside_cosmoDC2=8
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
-            redshift_list, commit_hash):
+            redshift_list, commit_hash,
+            synthetic_halo_minimum_mass=10.1):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -68,6 +69,8 @@ def write_umachine_healpix_mock_to_disk(
         the commit_hash can be determined by navigating to the root
         directory and typing ``git log --pretty=format:'%h' -n 1``
 
+    synthetic_halo_minimum_mass: float
+        Minimum value of log_10 of synthetic halo mass
 
     """
 
@@ -85,6 +88,7 @@ def write_umachine_healpix_mock_to_disk(
     seed = get_random_seed(output_mock_basename)
     fof_halo_mass_max = 0.
 
+    print('\nSynthetic-halo minimum mass =  {}\n'.format(synthetic_halo_minimum_mass))
     for a, b, c, d in gen:
         umachine_mock_fname = a
         umachine_halos_fname = b
@@ -150,7 +154,7 @@ def write_umachine_healpix_mock_to_disk(
 
         #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
         #  with -1 in all other entries pertaining to unselected galaxies
-        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.8)
+        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], synthetic_halo_minimum_mass)
         mock['mpeak'] = corrected_mpeak 
 
         mock_target_halo_mass = np.zeros(len(mock)) - 1.
@@ -181,13 +185,15 @@ def write_umachine_healpix_mock_to_disk(
         mock['target_halo_id'] = mock_target_halo_id
         mock['target_halo_mass'] = mock_target_halo_mass
 
-        print("...generating synthetic cluster satellites")
+        print("...generating and stacking synthetic cluster satellites")
         fake_cluster_sats = create_synthetic_cluster_satellites(mock)
         if len(fake_cluster_sats) > 0:
             mock = vstack((mock, fake_cluster_sats))
+        #append cluster satellite indices to source_galaxy_index
 
-        print("...stacking tables")
-        mock = vstack((mock, create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)))
+        #print("...stacking mock and synthetic tables")
+        print("...NOT stacking mock and synthetic tables")
+        #mock = vstack((mock, create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)))
 
         ###################################################
         #  Map restframe Mr, g-r, r-i onto mock
@@ -235,7 +241,8 @@ def write_umachine_healpix_mock_to_disk(
     #  Write the output mock to disk
     ########################################################################
     if len(output_mock) > 0:
-        write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed)
+        write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
+                                  synthetic_halo_minimum_mass)
 
     print('Maximum halo mass for {} ={}\n'.format(output_mock_basename, fof_halo_mass_max))
 
@@ -319,7 +326,8 @@ def build_output_snapshot_mock(
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
         target_halos['halo_id'], target_halos['richness'])
-    assert np.array_equal(dc2['target_halo_id'], umachine['target_halo_id'][galaxy_indices]) 
+    #assert np.array_equal(dc2['target_halo_id'], umachine['target_halo_id'][galaxy_indices]) 
+    umachine.rename_column('target_halo_id', 'um_target_halo_id')
 
     #copy lightcone information
     dc2['target_halo_fof_halo_id'] = np.repeat(
@@ -351,7 +359,8 @@ def build_output_snapshot_mock(
 
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
-    assert np.allclose(dc2['target_halo_mass'], umachine['target_halo_mass'][galaxy_indices])
+    #assert np.allclose(dc2['target_halo_mass'], umachine['target_halo_mass'][galaxy_indices])
+    umachine.rename_column('target_halo_mass', 'um_target_halo_mass')
 
     source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
@@ -360,6 +369,7 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
+            'um_target_halo_id', 'um_target_halo_mass',
             '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         try:
@@ -438,7 +448,8 @@ def get_skyarea(output_mock):
 
     return skyarea
 
-def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed):
+def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
+                              synthetic_halo_minimum_mass):
     """
     """
 
@@ -454,6 +465,7 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
     hdfFile['metaData']['skyArea'] = get_skyarea(output_mock)
+    hdfFile['metaData']['synthetic_halo_minimum_mass'] = synthetic_halo_minimum_mass
 
     for k, v in output_mock.items():
         gGroup = hdfFile.create_group(k)

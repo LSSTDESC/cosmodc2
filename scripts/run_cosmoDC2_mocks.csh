@@ -1,10 +1,10 @@
 #!/bin/csh
 #
 if ($#argv < 1 ) then
-    echo 'Usage: run_cosmoDC2_mocks filename z_range [mode] [timelimit] '
+    echo 'Usage: run_cosmoDC2_mocks filename z_range [mode] [timelimit]'
     echo 'Script runs or submits job for creating cosmoDC2 healpix mock'
     echo 'filename = filename of healpix cutout (cutout_xxx) to run (.hdf5 assumed)'
-    echo 'z_range = z-range value to process [0, 1, 2]'
+    echo 'z_range = z-range value to process [0, 1, 2, all]'
     echo 'mode = test or qsub (default) or qtest'
     echo 'timelimit = timelimit for qsub mode (default = 5 minutes)'
     echo 'qsub runs production script in batch mode'
@@ -14,7 +14,7 @@ if ($#argv < 1 ) then
     exit
 endif
 
-set jobname = ${1}
+set jobname = "${1}_z_${2}"
 set filename = "${1}.hdf5"
 set z_range = ${2}
 set mode = "qsub"
@@ -36,7 +36,11 @@ endif
 
 set script_name = "run_cosmoDC2_healpix_production.py"
 set python = "/soft/libraries/anaconda-unstable/bin/python"
-set args = "${filename} -zrange_value ${z_range}"
+set xtra_args = ""
+set xtra_label = ""
+if ${xtra_label} != "" then
+    set jobname = ${jobname}_${xtra_label}
+set args = "${filename} -zrange_value ${z_range} ${xtra_args}"
 
 set pythondirs = /gpfs/mira-home/ekovacs/.local/lib/python2.7/site-packages:/gpfs/mira-home/ekovacs/cosmology/cosmodc2:/gpfs/mira-home/ekovacs/cosmology/galsampler/build/lib.linux-x86_64-2.7:/gpfs/mira-home/ekovacs/cosmology/halotools/build/lib.linux-x86_64-2.7
 
@@ -44,14 +48,14 @@ setenv PYTHONPATH ${pythondirs}
 echo "Using PYTHONPATH $PYTHONPATH"
 
 if(${mode} == "test") then
-    echo "Running ${script_name} interactively to create ${filename} in ${mode} mode"
+    echo "Running ${script_name} interactively to create ${filename} for z-range ${z_range} in ${mode} mode"
     ${python} ${script_name} ${args}
 else
     if(${mode} == "qtest") then
 	echo "Running ${script_name} -h in ${mode} mode"
 	qsub -n 1 -t 5 -A ExtCosmology_2 -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} -h
     else
-	echo "Running ${script_name} to create ${filename} in ${mode} mode with time limit of ${timelimit} minutes"
+	echo "Running ${script_name} to create ${filename} for z-range ${z_range} in ${mode} mode with time limit of ${timelimit} minutes"
 	qsub -n 1 -t ${timelimit} -A ExtCosmology_2 -O ${jobname}.\$jobid --env PYTHONPATH=${pythondirs} ${python} ./${script_name} ${args}
     endif
 endif
