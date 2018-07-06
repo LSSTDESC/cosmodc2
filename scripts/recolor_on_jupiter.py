@@ -16,7 +16,7 @@ from cosmodc2.synthetic_subhalos import create_synthetic_mock, create_synthetic_
 
 
 input_dirname = "/homes/ahearin/protoDC2/baseline_umachine_snapshot_mocks_v4.6"
-output_dirname = "/homes/ahearin/protoDC2/recolored_mocks_v4p14"
+output_dirname = "/homes/ahearin/protoDC2/recolored_mocks_v4p15"
 
 
 def fname_generator(root_dirname, basename_filepat):
@@ -58,7 +58,7 @@ for fname in input_fnames:
     print(msg.format(snapnum, redshift))
     mock = Table.read(fname, path='data')
 
-    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 9.8)
+    corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], 10)
     mock.rename_column('mpeak', '_mpeak_orig_um_snap')
     mock['mpeak'] = corrected_mpeak
 
@@ -90,7 +90,7 @@ for fname in input_fnames:
     mock['redshift'] = redshift
     mock['lightcone_id'] = np.arange(len(mock)).astype(long)
 
-    outbase = 'recolored_' + basename.replace('_v4_', '_v4.14_')
+    outbase = 'recolored_' + basename.replace('_v4_', '_v4.15_')
     outname = os.path.join(output_dirname, outbase)
     msg = "...writing recolored mock to the following path on disk:\n{0}"
     print(msg.format(outname))
