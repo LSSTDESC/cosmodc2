@@ -9,10 +9,10 @@ from scipy.stats import norm
 default_mpeak_mstar_fit_low_mpeak, default_mpeak_mstar_fit_high_mpeak = 11, 11.5
 default_desired_logm_completeness = 9.75
 
-__all__ = ('model_extended_mpeak', 'map_mstar_onto_lowmass_extension', 'create_synthetic_mock')
+__all__ = ('model_extended_mpeak', 'map_mstar_onto_lowmass_extension', 'create_synthetic_lowmass_mock')
 
 
-def model_extended_mpeak(mpeak, desired_logm_completeness=default_desired_logm_completeness,
+def model_extended_mpeak(mpeak, num_galsampled_gals, desired_logm_completeness=default_desired_logm_completeness,
             logm_min_fit=11.75, logm_max_fit=12.25, Lbox=256.):
     """ Given an input set of subhalo mpeak values, and a desired completeness limit,
     fit the input distribution with a power law at the low mass end,
@@ -24,7 +24,10 @@ def model_extended_mpeak(mpeak, desired_logm_completeness=default_desired_logm_c
     mpeak : ndarray
         Numpy array of shape (nsubs_orig, )
 
-    new_logmpeak_low : float
+    num_galsampled_gals : int
+        Number of galaxies in the Mpeak array that were selected by GalSampler
+
+    desired_logm_completeness : float, optional
         Desired completeness limit in log10 units
 
     Returns
@@ -64,8 +67,12 @@ def model_extended_mpeak(mpeak, desired_logm_completeness=default_desired_logm_c
     model_logmpeak[sorted_logmpeak > logm_mid] = sorted_logmpeak[sorted_logmpeak > logm_mid]
 
     lognd_extension_max = c0 + c1*desired_logm_completeness
-    new_ngals_tot = int((10**lognd_extension_max)*Vbox)
-    logndarr_extension = np.log10(np.arange(1 + npts_total, new_ngals_tot)/Vbox)
+    frac_galsampled = num_galsampled_gals/float(len(mpeak))
+    new_ngals_max = int((10**lognd_extension_max)*Vbox)
+    num_synthetic = int(frac_galsampled*new_ngals_max)
+    _nd_new = np.sort(np.random.choice(
+        np.arange(1 + npts_total, new_ngals_max), num_synthetic, replace=False))[::-1]
+    logndarr_extension = np.log10(_nd_new/Vbox)
     logmpeak_extension = (logndarr_extension - c0)/c1
     mpeak_extension = 10**logmpeak_extension
 
@@ -115,10 +122,18 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
     return new_mstar_real, new_mstar_synthetic
 
 
-def create_synthetic_mock(mpeak_synthetic, mstar_synthetic, Lbox):
+def create_synthetic_lowmass_mock(mock, mpeak_synthetic, mstar_synthetic, Lbox):
     """
     """
+    mstar_max = min(10**8., 10.**(np.log10(np.max(mstar_synthetic))+1))
+    mock_sample_mask = mock['obs_sm'] < mstar_max
+    num_sample = np.count_nonzero(mock_sample_mask)
+    selection_indices = np.random.randint(0, num_sample, len(mpeak_synthetic))
+
     gals = Table()
+    for key in mock.keys():
+        gals[key] = mock[key][mock_sample_mask][selection_indices]
+
     gals['mpeak'] = mpeak_synthetic
     gals['obs_sm'] = mstar_synthetic
     gals['_obs_sm_orig_um_snap'] = mstar_synthetic
@@ -156,12 +171,6 @@ def create_synthetic_mock(mpeak_synthetic, mstar_synthetic, Lbox):
 
     gals['halo_id'] = -1
     gals['lightcone_id'] = -1
-
-    gals['restframe_extincted_sdss_abs_magr'] = 0.
-    gals['restframe_extincted_sdss_gr'] = 0.
-    gals['restframe_extincted_sdss_ri'] = 0.
-    gals['is_on_red_sequence_gr'] = False
-    gals['is_on_red_sequence_ri'] = False
 
     return gals
 

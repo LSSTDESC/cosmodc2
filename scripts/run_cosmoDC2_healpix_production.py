@@ -48,7 +48,6 @@ parser.add_argument("-um_input_catalogs_dirname",
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing output mock healpix files",
     default='um_healpix_mocks')
-    #default='um_healpix_mocks_mh_14.5_no_low)
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
@@ -74,7 +73,7 @@ output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirnam
 commit_hash = retrieve_commit_hash(path_to_cosmodc2)[0:7]
 print('Using commit hash {}'.format(commit_hash))
 synthetic_halo_minimum_mass = args.synthetic_mass_min
-print('Using synthetic_halo_minimum_mass {}'.format(synthetic_halo_minimum_mass))
+#print('Using synthetic_halo_minimum_mass {}'.format(synthetic_halo_minimum_mass))
 
 #loop over z-ranges
 if args.zrange_value == 'all':

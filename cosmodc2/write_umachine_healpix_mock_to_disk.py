@@ -12,21 +12,20 @@ from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
-from halotools.empirical_models import enforce_periodicity_of_box
 from halotools.utils import crossmatch
 
 from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
-from cosmodc2.synthetic_subhalos import create_synthetic_mock, create_synthetic_cluster_satellites
+from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock, create_synthetic_cluster_satellites
 
-fof_halo_mass ='fof_halo_mass'
+fof_halo_mass = 'fof_halo_mass'
 mass = 'mass'
 fof_max = 14.5
 H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
-cutoff_id_offset = 1e7  #offset to guarantee unique galaxy ids across cutout files
-Nside = 2048  #fine pixelization for determining sky area
-Nside_cosmoDC2=8 
+cutoff_id_offset = 1e8  #  offset to guarantee unique galaxy ids across cutout files
+Nside = 2048  #  fine pixelization for determining sky area
+Nside_cosmoDC2 = 8
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -79,16 +78,17 @@ def write_umachine_healpix_mock_to_disk(
     start_time = time()
     process = psutil.Process(os.getpid())
 
-    #determine number of healpix cutout to use as offset for galaxy ids
+    #  determine number of healpix cutout to use as offset for galaxy ids
     output_mock_basename = os.path.basename(output_color_mock_fname)
     cutout_number = int(re.findall(r'\d+',os.path.splitext(output_mock_basename)[0])[0])
     galaxy_id_offset = cutout_number*cutoff_id_offset
 
-    #determine seed from output filename
+    #  determine seed from output filename
     seed = get_random_seed(output_mock_basename)
     fof_halo_mass_max = 0.
 
-    print('\nSynthetic-halo minimum mass =  {}\n'.format(synthetic_halo_minimum_mass))
+    print('\nStarting snapshot processing')
+    print('Synthetic-halo minimum mass =  {}'.format(synthetic_halo_minimum_mass))
     for a, b, c, d in gen:
         umachine_mock_fname = a
         umachine_halos_fname = b
@@ -97,10 +97,10 @@ def write_umachine_healpix_mock_to_disk(
 
         new_time_stamp = time()
 
-        #seed should be changed for each new shell
+        #  seed should be changed for each new shell
         seed = seed + 2
 
-        #Get galaxy properties from UM catalogs and target halo properties
+        #  Get galaxy properties from UM catalogs and target halo properties
         print("\n...loading z = {0:.2f} galaxy catalog into memory".format(redshift))
         mock = Table.read(umachine_mock_fname, path='data')
 
@@ -114,7 +114,7 @@ def write_umachine_healpix_mock_to_disk(
         print("...Finding halo--halo correspondence with GalSampler")
         #  Bin the halos in each simulation by mass
         dlogM = 0.15
-        mass_bins = 10.**np.arange(10.5, fof_max+dlogM, dlogM)
+        mass_bins = 10.**np.arange(10.5, 14.5+dlogM, dlogM)
         source_halos['mass_bin'] = halo_bin_indices(
             mass=(source_halos['mvir'], mass_bins))
         target_halos['mass_bin'] = halo_bin_indices(
@@ -144,6 +144,7 @@ def write_umachine_healpix_mock_to_disk(
             target_halos['first_galaxy_index'].astype('i8'),
             target_halos['richness'].astype('i4'), target_halos['richness'].sum()))
 
+        num_selected_galaxies = len(source_galaxy_indx)
         ########################################################################
         #  Assign stellar mass, using Outer Rim halo mass for very massive halos
         ########################################################################
@@ -154,8 +155,9 @@ def write_umachine_healpix_mock_to_disk(
 
         #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
         #  with -1 in all other entries pertaining to unselected galaxies
-        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(mock['mpeak'], synthetic_halo_minimum_mass)
-        mock['mpeak'] = corrected_mpeak 
+        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(
+                mock['mpeak'], num_selected_galaxies, synthetic_halo_minimum_mass)
+        mock['mpeak'] = corrected_mpeak
 
         mock_target_halo_mass = np.zeros(len(mock)) - 1.
         mock_target_halo_mass[source_galaxy_indx] = np.repeat(
@@ -168,7 +170,7 @@ def write_umachine_healpix_mock_to_disk(
         mpeak_mock = np.where(remap_mpeak_mask, mock_target_halo_mass, mock['mpeak'])
         assert np.all(mpeak_mock > 0), "Bookkeeping error in remapping target halo mass onto cluster BCGs"
 
-        #  Map stellar mass onto mock
+        #  Map stellar mass onto mock using target halo mass instead of UM Mpeak for cluster BCGs
         new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, mock['obs_sm'])
         mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
         mock['obs_sm'] = new_mstar
@@ -185,24 +187,15 @@ def write_umachine_healpix_mock_to_disk(
         mock['target_halo_id'] = mock_target_halo_id
         mock['target_halo_mass'] = mock_target_halo_mass
 
-        print("...generating and stacking synthetic cluster satellites")
-        fake_cluster_sats = create_synthetic_cluster_satellites(mock)
-        if len(fake_cluster_sats) > 0:
-            mock = vstack((mock, fake_cluster_sats))
-        #append cluster satellite indices to source_galaxy_index
-
-        #print("...stacking mock and synthetic tables")
-        print("...NOT stacking mock and synthetic tables")
-        #mock = vstack((mock, create_synthetic_mock(mpeak_synthetic, mstar_synthetic, 256.)))
-
         ###################################################
         #  Map restframe Mr, g-r, r-i onto mock
         ###################################################
         #  Use the target halo redshift for those galaxies that have been selected;
-        #  otherwise use the redshift of the snapshot of the source simulation
+        #  otherwise use the redshift of the snapshot of the target simulation
         redshift_mock = np.zeros(len(mock)) + redshift
         redshift_mock[source_galaxy_indx] = np.repeat(
             target_halos['halo_redshift'], target_halos['richness'])
+        mock['target_halo_redshift'] = redshift_mock  #  used later for synthetic galaxies
 
         #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
         #  with mock['host_halo_mvir'] in all other entries pertaining to unselected galaxies
@@ -225,7 +218,8 @@ def write_umachine_healpix_mock_to_disk(
 
         print("...building output snapshot mock for snapshot {}".format(snapshot))
         output_mock[snapshot] = build_output_snapshot_mock(
-                mock, target_halos, source_galaxy_indx, galaxy_id_offset, redshift_method='halo')
+                mock, target_halos, source_galaxy_indx, galaxy_id_offset,
+                mpeak_synthetic, mstar_synthetic, redshift_method='halo')
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
         #print('{}'.format( ' '.join(list(output_mock[snapshot].keys()))))
@@ -256,7 +250,7 @@ def get_random_seed(filename, seed_max=4294967095):  #reduce max seed by 200 to 
     s = hashlib.md5(filename).hexdigest()
     seed = int(s, 16)
 
-    #enforce seed is below seed_max and odd
+    #  enforce seed is below seed_max and odd
     seed = seed%seed_max
     if seed%2 == 0:
         seed = seed + 1
@@ -274,12 +268,12 @@ def get_astropy_table(table_data, check=False):
     t['halo_redshift'] = 1/t['a'] - 1.
     t['halo_id'] = np.arange(len(table_data['id'])).astype(int)
 
-    #rename column mass if found
+    #  rename column mass if found
     if mass in t.colnames:
         t.rename_column(mass, fof_halo_mass)
 
     if check:
-        #compute comoving distance from z and from position  
+        #  compute comoving distance from z and from position
         cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
         r = np.sqrt(t['x']*t['x'] + t['y']*t['y'] + t['z']*t['z'])
         comoving_distance = cosmology.comoving_distance(t['halo_redshift'])*H0/100.
@@ -289,7 +283,8 @@ def get_astropy_table(table_data, check=False):
 
 
 def build_output_snapshot_mock(
-            umachine, target_halos, galaxy_indices, galaxy_id_offset, redshift_method='galaxy'):
+            umachine, target_halos, galaxy_indices, galaxy_id_offset,
+            mpeak_synthetic, mstar_synthetic, Lbox=256., redshift_method='galaxy'):
     """
     Collect the GalSampled snapshot mock into an astropy table
 
@@ -321,15 +316,13 @@ def build_output_snapshot_mock(
         Astropy Table of shape (num_target_gals, )
         storing the GalSampled galaxy catalog
     """
-    #dc2 = Table(meta={'commit_hash': commit_hash, 'seed': seed})
     dc2 = Table()
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
         target_halos['halo_id'], target_halos['richness'])
-    #assert np.array_equal(dc2['target_halo_id'], umachine['target_halo_id'][galaxy_indices]) 
     umachine.rename_column('target_halo_id', 'um_target_halo_id')
 
-    #copy lightcone information
+    #  copy lightcone information
     dc2['target_halo_fof_halo_id'] = np.repeat(
         target_halos['fof_halo_id'], target_halos['richness'])
     dc2['lightcone_rotation'] = np.repeat(
@@ -359,7 +352,6 @@ def build_output_snapshot_mock(
 
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
-    #assert np.allclose(dc2['target_halo_mass'], umachine['target_halo_mass'][galaxy_indices])
     umachine.rename_column('target_halo_mass', 'um_target_halo_mass')
 
     source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
@@ -369,7 +361,7 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
-            'um_target_halo_id', 'um_target_halo_mass',
+            'um_target_halo_id', 'um_target_halo_mass', 'target_halo_redshift',
             '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         try:
@@ -378,14 +370,6 @@ def build_output_snapshot_mock(
             msg = ("The build_output_snapshot_mock function was passed a umachine mock\n"
                 "that does not contain the ``{0}`` key")
             raise KeyError(msg.format(key))
-
-    #Use gr and ri color to compute gi flux
-    dc2['restframe_extincted_sdss_abs_magg'] = (
-        dc2['restframe_extincted_sdss_gr'] +
-        dc2['restframe_extincted_sdss_abs_magr'])
-    dc2['restframe_extincted_sdss_abs_magi'] = (
-        -dc2['restframe_extincted_sdss_ri'] +
-        dc2['restframe_extincted_sdss_abs_magr'])
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
@@ -396,42 +380,60 @@ def build_output_snapshot_mock(
     dc2['z'] = dc2['target_halo_z'] + dc2['host_centric_z']
     dc2['vz'] = dc2['target_halo_vz'] + dc2['host_centric_vz']
 
+    print("...generating and stacking synthetic cluster satellites")
+    fake_cluster_sats = create_synthetic_cluster_satellites(dc2)
+    if len(fake_cluster_sats) > 0:
+        dc2 = vstack((dc2, fake_cluster_sats))
+
+    if len(mpeak_synthetic) > 0:
+        lowmass_mock = create_synthetic_lowmass_mock(
+            umachine, mpeak_synthetic, mstar_synthetic, Lbox)
+        dc2 = vstack((dc2, lowmass_mock))
+
     dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['halo_id'])).astype(int)
 
-    #compute galaxy redshift, ra and dec
+    #  Use gr and ri color to compute gi flux
+    dc2['restframe_extincted_sdss_abs_magg'] = (
+        dc2['restframe_extincted_sdss_gr'] +
+        dc2['restframe_extincted_sdss_abs_magr'])
+    dc2['restframe_extincted_sdss_abs_magi'] = (
+        -dc2['restframe_extincted_sdss_ri'] +
+        dc2['restframe_extincted_sdss_abs_magr'])
+
+    #  compute galaxy redshift, ra and dec
     if redshift_method is not None:
         r = np.sqrt(dc2['x']*dc2['x'] + dc2['y']*dc2['y'] + dc2['z']*dc2['z'])
         mask = (r > 5000.)
         if np.sum(mask) > 0:
-            print('WARNING: Found {} co-moving distances > 5000',format(np.sum(mask)))
+            print('WARNING: Found {} co-moving distances > 5000', format(np.sum(mask)))
 
-        dc2['redshift_halo_only'] = np.repeat(target_halos['halo_redshift'], target_halos['richness'])
-        dc2['redshift'] = dc2['redshift_halo_only']  #copy halo redshifts to galaxies
+        dc2['redshift'] = dc2['target_halo_redshift']  #  copy halo redshifts to galaxies
         if redshift_method == 'galaxy':
-            #generate distance estimates for values between min and max redshifts
+            #  generate distance estimates for values between min and max redshifts
             zmin = np.min(dc2['redshift_halo_only'])
             zmax = np.max(dc2['redshift_halo_only'])
             zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
             cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
             CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
-            #use interpolation to get redshifts for satellites only
+            #  use interpolation to get redshifts for satellites only
             sat_mask = (dc2['upid'] != -1)
             dc2['redshift'][sat_mask] = np.interp(r[sat_mask], CDgrid, zgrid)
             if redshift_method == 'pec':
-                #TBD add pecliar velocity correction
+                #  TBD add pecliar velocity correction
                 print('Not implemented')
 
-        dc2['dec'] = 90. - np.arccos(dc2['z']/r)*180.0/np.pi #co-latitude
+        dc2['dec'] = 90. - np.arccos(dc2['z']/r)*180.0/np.pi  #  co-latitude
         dc2['ra'] = np.arctan2(dc2['y'], dc2['x'])*180.0/np.pi
-        dc2['ra'][(dc2['ra'] < 0)] += 360.   #force value 0->360
+        dc2['ra'][(dc2['ra'] < 0)] += 360.   #  force value 0->360
 
     return dc2
+
 
 def get_skyarea(output_mock):
     """
     """
     import healpy as hp
-    #compute sky area from ra and dec ranges of galaxies
+    #  compute sky area from ra and dec ranges of galaxies
     nominal_skyarea = np.rad2deg(np.rad2deg(4.0*np.pi/hp.nside2npix(Nside_cosmoDC2)))
     pixels = set()
     for k in output_mock.keys():
@@ -439,14 +441,15 @@ def get_skyarea(output_mock):
             pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
     frac = len(pixels)/float(hp.nside2npix(Nside))
     skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
-    if np.isclose(skyarea, nominal_skyarea, rtol=.02): #agreement to about 1 sq. deg.
+    if np.isclose(skyarea, nominal_skyarea, rtol=.02):  #  agreement to about 1 sq. deg.
         print(' Replacing calculated sky area {} with nominal_area'.format(skyarea))
         skyarea = nominal_skyarea
-    if np.isclose(skyarea, nominal_skyarea/2., rtol=.01): #check for half-filled pixels
+    if np.isclose(skyarea, nominal_skyarea/2., rtol=.01):  #  check for half-filled pixels
         print(' Replacing calculated sky area {} with (nominal_area)/2'.format(skyarea))
         skyarea = nominal_skyarea/2.
 
     return skyarea
+
 
 def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
                               synthetic_halo_minimum_mass):

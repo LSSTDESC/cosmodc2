@@ -103,6 +103,9 @@ def create_synthetic_cluster_satellites(mock, Lbox=256.,
         sats['y'] = np.mod(sats['y'], Lbox)
         sats['z'] = np.mod(sats['z'], Lbox)
 
+        sats['halo_id'] = -1
+        sats['lightcone_id'] = -1
+
         return sats
     else:
         return Table()
