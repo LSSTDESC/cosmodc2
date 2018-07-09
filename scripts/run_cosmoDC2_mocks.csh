@@ -38,8 +38,9 @@ set script_name = "run_cosmoDC2_healpix_production.py"
 set python = "/soft/libraries/anaconda-unstable/bin/python"
 set xtra_args = ""
 set xtra_label = ""
-if ${xtra_label} != "" then
+if(${xtra_label} != "") then
     set jobname = ${jobname}_${xtra_label}
+endif
 set args = "${filename} -zrange_value ${z_range} ${xtra_args}"
 
 set pythondirs = /gpfs/mira-home/ekovacs/.local/lib/python2.7/site-packages:/gpfs/mira-home/ekovacs/cosmology/cosmodc2:/gpfs/mira-home/ekovacs/cosmology/galsampler/build/lib.linux-x86_64-2.7:/gpfs/mira-home/ekovacs/cosmology/halotools/build/lib.linux-x86_64-2.7
