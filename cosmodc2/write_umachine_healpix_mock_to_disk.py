@@ -31,7 +31,7 @@ def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
             redshift_list, commit_hash,
-            synthetic_halo_minimum_mass=10.1):
+            synthetic_halo_minimum_mass=10.1, num_synthetic_gal_ratio=1., Lbox=3000.):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -144,20 +144,28 @@ def write_umachine_healpix_mock_to_disk(
             target_halos['first_galaxy_index'].astype('i8'),
             target_halos['richness'].astype('i4'), target_halos['richness'].sum()))
 
+        ########################################################################
+        #  Correct stellar mass for low-mass subhalos and create synthetic mpeak
+        ########################################################################
+        print("...correcting low mass mpeak and assigning synthetic mpeak values")
         num_selected_galaxies = len(source_galaxy_indx)
+        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(
+                mock['mpeak'], num_selected_galaxies, synthetic_halo_minimum_mass, Lbox=Lbox)
+        mock['mpeak'] = corrected_mpeak
+
+        #  Select (num_synthetic_gal_ratio*num_selected_galaxies) synthetic galaxies to keep file size down
+        num_synthetic_galaxies = int(num_synthetic_gal_ratio*num_selected_galaxies)
+        mpeak_synthetic = np.random.choice(mpeak_synthetic, size=num_synthetic_galaxies, replace=False)
+        print('...selecting {} synthetic galaxies'.format(num_synthetic_galaxies))
+
         ########################################################################
         #  Assign stellar mass, using Outer Rim halo mass for very massive halos
         ########################################################################
-        print("\n...re-assigning high-mass mstar values")
-
+        print("...re-assigning high-mass mstar values")
         #  For mock central galaxies that have been assigned to a very massive target halo,
         #  we use the target halo mass instead of the source halo mpeak to assign M*
-
         #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
         #  with -1 in all other entries pertaining to unselected galaxies
-        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(
-                mock['mpeak'], num_selected_galaxies, synthetic_halo_minimum_mass)
-        mock['mpeak'] = corrected_mpeak
 
         mock_target_halo_mass = np.zeros(len(mock)) - 1.
         mock_target_halo_mass[source_galaxy_indx] = np.repeat(
@@ -176,6 +184,7 @@ def write_umachine_healpix_mock_to_disk(
         mock['obs_sm'] = new_mstar
 
         #  Add call to map_mstar_onto_lowmass_extension function after pre-determining low-mass slope
+        print("...re-assigning low-mass mstar values")
         new_mstar_real, mstar_synthetic = map_mstar_onto_lowmass_extension(
             mock['mpeak'], mock['obs_sm'], mpeak_synthetic)
         mock['obs_sm'] = new_mstar_real
@@ -192,6 +201,8 @@ def write_umachine_healpix_mock_to_disk(
         ###################################################
         #  Use the target halo redshift for those galaxies that have been selected;
         #  otherwise use the redshift of the snapshot of the target simulation
+        print("...assigning rest-frame Mr and colors")
+        check_time = time()
         redshift_mock = np.zeros(len(mock)) + redshift
         redshift_mock[source_galaxy_indx] = np.repeat(
             target_halos['halo_redshift'], target_halos['richness'])
@@ -211,6 +222,7 @@ def write_umachine_healpix_mock_to_disk(
         mock['restframe_extincted_sdss_ri'] = ri_mock
         mock['is_on_red_sequence_gr'] = is_red_gr
         mock['is_on_red_sequence_ri'] = is_red_ri
+        print('...time to assign_restframe_sdss_gri = {:.2f} secs'.format(time()-check_time))
 
         ########################################################################
         #  Assemble the output mock by snapshot
@@ -219,13 +231,13 @@ def write_umachine_healpix_mock_to_disk(
         print("...building output snapshot mock for snapshot {}".format(snapshot))
         output_mock[snapshot] = build_output_snapshot_mock(
                 mock, target_halos, source_galaxy_indx, galaxy_id_offset,
-                mpeak_synthetic, mstar_synthetic, redshift_method='halo')
+                mpeak_synthetic, mstar_synthetic, Lbox=Lbox, redshift_method='halo')
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
         #print('{}'.format( ' '.join(list(output_mock[snapshot].keys()))))
 
         time_stamp = time()
-        msg = "Lightcone-shell runtime = {0:.2f} minutes"
+        msg = "\nLightcone-shell runtime = {0:.2f} minutes"
         print(msg.format((time_stamp-new_time_stamp)/60.))
 
         mem = "Memory usage =  {0:.2f} GB"
@@ -235,8 +247,10 @@ def write_umachine_healpix_mock_to_disk(
     #  Write the output mock to disk
     ########################################################################
     if len(output_mock) > 0:
+        check_time = time()
         write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
                                   synthetic_halo_minimum_mass)
+        print('...time to write mock to disk = {:.2f} minutes'.format((time()-check_time))/60.)
 
     print('Maximum halo mass for {} ={}\n'.format(output_mock_basename, fof_halo_mass_max))
 
@@ -284,7 +298,7 @@ def get_astropy_table(table_data, check=False):
 
 def build_output_snapshot_mock(
             umachine, target_halos, galaxy_indices, galaxy_id_offset,
-            mpeak_synthetic, mstar_synthetic, Lbox=256., redshift_method='galaxy'):
+            mpeak_synthetic, mstar_synthetic, Lbox=3000., redshift_method='galaxy'):
     """
     Collect the GalSampled snapshot mock into an astropy table
 
@@ -380,15 +394,20 @@ def build_output_snapshot_mock(
     dc2['z'] = dc2['target_halo_z'] + dc2['host_centric_z']
     dc2['vz'] = dc2['target_halo_vz'] + dc2['host_centric_vz']
 
-    print("...generating and stacking synthetic cluster satellites")
-    fake_cluster_sats = create_synthetic_cluster_satellites(dc2)
+    print('...number of galaxies before adding synthetic satellites = {}'.format(len(dc2['halo_id'])))
+    print("...generating and stacking any synthetic cluster satellites")
+    fake_cluster_sats = create_synthetic_cluster_satellites(dc2, Lbox=Lbox)
     if len(fake_cluster_sats) > 0:
+        check_time = time()
         dc2 = vstack((dc2, fake_cluster_sats))
+        print('...time to create {} galaxies in fake_cluster_sats = {:.2f} secs'.format(len(fake_cluster_sats['halo_id']), time()-check_time))
 
     if len(mpeak_synthetic) > 0:
+        check_time = time()
         lowmass_mock = create_synthetic_lowmass_mock(
             umachine, mpeak_synthetic, mstar_synthetic, Lbox)
         dc2 = vstack((dc2, lowmass_mock))
+        print('...time to create {} galaxies in synthetic_lowmass_mock = {:.2f} secs'.format(len(lowmass_mock['halo_id']), time()-check_time))
 
     dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['halo_id'])).astype(int)
 
@@ -405,7 +424,7 @@ def build_output_snapshot_mock(
         r = np.sqrt(dc2['x']*dc2['x'] + dc2['y']*dc2['y'] + dc2['z']*dc2['z'])
         mask = (r > 5000.)
         if np.sum(mask) > 0:
-            print('WARNING: Found {} co-moving distances > 5000', format(np.sum(mask)))
+            print('WARNING: Found {} co-moving distances > 5000'.format(np.sum(mask)))
 
         dc2['redshift'] = dc2['target_halo_redshift']  #  copy halo redshifts to galaxies
         if redshift_method == 'galaxy':
