@@ -250,7 +250,7 @@ def write_umachine_healpix_mock_to_disk(
         check_time = time()
         write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
                                   synthetic_halo_minimum_mass)
-        print('...time to write mock to disk = {:.2f} minutes'.format((time()-check_time))/60.)
+        print('...time to write mock to disk = {:.2f} minutes'.format((time()-check_time)/60.))
 
     print('Maximum halo mass for {} ={}\n'.format(output_mock_basename, fof_halo_mass_max))
 
