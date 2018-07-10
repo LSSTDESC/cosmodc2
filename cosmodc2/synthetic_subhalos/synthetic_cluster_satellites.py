@@ -78,34 +78,39 @@ def create_synthetic_cluster_satellites(mock, Lbox=256.,
         selection_indices = nearby_hostmass_selection_indices(
             mock['target_halo_mass'][sat_sample_mask], synthetic_hostmass)
 
-        sats = Table()
-        for key in mock.keys():
-            sats[key] = mock[key][sat_sample_mask][selection_indices]
+        if len(selection_indices) > 1:  # ensure more than 1 galaxy is being faked
+            sats = Table()
+            for key in mock.keys():
+                sats[key] = mock[key][sat_sample_mask][selection_indices]
 
-        nfw = NFWPhaseSpace()
-        nfw_sats = nfw.mc_generate_nfw_phase_space_points(
-            mass=sats['target_halo_mass'])
-        sats['host_centric_x'] = nfw_sats['x']
-        sats['host_centric_y'] = nfw_sats['y']
-        sats['host_centric_z'] = nfw_sats['z']
-        sats['host_centric_vx'] = nfw_sats['vx']
-        sats['host_centric_vy'] = nfw_sats['vy']
-        sats['host_centric_vz'] = nfw_sats['vz']
+            nfw = NFWPhaseSpace()
+            nfw_sats = nfw.mc_generate_nfw_phase_space_points(
+                mass=sats['target_halo_mass'])
 
-        sats['x'] = sats['host_centric_x'] + sats['target_halo_x']
-        sats['y'] = sats['host_centric_y'] + sats['target_halo_y']
-        sats['z'] = sats['host_centric_z'] + sats['target_halo_z']
-        sats['vx'] = sats['host_centric_vx'] + sats['target_halo_vx']
-        sats['vy'] = sats['host_centric_vy'] + sats['target_halo_vy']
-        sats['vz'] = sats['host_centric_vz'] + sats['target_halo_vz']
+            sats['host_centric_x'] = nfw_sats['x']
+            sats['host_centric_y'] = nfw_sats['y']
+            sats['host_centric_z'] = nfw_sats['z']
+            sats['host_centric_vx'] = nfw_sats['vx']
+            sats['host_centric_vy'] = nfw_sats['vy']
+            sats['host_centric_vz'] = nfw_sats['vz']
 
-        sats['x'] = np.mod(sats['x'], Lbox)
-        sats['y'] = np.mod(sats['y'], Lbox)
-        sats['z'] = np.mod(sats['z'], Lbox)
+            sats['x'] = sats['host_centric_x'] + sats['target_halo_x']
+            sats['y'] = sats['host_centric_y'] + sats['target_halo_y']
+            sats['z'] = sats['host_centric_z'] + sats['target_halo_z']
+            sats['vx'] = sats['host_centric_vx'] + sats['target_halo_vx']
+            sats['vy'] = sats['host_centric_vy'] + sats['target_halo_vy']
+            sats['vz'] = sats['host_centric_vz'] + sats['target_halo_vz']
 
-        sats['halo_id'] = -1
-        sats['lightcone_id'] = -1
+            if Lbox > 0.:    # enforce periodicity
+                sats['x'] = np.mod(sats['x'], Lbox)
+                sats['y'] = np.mod(sats['y'], Lbox)
+                sats['z'] = np.mod(sats['z'], Lbox)
 
-        return sats
+            sats['halo_id'] = -1
+            sats['lightcone_id'] = -1
+
+            return sats
+        else:
+            return Table()
     else:
         return Table()

@@ -4,6 +4,7 @@ import numpy as np
 from halotools.utils import unsorting_indices
 from astropy.table import Table
 from scipy.stats import norm
+from halotools.empirical_models import NFWPhaseSpace
 
 
 default_mpeak_mstar_fit_low_mpeak, default_mpeak_mstar_fit_high_mpeak = 11, 11.5
@@ -122,7 +123,8 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
     return new_mstar_real, new_mstar_synthetic
 
 
-def create_synthetic_lowmass_mock(mock, mpeak_synthetic, mstar_synthetic, Lbox):
+def create_synthetic_lowmass_mock(
+        mock, healpix_mock, mpeak_synthetic, mstar_synthetic):
     """
     """
     mstar_max = min(10**8., 10.**(np.log10(np.max(mstar_synthetic))+1))
@@ -138,29 +140,31 @@ def create_synthetic_lowmass_mock(mock, mpeak_synthetic, mstar_synthetic, Lbox):
     gals['obs_sm'] = mstar_synthetic
     gals['_obs_sm_orig_um_snap'] = mstar_synthetic
 
+    host_mask = healpix_mock['upid'] == -1
+    host_indices = np.arange(len(healpix_mock))[host_mask]
     ngals = len(gals)
-    gals['x'] = np.random.uniform(0, Lbox, ngals)
-    gals['y'] = np.random.uniform(0, Lbox, ngals)
-    gals['z'] = np.random.uniform(0, Lbox, ngals)
-    gals['target_halo_x'] = gals['x']
-    gals['target_halo_y'] = gals['y']
-    gals['target_halo_z'] = gals['z']
+    selected_host_indices = np.random.choice(host_indices, ngals, replace=True)
+    gals['target_halo_x'] = healpix_mock['target_halo_x'][selected_host_indices]
+    gals['target_halo_y'] = healpix_mock['target_halo_y'][selected_host_indices]
+    gals['target_halo_z'] = healpix_mock['target_halo_z'][selected_host_indices]
+    gals['target_halo_mass'] = healpix_mock['target_halo_mass'][selected_host_indices]
+    gals['upid'] = healpix_mock['target_halo_id'][selected_host_indices]
 
-    gals['vx'] = np.random.uniform(-200, 200, ngals)
-    gals['vy'] = np.random.uniform(-200, 200, ngals)
-    gals['vz'] = np.random.uniform(-200, 200, ngals)
-    gals['target_halo_vx'] = gals['vx']
-    gals['target_halo_vy'] = gals['vy']
-    gals['target_halo_vz'] = gals['vz']
+    gals['host_halo_mvir'] = gals['target_halo_mass']
 
-    gals['target_halo_mass'] = gals['mpeak']
-    gals['host_halo_mvir'] = gals['mpeak']
+    nfw = NFWPhaseSpace()
+    nfw_sats = nfw.mc_generate_nfw_phase_space_points(
+        mass=gals['target_halo_mass'])
+    gals['host_centric_x'] = nfw_sats['x']
+    gals['host_centric_y'] = nfw_sats['y']
+    gals['host_centric_z'] = nfw_sats['z']
+    gals['x'] = gals['host_centric_x'] + gals['target_halo_x']
+    gals['y'] = gals['host_centric_y'] + gals['target_halo_y']
+    gals['z'] = gals['host_centric_z'] + gals['target_halo_z']
 
-    gals['upid'] = -1
-
-    gals['host_centric_x'] = 0.
-    gals['host_centric_y'] = 0.
-    gals['host_centric_z'] = 0.
+    gals['vx'] = np.random.uniform(-100, 100, ngals)
+    gals['vy'] = np.random.uniform(-100, 100, ngals)
+    gals['vz'] = np.random.uniform(-100, 100, ngals)
     gals['host_centric_vx'] = 0.
     gals['host_centric_vy'] = 0.
     gals['host_centric_vz'] = 0.
