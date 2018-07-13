@@ -15,7 +15,9 @@ from galsampler.cython_kernels import galaxy_selection_kernel
 from halotools.utils import crossmatch
 
 from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
-from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock, create_synthetic_cluster_satellites
+from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_centrals
+from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_satellites
+from cosmodc2.synthetic_subhalos import create_synthetic_cluster_satellites
 
 fof_halo_mass = 'fof_halo_mass'
 mass = 'mass'
@@ -24,7 +26,7 @@ H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
 cutoff_id_offset = 1e8  #  offset to guarantee unique galaxy ids across cutout files
-z_offsets = [0, 1e7, 5e7]  #  offset to guarantee unique galaxy ids across z-ranges
+z_offsets = [0, 2e7, 6e7]  #  offset to guarantee unique galaxy ids across z-ranges
 
 Nside = 2048  #  fine pixelization for determining sky area
 Nside_cosmoDC2 = 8
@@ -33,7 +35,7 @@ def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
             redshift_list, commit_hash,
-            synthetic_halo_minimum_mass=10.1, num_synthetic_gal_ratio=1., Lbox=3000.):
+            synthetic_halo_minimum_mass=10.1, num_synthetic_gal_ratio=1., use_centrals=False, Lbox=3000.):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -98,6 +100,7 @@ def write_umachine_healpix_mock_to_disk(
     print('\nStarting snapshot processing')
     print('Synthetic-halo minimum mass =  {}'.format(synthetic_halo_minimum_mass))
     print('Using galaxy-id offset = {}'.format(galaxy_id_offset))
+    print('Using {} synthetic low-mass galaxies'.format('central' if use_centrals else 'satellite'))
     for a, b, c, d in gen:
         umachine_mock_fname = a
         umachine_halos_fname = b
@@ -240,7 +243,8 @@ def write_umachine_healpix_mock_to_disk(
         print("...building output snapshot mock for snapshot {}".format(snapshot))
         output_mock[snapshot] = build_output_snapshot_mock(
                 mock, target_halos, source_galaxy_indx, galaxy_id_offset,
-                mpeak_synthetic, mstar_synthetic, redshift_method='halo')
+                mpeak_synthetic, mstar_synthetic, Nside_cosmoDC2, cutout_number,
+                redshift_method='halo', use_centrals=use_centrals)
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
         Ngals_total += len(output_mock[snapshot]['galaxy_id'])
@@ -308,7 +312,8 @@ def get_astropy_table(table_data, check=False):
 
 def build_output_snapshot_mock(
             umachine, target_halos, galaxy_indices, galaxy_id_offset,
-            mpeak_synthetic, mstar_synthetic, redshift_method='galaxy'):
+            mpeak_synthetic, mstar_synthetic, Nside, cutout_number, 
+            redshift_method='galaxy', use_centrals=True):
     """
     Collect the GalSampled snapshot mock into an astropy table
 
@@ -414,10 +419,15 @@ def build_output_snapshot_mock(
 
     if len(mpeak_synthetic) > 0:
         check_time = time()
-        lowmass_mock = create_synthetic_lowmass_mock(
-            umachine, dc2, mpeak_synthetic, mstar_synthetic)
-        dc2 = vstack((dc2, lowmass_mock))
-        print('...time to create {} galaxies in synthetic_lowmass_mock = {:.2f} secs'.format(len(lowmass_mock['halo_id']), time()-check_time))
+        if use_centrals:
+            lowmass_mock = create_synthetic_lowmass_mock_with_centrals(
+                umachine, dc2, mpeak_synthetic, mstar_synthetic, Nside=Nside, cutout_id=cutout_number)
+        else:
+            lowmass_mock = create_synthetic_lowmass_mock_with_satellites(
+                umachine, dc2, mpeak_synthetic, mstar_synthetic)
+        if len(lowmass_mock) > 0:
+            dc2 = vstack((dc2, lowmass_mock))
+            print('...time to create {} galaxies in synthetic_lowmass_mock = {:.2f} secs'.format(len(lowmass_mock['halo_id']), time()-check_time))
         
     dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['halo_id'])).astype(int)
         
@@ -514,9 +524,9 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
             check_atime = time()
             #gGroup[tk] = v[tk].quantity.value
             gGroup[tk] = v[tk]
-            print('........time to write array {} = {:.4f} secs'.format(tk, time()-check_atime))
-
+            
         print('.....time to write group {} = {:.4f} secs'.format(k, time()-check_time))
 
+    check_time = time()
     hdfFile.close()
-
+    print('.....time to close file {:.4f} secs'.format(time()-check_time))

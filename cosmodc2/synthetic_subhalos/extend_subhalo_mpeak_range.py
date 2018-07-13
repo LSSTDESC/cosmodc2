@@ -10,7 +10,8 @@ from halotools.empirical_models import NFWPhaseSpace
 default_mpeak_mstar_fit_low_mpeak, default_mpeak_mstar_fit_high_mpeak = 11, 11.5
 default_desired_logm_completeness = 9.75
 
-__all__ = ('model_extended_mpeak', 'map_mstar_onto_lowmass_extension', 'create_synthetic_lowmass_mock')
+__all__ = ('model_extended_mpeak', 'map_mstar_onto_lowmass_extension',
+           'create_synthetic_lowmass_mock_with_satellites', 'create_synthetic_lowmass_mock_with_centrals')
 
 
 def model_extended_mpeak(mpeak, num_galsampled_gals, desired_logm_completeness=default_desired_logm_completeness,
@@ -123,7 +124,7 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
     return new_mstar_real, new_mstar_synthetic
 
 
-def create_synthetic_lowmass_mock(
+def create_synthetic_lowmass_mock_with_satellites(
         mock, healpix_mock, mpeak_synthetic, mstar_synthetic):
     """
     """
@@ -178,3 +179,90 @@ def create_synthetic_lowmass_mock(
 
     return gals
 
+
+def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthetic, mstar_synthetic,
+                                                cutout_id=None, Nside=8):
+    """
+    """
+    import healpy as hp
+    if cutout_id is None:
+        print('...missing cutout_id')
+        return Table()
+
+    mstar_max = min(10**8., 10.**(np.log10(np.max(mstar_synthetic))+1))
+    mock_sample_mask = mock['obs_sm'] < mstar_max
+    num_sample = np.count_nonzero(mock_sample_mask)
+    selection_indices = np.random.randint(0, num_sample, len(mpeak_synthetic))
+
+    gals = Table()
+    ngals = len(mpeak_synthetic)
+    #  select positions inside box defined by halos in healpix mock and remove any locations outside the healpixel
+    halo_healpixels = hp.pixelfunc.vec2pix(Nside, healpix_mock['target_halo_x'], 
+        healpix_mock['target_halo_y'], healpix_mock['target_halo_z'], nest=False)
+    halo_healpix_mask = (halo_healpixels == cutout_id)
+    if np.sum(~halo_healpix_mask) > 0:
+        print('{} halo(s) detected outide healpixel'.format(np.sum(~halo_healpix_mask)))
+    gals_x = np.random.uniform(np.min(healpix_mock['target_halo_x']), np.max(healpix_mock['target_halo_x']), ngals)
+    gals_y = np.random.uniform(np.min(healpix_mock['target_halo_y']), np.max(healpix_mock['target_halo_y']), ngals)
+    gals_z = np.random.uniform(np.min(healpix_mock['target_halo_z']), np.max(healpix_mock['target_halo_z']), ngals)
+    healpixels = hp.pixelfunc.vec2pix(Nside, gals_x, gals_y, gals_z, nest=False)
+    healpix_number_mask = (healpixels == cutout_id)
+    print('...removing {} fakes falling outside healpixel'.format(np.sum(~healpix_number_mask)))
+    r_halo = np.sqrt(healpix_mock['target_halo_x']**2 + healpix_mock['target_halo_y']**2 + healpix_mock['target_halo_z']**2)
+    r_gals = np.sqrt(gals_x**2 + gals_y**2 + gals_z**2)
+    r_mask = (r_gals >= np.min(r_halo)) & (r_gals <= np.max(r_halo))
+    print('...removing {} fakes falling outside comoving distance bounds {:.2f}-{:.2f}'
+          .format(np.sum(~r_mask),np.min(r_halo), np.max(r_halo)))
+    healpix_mask = healpix_number_mask & r_mask
+    if np.sum(healpix_mask) == 0:
+        return Table()
+
+    #  populate gals table with selected galaxies
+    for key in mock.keys():
+        gals[key] = mock[key][mock_sample_mask][selection_indices][healpix_mask]
+
+    #overwrite positions with new random positions from healpix selection
+    gals['x'] = gals_x[healpix_mask]
+    gals['y'] = gals_y[healpix_mask]
+    gals['z'] = gals_z[healpix_mask]
+    #print('min/max x: {:.2f} {:.2f}'.format(np.min(gals['x']), np.max(gals['x'])))    
+    #print('min/max y: {:.2f} {:.2f}'.format(np.min(gals['y']), np.max(gals['y'])))
+    #print('min/max z: {:.2f} {:.2f}'.format(np.min(gals['z']), np.max(gals['z'])))
+
+    gals['mpeak'] = mpeak_synthetic[healpix_mask]
+    gals['obs_sm'] = mstar_synthetic[healpix_mask]
+    gals['_obs_sm_orig_um_snap'] = mstar_synthetic[healpix_mask]
+
+    ngals = len(gals)
+
+    gals['target_halo_x'] = gals['x']
+    gals['target_halo_y'] = gals['y']
+    gals['target_halo_z'] = gals['z']
+
+    gals['vx'] = np.random.uniform(-200, 200, ngals)
+    gals['vy'] = np.random.uniform(-200, 200, ngals)
+    gals['vz'] = np.random.uniform(-200, 200, ngals)
+    gals['target_halo_vx'] = gals['vx']
+    gals['target_halo_vy'] = gals['vy']
+    gals['target_halo_vz'] = gals['vz']
+
+    gals['target_halo_mass'] = gals['mpeak']
+    gals['host_halo_mvir'] = gals['mpeak']
+
+    gals['upid'] = -1
+
+    gals['host_centric_x'] = 0.
+    gals['host_centric_y'] = 0.
+    gals['host_centric_z'] = 0.
+    gals['host_centric_vx'] = 0.
+    gals['host_centric_vy'] = 0.
+    gals['host_centric_vz'] = 0.
+
+    gals['sfr_percentile'] = np.random.uniform(0, 1, ngals)
+    ssfr = 10**norm.isf(1 - gals['sfr_percentile'], loc=-10, scale=0.5)
+    gals['obs_sfr'] = ssfr*gals['obs_sm']
+
+    gals['halo_id'] = -1
+    gals['lightcone_id'] = -1
+
+    return gals
