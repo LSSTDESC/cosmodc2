@@ -35,7 +35,7 @@ def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
             redshift_list, commit_hash,
-            synthetic_halo_minimum_mass=10.1, num_synthetic_gal_ratio=1., use_centrals=False, Lbox=3000.):
+            synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1., use_centrals=False, Lbox=3000.):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -421,7 +421,8 @@ def build_output_snapshot_mock(
         check_time = time()
         if use_centrals:
             lowmass_mock = create_synthetic_lowmass_mock_with_centrals(
-                umachine, dc2, mpeak_synthetic, mstar_synthetic, Nside=Nside, cutout_id=cutout_number)
+                umachine, dc2, mpeak_synthetic, mstar_synthetic, Nside=Nside, cutout_id=cutout_number, 
+                H0=H0, OmegaM=OmegaM)
         else:
             lowmass_mock = create_synthetic_lowmass_mock_with_satellites(
                 umachine, dc2, mpeak_synthetic, mstar_synthetic)

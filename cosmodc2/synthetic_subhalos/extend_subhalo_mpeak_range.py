@@ -181,7 +181,7 @@ def create_synthetic_lowmass_mock_with_satellites(
 
 
 def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthetic, mstar_synthetic,
-                                                cutout_id=None, Nside=8):
+                                                cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648):
     """
     """
     import healpy as hp
@@ -217,17 +217,28 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthe
     if np.sum(healpix_mask) == 0:
         return Table()
 
+    #  compute redshifts from comoving distance
+    zmin = np.min(r_gals[healpix_mask])
+    zmax = np.max(r_gals[healpix_mask])
+    zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
+    cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
+    CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
+    redshifts = np.interp(r_gals[healpix_mask], CDgrid, zgrid)
+
     #  populate gals table with selected galaxies
     for key in mock.keys():
         gals[key] = mock[key][mock_sample_mask][selection_indices][healpix_mask]
 
-    #overwrite positions with new random positions from healpix selection
+    #  overwrite positions with new random positions from healpix selection
     gals['x'] = gals_x[healpix_mask]
     gals['y'] = gals_y[healpix_mask]
     gals['z'] = gals_z[healpix_mask]
     #print('min/max x: {:.2f} {:.2f}'.format(np.min(gals['x']), np.max(gals['x'])))    
     #print('min/max y: {:.2f} {:.2f}'.format(np.min(gals['y']), np.max(gals['y'])))
     #print('min/max z: {:.2f} {:.2f}'.format(np.min(gals['z']), np.max(gals['z'])))
+
+    #  overwrite redshifts with new redshifts
+    gals['target_halo_redshift'] = redshifts 
 
     gals['mpeak'] = mpeak_synthetic[healpix_mask]
     gals['obs_sm'] = mstar_synthetic[healpix_mask]
