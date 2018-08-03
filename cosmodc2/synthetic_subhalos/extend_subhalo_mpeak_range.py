@@ -5,6 +5,7 @@ from halotools.utils import unsorting_indices
 from astropy.table import Table
 from scipy.stats import norm
 from halotools.empirical_models import NFWPhaseSpace
+from astropy.cosmology import FlatLambdaCDM
 
 
 default_mpeak_mstar_fit_low_mpeak, default_mpeak_mstar_fit_high_mpeak = 11, 11.5
@@ -197,7 +198,7 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthe
     gals = Table()
     ngals = len(mpeak_synthetic)
     #  select positions inside box defined by halos in healpix mock and remove any locations outside the healpixel
-    halo_healpixels = hp.pixelfunc.vec2pix(Nside, healpix_mock['target_halo_x'], 
+    halo_healpixels = hp.pixelfunc.vec2pix(Nside, healpix_mock['target_halo_x'],
         healpix_mock['target_halo_y'], healpix_mock['target_halo_z'], nest=False)
     halo_healpix_mask = (halo_healpixels == cutout_id)
     if np.sum(~halo_healpix_mask) > 0:
@@ -233,12 +234,12 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthe
     gals['x'] = gals_x[healpix_mask]
     gals['y'] = gals_y[healpix_mask]
     gals['z'] = gals_z[healpix_mask]
-    #print('min/max x: {:.2f} {:.2f}'.format(np.min(gals['x']), np.max(gals['x'])))    
+    #print('min/max x: {:.2f} {:.2f}'.format(np.min(gals['x']), np.max(gals['x'])))
     #print('min/max y: {:.2f} {:.2f}'.format(np.min(gals['y']), np.max(gals['y'])))
     #print('min/max z: {:.2f} {:.2f}'.format(np.min(gals['z']), np.max(gals['z'])))
 
     #  overwrite redshifts with new redshifts
-    gals['target_halo_redshift'] = redshifts 
+    gals['target_halo_redshift'] = redshifts
 
     gals['mpeak'] = mpeak_synthetic[healpix_mask]
     gals['obs_sm'] = mstar_synthetic[healpix_mask]
