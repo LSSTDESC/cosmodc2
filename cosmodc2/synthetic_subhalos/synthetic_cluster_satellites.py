@@ -57,6 +57,8 @@ def calculate_synthetic_richness(halo_richness, logmhalo, logmhalo_source,
     boost_factor = np.interp(logmhalo, cluster_satboost_logm_table, cluster_satboost_table)
     dlogm = logmhalo - logmhalo_source
     outer_rim_boost_factor = 10.**dlogm
+    low, high = logm_outer_rim_effect - 0.25, logm_outer_rim_effect + 0.25
+    logm_outer_rim_effect = np.random.uniform(low, high, len(boost_factor))
     highmass_mask = logmhalo > logm_outer_rim_effect
     boost_factor = np.where(highmass_mask, outer_rim_boost_factor*boost_factor, boost_factor)
     return np.array(halo_richness*boost_factor, dtype=int)
