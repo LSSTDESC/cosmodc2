@@ -361,6 +361,8 @@ def build_output_snapshot_mock(
         target_halos['rot'], target_halos['richness'])
     dc2['lightcone_replication'] = np.repeat(
         target_halos['rep'], target_halos['richness'])
+    dc2['source_halo_mvir'] = np.repeat(
+        target_halos['matching_mvir'], target_halos['richness'])
 
     idxA, idxB = crossmatch(dc2['target_halo_id'], target_halos['halo_id'])
 
