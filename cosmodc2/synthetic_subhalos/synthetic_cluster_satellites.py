@@ -38,8 +38,8 @@ def nearby_hostmass_selection_indices(hostmass, desired_hostmass):
     return nn_indices
 
 
-def calculate_synthetic_richness(halo_richness, logmhalo,
-        cluster_satboost_logm_table, cluster_satboost_table):
+def calculate_synthetic_richness(halo_richness, logmhalo, logmhalo_source,
+        cluster_satboost_logm_table, cluster_satboost_table, logm_outer_rim_effect=14.75):
     """
     Parameters
     ----------
@@ -55,6 +55,12 @@ def calculate_synthetic_richness(halo_richness, logmhalo,
         Numpy integer array of shape (nhalos, ) storing the synthetic richness
     """
     boost_factor = np.interp(logmhalo, cluster_satboost_logm_table, cluster_satboost_table)
+    dlogm = logmhalo - logmhalo_source
+    outer_rim_boost_factor = 10.**dlogm
+    low, high = logm_outer_rim_effect - 0.25, logm_outer_rim_effect + 0.25
+    logm_outer_rim_effect = np.random.uniform(low, high, len(boost_factor))
+    highmass_mask = logmhalo > logm_outer_rim_effect
+    boost_factor = np.where(highmass_mask, outer_rim_boost_factor*boost_factor, boost_factor)
     return np.array(halo_richness*boost_factor, dtype=int)
 
 
@@ -66,11 +72,13 @@ def create_synthetic_cluster_satellites(mock, Lbox=256.,
     host_halo_id, idx, counts = np.unique(
         mock['target_halo_id'], return_counts=True, return_index=True)
     host_mass = mock['target_halo_mass'][idx]
+    source_halo_mvir = mock['source_halo_mvir'][idx]
     host_richness = counts
 
     synthetic_richness = calculate_synthetic_richness(
-        host_richness, np.log10(host_mass), cluster_satboost_logm_table,
-        cluster_satboost_table)
+        host_richness, np.log10(host_mass), np.log10(source_halo_mvir),
+        cluster_satboost_logm_table, cluster_satboost_table)
+
     if np.sum(synthetic_richness) > 0:
         synthetic_hostmass = np.repeat(host_mass, synthetic_richness)
 
