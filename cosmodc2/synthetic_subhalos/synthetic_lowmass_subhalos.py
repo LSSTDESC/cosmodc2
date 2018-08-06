@@ -1,10 +1,16 @@
 """
 """
 import numpy as np
+from astropy.utils.misc import NumpyRNGContext
+default_desired_logm_completeness = 9.75
 
 
-def synthetic_logmpeak(mpeak_orig, desired_logm_completeness, nout_max=np.inf, c0=5.5, c1=-0.15,
-                lowm_fit=11.5, highm_fit=12.25, dlogm_fit=0.1, return_fit=False):
+__all__ = ('synthetic_logmpeak', )
+
+
+def synthetic_logmpeak(mpeak_orig, desired_logm_completeness=default_desired_logm_completeness,
+            nout_max=np.inf, c0=5.5, c1=-0.15,
+            lowm_fit=11.5, highm_fit=12.25, dlogm_fit=0.1, return_fit=False, seed=43):
     """
     """
     logmbins_fit = np.arange(lowm_fit, highm_fit+dlogm_fit, dlogm_fit)
@@ -26,7 +32,8 @@ def synthetic_logmpeak(mpeak_orig, desired_logm_completeness, nout_max=np.inf, c
     delta_counts_cumprob = np.cumsum(delta_counts_extrap)/float(delta_counts_extrap.sum()+1)
 
     npts_out = int(min(nout_max, delta_counts_extrap.sum()))
-    uran = np.random.rand(npts_out)
+    with NumpyRNGContext(seed):
+        uran = np.random.rand(npts_out)
     mc_logm = np.interp(uran, delta_counts_cumprob, logmmids_extrap)
     outmask = mc_logm > desired_logm_completeness
     return mc_logm[outmask]

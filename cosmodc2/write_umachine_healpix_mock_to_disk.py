@@ -8,16 +8,18 @@ import re
 from time import time
 from astropy.table import Table, vstack
 from astropy.cosmology import FlatLambdaCDM
+from astropy.utils.misc import NumpyRNGContext
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
 from halotools.utils import crossmatch
 
-from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
+from cosmodc2.synthetic_subhalos import map_mstar_onto_lowmass_extension
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_centrals
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_satellites
 from cosmodc2.synthetic_subhalos import create_synthetic_cluster_satellites
+from cosmodc2.synthetic_subhalos import synthetic_logmpeak
 
 fof_halo_mass = 'fof_halo_mass'
 mass = 'mass'
@@ -163,14 +165,13 @@ def write_umachine_healpix_mock_to_disk(
         #  Correct stellar mass for low-mass subhalos and create synthetic mpeak
         ########################################################################
         print("...correcting low mass mpeak and assigning synthetic mpeak values")
+        mpeak_synthetic_snapshot = 10**synthetic_logmpeak(mock['mpeak'], seed=seed)
         num_selected_galaxies = len(source_galaxy_indx)
-        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(
-                mock['mpeak'], num_selected_galaxies, synthetic_halo_minimum_mass, Lbox=Lbox)
-        mock['mpeak'] = corrected_mpeak
-
-        #  Select (num_synthetic_gal_ratio*num_selected_galaxies) synthetic galaxies to keep file size down
-        num_synthetic_galaxies = int(num_synthetic_gal_ratio*num_selected_galaxies)
-        mpeak_synthetic = np.random.choice(mpeak_synthetic, size=num_synthetic_galaxies, replace=False)
+        frac_gals_in_healpix = num_selected_galaxies/float(len(mock))
+        num_synthetic_galaxies = int(frac_gals_in_healpix*len(mock))
+        with NumpyRNGContext(seed):
+            mpeak_synthetic = np.random.choice(
+                mpeak_synthetic_snapshot, size=num_synthetic_galaxies, replace=False)
         print('...assembling {} synthetic galaxies'.format(num_synthetic_galaxies))
 
         ########################################################################
