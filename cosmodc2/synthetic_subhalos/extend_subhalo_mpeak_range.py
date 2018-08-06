@@ -126,26 +126,28 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
 
 
 def create_synthetic_lowmass_mock_with_satellites(
-        mock, healpix_mock, mpeak_synthetic, mstar_synthetic,
+        mock, healpix_mock, synthetic_dict,
         halo_id_offset=0, halo_unique_id=0):
     """
     """
-    mstar_max = min(10**8., 10.**(np.log10(np.max(mstar_synthetic))+1))
+    mstar_max = min(10**8., 10.**(np.log10(np.max(synthetic_dict['mpeak']))+1))
     mock_sample_mask = mock['obs_sm'] < mstar_max
     num_sample = np.count_nonzero(mock_sample_mask)
-    selection_indices = np.random.randint(0, num_sample, len(mpeak_synthetic))
+    selection_indices = np.random.randint(0, num_sample, len(synthetic_dict['mpeak']))
 
     gals = Table()
+    #  populate gals table with selected galaxies
     for key in mock.keys():
-        gals[key] = mock[key][mock_sample_mask][selection_indices]
+        if key in list(synthetic_dict.keys()):
+            gals[key] = synthetic_dict[key]
+        else:
+            gals[key] = mock[key][mock_sample_mask][selection_indices]
+    ngals = len(gals)
 
-    gals['mpeak'] = mpeak_synthetic
-    gals['obs_sm'] = mstar_synthetic
-    gals['_obs_sm_orig_um_snap'] = mstar_synthetic
+    gals['_obs_sm_orig_um_snap'] = gals['obs_sm']
 
     host_mask = healpix_mock['upid'] == -1
     host_indices = np.arange(len(healpix_mock))[host_mask]
-    ngals = len(gals)
     selected_host_indices = np.random.choice(host_indices, ngals, replace=True)
     gals['target_halo_x'] = healpix_mock['target_halo_x'][selected_host_indices]
     gals['target_halo_y'] = healpix_mock['target_halo_y'][selected_host_indices]
@@ -196,7 +198,7 @@ def get_redshifts_from_comoving_distances(comoving_distances, H0=71.0, OmegaM=0.
     return redshifts
 
 
-def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthetic, mstar_synthetic,
+def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_dict,
                                                 cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648,
                                                 halo_id_offset=0, halo_unique_id=0):
     """
@@ -206,13 +208,13 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthe
         print('...missing cutout_id')
         return Table()
 
-    mstar_max = min(10**8., 10.**(np.log10(np.max(mstar_synthetic))+1))
+    ngals = len(synthetic_dict['mpeak'])
+    mstar_max = min(10**8., 10.**(np.log10(np.max(synthetic_dict['mpeak']))+1))
     mock_sample_mask = mock['obs_sm'] < mstar_max
     num_sample = np.count_nonzero(mock_sample_mask)
-    selection_indices = np.random.randint(0, num_sample, len(mpeak_synthetic))
+    selection_indices = np.random.randint(0, num_sample, ngals)
 
     gals = Table()
-    ngals = len(mpeak_synthetic)
     #  select positions inside box defined by halos in healpix mock and remove any locations outside the healpixel
     halo_healpixels = hp.pixelfunc.vec2pix(Nside, healpix_mock['target_halo_x'],
         healpix_mock['target_halo_y'], healpix_mock['target_halo_z'], nest=False)
@@ -239,22 +241,19 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthe
 
     #  populate gals table with selected galaxies
     for key in mock.keys():
-        gals[key] = mock[key][mock_sample_mask][selection_indices][healpix_mask]
+        if key in list(synthetic_dict.keys()):
+            gals[key] = synthetic_dict[key]
+        else:
+            gals[key] = mock[key][mock_sample_mask][selection_indices][healpix_mask]
 
     #  overwrite positions with new random positions from healpix selection
     gals['x'] = gals_x[healpix_mask]
     gals['y'] = gals_y[healpix_mask]
     gals['z'] = gals_z[healpix_mask]
-    #print('min/max x: {:.2f} {:.2f}'.format(np.min(gals['x']), np.max(gals['x'])))
-    #print('min/max y: {:.2f} {:.2f}'.format(np.min(gals['y']), np.max(gals['y'])))
-    #print('min/max z: {:.2f} {:.2f}'.format(np.min(gals['z']), np.max(gals['z'])))
 
     #  overwrite redshifts with new redshifts
     gals['target_halo_redshift'] = redshifts
-
-    gals['mpeak'] = mpeak_synthetic[healpix_mask]
-    gals['obs_sm'] = mstar_synthetic[healpix_mask]
-    gals['_obs_sm_orig_um_snap'] = mstar_synthetic[healpix_mask]
+    gals['_obs_sm_orig_um_snap'] = gals['obs_sm']
 
     ngals = len(gals)
 
