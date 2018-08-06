@@ -126,7 +126,8 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
 
 
 def create_synthetic_lowmass_mock_with_satellites(
-        mock, healpix_mock, mpeak_synthetic, mstar_synthetic):
+        mock, healpix_mock, mpeak_synthetic, mstar_synthetic,
+        halo_id_offset=0, halo_unique_id=0):
     """
     """
     mstar_max = min(10**8., 10.**(np.log10(np.max(mstar_synthetic))+1))
@@ -151,6 +152,7 @@ def create_synthetic_lowmass_mock_with_satellites(
     gals['target_halo_z'] = healpix_mock['target_halo_z'][selected_host_indices]
     gals['target_halo_mass'] = healpix_mock['target_halo_mass'][selected_host_indices]
     gals['upid'] = healpix_mock['target_halo_id'][selected_host_indices]
+    gals['target_halo_redshift'] = healpix_mock['target_halo_redshift'][selected_host_indices]
 
     gals['host_halo_mvir'] = gals['target_halo_mass']
 
@@ -175,14 +177,28 @@ def create_synthetic_lowmass_mock_with_satellites(
     ssfr = 10**norm.isf(1 - gals['sfr_percentile'], loc=-10, scale=0.5)
     gals['obs_sfr'] = ssfr*gals['obs_sm']
 
-    gals['halo_id'] = -1
+    gals['halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
     gals['lightcone_id'] = -1
 
     return gals
 
 
+def get_redshifts_from_comoving_distances(comoving_distances, H0=71.0, OmegaM=0.2648):
+    """
+    """
+    zmin = np.min(comoving_distances)
+    zmax = np.max(comoving_distances)
+    zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
+    cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
+    CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
+    redshifts = np.interp(comoving_distances, CDgrid, zgrid)
+
+    return redshifts
+
+
 def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthetic, mstar_synthetic,
-                                                cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648):
+                                                cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648,
+                                                halo_id_offset=0, halo_unique_id=0):
     """
     """
     import healpy as hp
@@ -219,12 +235,7 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthe
         return Table()
 
     #  compute redshifts from comoving distance
-    zmin = np.min(r_gals[healpix_mask])
-    zmax = np.max(r_gals[healpix_mask])
-    zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
-    cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
-    CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
-    redshifts = np.interp(r_gals[healpix_mask], CDgrid, zgrid)
+    redshifts = get_redshifts_from_comoving_distances(r_gals[healpix_mask], H0=H0, OmegaM=OmegaM)
 
     #  populate gals table with selected galaxies
     for key in mock.keys():
@@ -274,7 +285,7 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, mpeak_synthe
     ssfr = 10**norm.isf(1 - gals['sfr_percentile'], loc=-10, scale=0.5)
     gals['obs_sfr'] = ssfr*gals['obs_sm']
 
-    gals['halo_id'] = -1
+    gals['halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
     gals['lightcone_id'] = -1
 
     return gals
