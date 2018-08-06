@@ -5,7 +5,7 @@ from astropy.utils.misc import NumpyRNGContext
 default_desired_logm_completeness = 9.75
 
 
-__all__ = ('synthetic_logmpeak', )
+__all__ = ('synthetic_logmpeak',)
 
 
 def synthetic_logmpeak(mpeak_orig, desired_logm_completeness=default_desired_logm_completeness,
@@ -37,3 +37,4 @@ def synthetic_logmpeak(mpeak_orig, desired_logm_completeness=default_desired_log
     mc_logm = np.interp(uran, delta_counts_cumprob, logmmids_extrap)
     outmask = mc_logm > desired_logm_completeness
     return mc_logm[outmask]
+

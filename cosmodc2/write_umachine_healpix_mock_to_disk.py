@@ -165,13 +165,20 @@ def write_umachine_healpix_mock_to_disk(
         #  Correct stellar mass for low-mass subhalos and create synthetic mpeak
         ########################################################################
         print("...correcting low mass mpeak and assigning synthetic mpeak values")
+        #  First generate the appropriate number of synthetic galaxies for the snapshot
         mpeak_synthetic_snapshot = 10**synthetic_logmpeak(mock['mpeak'], seed=seed)
+
+        #  Now appropriately downsample the synthetic galaxies
+        #  according to the size of the healpixel
         num_selected_galaxies = len(source_galaxy_indx)
         frac_gals_in_healpix = num_selected_galaxies/float(len(mock))
         num_synthetic_galaxies = int(frac_gals_in_healpix*len(mock))
+        synthetic_indices = np.arange(0, mpeak_synthetic_snapshot).astype(int)
         with NumpyRNGContext(seed):
-            mpeak_synthetic = np.random.choice(
-                mpeak_synthetic_snapshot, size=num_synthetic_galaxies, replace=False)
+            selected_synthetic_indices = np.random.choice(
+                synthetic_indices, size=num_synthetic_galaxies, replace=False)
+        mpeak_synthetic = mpeak_synthetic_snapshot[selected_synthetic_indices]
+
         print('...assembling {} synthetic galaxies'.format(num_synthetic_galaxies))
 
         ########################################################################
