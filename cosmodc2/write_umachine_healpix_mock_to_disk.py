@@ -25,8 +25,10 @@ fof_max = 14.5
 H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
-cutoff_id_offset = 1e8  #  offset to guarantee unique galaxy ids across cutout files
+cutout_id_offset_galaxy = 1e8  #  offset to guarantee unique galaxy ids across cutout files
 z_offsets = [0, 2e7, 6e7]  #  offset to guarantee unique galaxy ids across z-ranges
+cutout_id_offset_halo = int(1e3)  #  offset to generate unique id for cutouts and snapshots
+halo_id_offset = int(1e6)  #  offset to guarantee unique halo ids across cutout files and snapshots
 
 Nside = 2048  #  fine pixelization for determining sky area
 Nside_cosmoDC2 = 8
@@ -91,7 +93,8 @@ def write_umachine_healpix_mock_to_disk(
 
     cutout_number = file_ids[-1]
     z_range_id = file_ids[0]
-    galaxy_id_offset = int(cutout_number*cutoff_id_offset + z_offsets[z_range_id])
+    galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy + z_offsets[z_range_id]) 
+    halo_id_cutout_offset = int(cutout_number*cutout_id_offset_halo)
 
     #  determine seed from output filename
     seed = get_random_seed(output_mock_basename)
@@ -102,13 +105,16 @@ def write_umachine_healpix_mock_to_disk(
 
     print('\nStarting snapshot processing')
     print('Synthetic-halo minimum mass =  {}'.format(synthetic_halo_minimum_mass))
-    print('Using galaxy-id offset = {}'.format(galaxy_id_offset))
     print('Using {} synthetic low-mass galaxies'.format('central' if use_centrals else 'satellite'))
+    print('Using halo-id offset = {}'.format(halo_id_offset))
+    print('Using galaxy-id offset = {}'.format(galaxy_id_offset))
     for a, b, c, d in gen:
         umachine_mock_fname = a
         umachine_halos_fname = b
         redshift = c
         snapshot = d
+        halo_unique_id = int(halo_id_cutout_offset + int(snapshot))
+        print('Using halo_unique id = {}'.format(halo_unique_id))
 
         new_time_stamp = time()
 
@@ -123,7 +129,7 @@ def write_umachine_healpix_mock_to_disk(
         print("\n...loading z = {0:.2f} halo catalogs into memory".format(redshift))
         source_halos = Table.read(umachine_halos_fname, path='data')
         #
-        target_halos = get_astropy_table(healpix_data[snapshot])
+        target_halos = get_astropy_table(healpix_data[snapshot], halo_unique_id=halo_unique_id)
         fof_halo_mass_max = max(np.max(target_halos[fof_halo_mass].quantity.value), fof_halo_mass_max)
 
         print("...Finding halo--halo correspondence with GalSampler")
@@ -247,7 +253,7 @@ def write_umachine_healpix_mock_to_disk(
         output_mock[snapshot] = build_output_snapshot_mock(
                 mock, target_halos, source_galaxy_indx, galaxy_id_offset,
                 mpeak_synthetic, mstar_synthetic, Nside_cosmoDC2, cutout_number,
-                redshift_method='halo', use_centrals=use_centrals)
+                halo_unique_id=halo_unique_id, redshift_method='halo', use_centrals=use_centrals)
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
         Ngals_total += len(output_mock[snapshot]['galaxy_id'])
@@ -288,7 +294,7 @@ def get_random_seed(filename, seed_max=4294967095):  #reduce max seed by 200 to 
     return seed
 
 
-def get_astropy_table(table_data, check=False):
+def get_astropy_table(table_data, halo_unique_id=0, check=False):
     """
     """
     t = Table()
@@ -297,7 +303,7 @@ def get_astropy_table(table_data, check=False):
 
     t.rename_column('id', 'fof_halo_id')
     t['halo_redshift'] = 1/t['a'] - 1.
-    t['halo_id'] = np.arange(len(table_data['id'])).astype(int)
+    t['halo_id'] = (np.arange(len(table_data['id']))*halo_id_offset + halo_unique_id).astype(int)
 
     #  rename column mass if found
     if mass in t.colnames:
@@ -316,7 +322,7 @@ def get_astropy_table(table_data, check=False):
 def build_output_snapshot_mock(
             umachine, target_halos, galaxy_indices, galaxy_id_offset,
             mpeak_synthetic, mstar_synthetic, Nside, cutout_number,
-            redshift_method='galaxy', use_centrals=True):
+            halo_unique_id=0, redshift_method='galaxy', use_centrals=True):
     """
     Collect the GalSampled snapshot mock into an astropy table
 
@@ -427,10 +433,11 @@ def build_output_snapshot_mock(
         if use_centrals:
             lowmass_mock = create_synthetic_lowmass_mock_with_centrals(
                 umachine, dc2, mpeak_synthetic, mstar_synthetic, Nside=Nside, cutout_id=cutout_number,
-                H0=H0, OmegaM=OmegaM)
+                H0=H0, OmegaM=OmegaM, halo_id_offset=halo_id_offset, halo_unique_id=halo_unique_id)
         else:
             lowmass_mock = create_synthetic_lowmass_mock_with_satellites(
-                umachine, dc2, mpeak_synthetic, mstar_synthetic)
+                umachine, dc2, mpeak_synthetic, mstar_synthetic,
+                halo_id_offset=halo_id_offset, halo_unique_id=halo_unique_id)
         if len(lowmass_mock) > 0:
             dc2 = vstack((dc2, lowmass_mock))
             print('...time to create {} galaxies in synthetic_lowmass_mock = {:.2f} secs'.format(len(lowmass_mock['halo_id']), time()-check_time))

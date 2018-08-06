@@ -57,7 +57,7 @@ parser.add_argument("-zrange_value",
     default='all')                
 parser.add_argument("-synthetic_mass_min",
     help="Value of minimum halo mass for synthetic halos",
-    type=float, default=10.1)
+                    type=float, default=9.8)
 parser.add_argument("-use_centrals",
     help="Use central synthetic low-mass galaxies",
     default='satellites')
