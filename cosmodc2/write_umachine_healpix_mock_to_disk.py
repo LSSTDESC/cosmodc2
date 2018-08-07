@@ -208,7 +208,6 @@ def write_umachine_healpix_mock_to_disk(
 
         #  Assign colors to synthetic low-mass galaxies
         synthetic_upid = np.zeros_like(mpeak_synthetic_snapshot).astype(int) - 1
-        synthetic_halo_mass = np.zeros_like(mpeak_synthetic_snapshot) + 1e12
         synthetic_redshift = np.zeros_like(mpeak_synthetic_snapshot) + redshift
         with NumpyRNGContext(seed):
             synthetic_sfr_percentile = np.random.uniform(0, 1, len(synthetic_upid))
@@ -220,13 +219,15 @@ def write_umachine_healpix_mock_to_disk(
 
         #  Now appropriately downsample the synthetic galaxies
         #  according to the size of the healpixel
-        num_selected_galaxies = len(source_galaxy_indx)
-        frac_gals_in_healpix = num_selected_galaxies/float(len(mock))
-        num_synthetic_galaxies = int(frac_gals_in_healpix*len(mock))
-        synthetic_indices = np.arange(0, mpeak_synthetic_snapshot).astype(int)
+        num_galsampled_into_healpix = len(source_galaxy_indx)
+        frac_gals_in_healpix = num_galsampled_into_healpix/float(len(mock))
+        num_synthetic_gals_in_snapshot = len(mpeak_synthetic_snapshot)
+        num_synthetic_in_healpix = int(frac_gals_in_healpix*num_synthetic_gals_in_snapshot)
+        num_selected_synthetic = int(num_synthetic_in_healpix*num_synthetic_gal_ratio)
+        synthetic_indices = np.arange(0, num_synthetic_gals_in_snapshot).astype(int)
         with NumpyRNGContext(seed):
             selected_synthetic_indices = np.random.choice(
-                synthetic_indices, size=num_synthetic_galaxies, replace=False)
+                synthetic_indices, size=num_selected_synthetic, replace=False)
         mpeak_synthetic = mpeak_synthetic_snapshot[selected_synthetic_indices]
         mstar_synthetic = mstar_synthetic_snapshot[selected_synthetic_indices]
         magr_synthetic = magr_synthetic_snapshot[selected_synthetic_indices]
