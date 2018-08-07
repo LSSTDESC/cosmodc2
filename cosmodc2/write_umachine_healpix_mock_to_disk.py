@@ -172,7 +172,8 @@ def write_umachine_healpix_mock_to_disk(
         ########################################################################
         print("...correcting low mass mpeak and assigning synthetic mpeak values")
         #  First generate the appropriate number of synthetic galaxies for the snapshot
-        mpeak_synthetic_snapshot = 10**synthetic_logmpeak(mock['mpeak'], seed=seed)
+        mpeak_synthetic_snapshot = 10**synthetic_logmpeak(
+            mock['mpeak'], seed=seed, desired_logm_completeness=synthetic_halo_minimum_mass)
         print('...assembling {} synthetic galaxies'.format(len(mpeak_synthetic_snapshot)))
 
         ########################################################################
