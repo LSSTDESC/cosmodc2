@@ -8,16 +8,18 @@ import re
 from time import time
 from astropy.table import Table, vstack
 from astropy.cosmology import FlatLambdaCDM
+from astropy.utils.misc import NumpyRNGContext
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
 from halotools.utils import crossmatch
 
-from cosmodc2.synthetic_subhalos import model_extended_mpeak, map_mstar_onto_lowmass_extension
+from cosmodc2.synthetic_subhalos import map_mstar_onto_lowmass_extension
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_centrals
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_satellites
 from cosmodc2.synthetic_subhalos import create_synthetic_cluster_satellites
+from cosmodc2.synthetic_subhalos import synthetic_logmpeak
 
 fof_halo_mass = 'fof_halo_mass'
 mass = 'mass'
@@ -93,7 +95,7 @@ def write_umachine_healpix_mock_to_disk(
 
     cutout_number = file_ids[-1]
     z_range_id = file_ids[0]
-    galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy + z_offsets[z_range_id]) 
+    galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy + z_offsets[z_range_id])
     halo_id_cutout_offset = int(cutout_number*cutout_id_offset_halo)
 
     #  determine seed from output filename
@@ -169,15 +171,10 @@ def write_umachine_healpix_mock_to_disk(
         #  Correct stellar mass for low-mass subhalos and create synthetic mpeak
         ########################################################################
         print("...correcting low mass mpeak and assigning synthetic mpeak values")
-        num_selected_galaxies = len(source_galaxy_indx)
-        corrected_mpeak, mpeak_synthetic = model_extended_mpeak(
-                mock['mpeak'], num_selected_galaxies, synthetic_halo_minimum_mass, Lbox=Lbox)
-        mock['mpeak'] = corrected_mpeak
-
-        #  Select (num_synthetic_gal_ratio*num_selected_galaxies) synthetic galaxies to keep file size down
-        num_synthetic_galaxies = int(num_synthetic_gal_ratio*num_selected_galaxies)
-        mpeak_synthetic = np.random.choice(mpeak_synthetic, size=num_synthetic_galaxies, replace=False)
-        print('...assembling {} synthetic galaxies'.format(num_synthetic_galaxies))
+        #  First generate the appropriate number of synthetic galaxies for the snapshot
+        mpeak_synthetic_snapshot = 10**synthetic_logmpeak(
+            mock['mpeak'], seed=seed, desired_logm_completeness=synthetic_halo_minimum_mass)
+        print('...assembling {} synthetic galaxies'.format(len(mpeak_synthetic_snapshot)))
 
         ########################################################################
         #  Assign stellar mass, using Outer Rim halo mass for very massive halos
@@ -206,9 +203,43 @@ def write_umachine_healpix_mock_to_disk(
 
         #  Add call to map_mstar_onto_lowmass_extension function after pre-determining low-mass slope
         print("...re-assigning low-mass mstar values")
-        new_mstar_real, mstar_synthetic = map_mstar_onto_lowmass_extension(
-            mock['mpeak'], mock['obs_sm'], mpeak_synthetic)
+        new_mstar_real, mstar_synthetic_snapshot = map_mstar_onto_lowmass_extension(
+            mock['mpeak'], mock['obs_sm'], mpeak_synthetic_snapshot)
         mock['obs_sm'] = new_mstar_real
+
+        #  Assign colors to synthetic low-mass galaxies
+        synthetic_upid = np.zeros_like(mpeak_synthetic_snapshot).astype(int) - 1
+        synthetic_redshift = np.zeros_like(mpeak_synthetic_snapshot) + redshift
+        with NumpyRNGContext(seed):
+            synthetic_sfr_percentile = np.random.uniform(0, 1, len(synthetic_upid))
+        _result = assign_restframe_sdss_gri(
+            synthetic_upid, mstar_synthetic_snapshot, synthetic_sfr_percentile,
+            mpeak_synthetic_snapshot, synthetic_redshift, seed=seed)
+        (magr_synthetic_snapshot, gr_synthetic_snapshot, ri_synthetic_snapshot,
+            is_red_gr_synthetic_snapshot, is_red_ri_synthetic_snapshot) = _result
+
+        #  Now appropriately downsample the synthetic galaxies
+        #  according to the size of the healpixel
+        num_galsampled_into_healpix = len(source_galaxy_indx)
+        frac_gals_in_healpix = num_galsampled_into_healpix/float(len(mock))
+        num_synthetic_gals_in_snapshot = len(mpeak_synthetic_snapshot)
+        num_synthetic_in_healpix = int(frac_gals_in_healpix*num_synthetic_gals_in_snapshot)
+        num_selected_synthetic = int(num_synthetic_in_healpix*num_synthetic_gal_ratio)
+        synthetic_indices = np.arange(0, num_synthetic_gals_in_snapshot).astype(int)
+        with NumpyRNGContext(seed):
+            selected_synthetic_indices = np.random.choice(
+                synthetic_indices, size=num_selected_synthetic, replace=False)
+        mpeak_synthetic = mpeak_synthetic_snapshot[selected_synthetic_indices]
+        mstar_synthetic = mstar_synthetic_snapshot[selected_synthetic_indices]
+        magr_synthetic = magr_synthetic_snapshot[selected_synthetic_indices]
+        gr_synthetic = gr_synthetic_snapshot[selected_synthetic_indices]
+        ri_synthetic = ri_synthetic_snapshot[selected_synthetic_indices]
+        is_red_gr_synthetic = is_red_gr_synthetic_snapshot[selected_synthetic_indices]
+        is_red_ri_synthetic = is_red_ri_synthetic_snapshot[selected_synthetic_indices]
+        synthetic_dict = dict(
+            mpeak=mpeak_synthetic, obs_sm=mstar_synthetic, restframe_extincted_sdss_abs_magr=magr_synthetic,
+            restframe_extincted_sdss_gr=gr_synthetic, restframe_extincted_sdss_ri=ri_synthetic,
+            is_on_red_sequence_gr=is_red_gr_synthetic, is_on_red_sequence_ri=is_red_ri_synthetic)
 
         #  Assign target halo id and target halo mass to selected galaxies in mock
         mock_target_halo_id = np.zeros(len(mock)) - 1.
@@ -252,7 +283,7 @@ def write_umachine_healpix_mock_to_disk(
         print("...building output snapshot mock for snapshot {}".format(snapshot))
         output_mock[snapshot] = build_output_snapshot_mock(
                 mock, target_halos, source_galaxy_indx, galaxy_id_offset,
-                mpeak_synthetic, mstar_synthetic, Nside_cosmoDC2, cutout_number,
+                synthetic_dict, Nside_cosmoDC2, cutout_number,
                 halo_unique_id=halo_unique_id, redshift_method='halo', use_centrals=use_centrals)
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['halo_id'])  #increment offset
 
@@ -321,7 +352,7 @@ def get_astropy_table(table_data, halo_unique_id=0, check=False):
 
 def build_output_snapshot_mock(
             umachine, target_halos, galaxy_indices, galaxy_id_offset,
-            mpeak_synthetic, mstar_synthetic, Nside, cutout_number,
+            synthetic_dict, Nside, cutout_number,
             halo_unique_id=0, redshift_method='galaxy', use_centrals=True):
     """
     Collect the GalSampled snapshot mock into an astropy table
@@ -428,15 +459,15 @@ def build_output_snapshot_mock(
         dc2 = vstack((dc2, fake_cluster_sats))
         print('...time to create {} galaxies in fake_cluster_sats = {:.2f} secs'.format(len(fake_cluster_sats['halo_id']), time()-check_time))
 
-    if len(mpeak_synthetic) > 0:
+    if len(synthetic_dict['mpeak']) > 0:
         check_time = time()
         if use_centrals:
             lowmass_mock = create_synthetic_lowmass_mock_with_centrals(
-                umachine, dc2, mpeak_synthetic, mstar_synthetic, Nside=Nside, cutout_id=cutout_number,
+                umachine, dc2, synthetic_dict, Nside=Nside, cutout_id=cutout_number,
                 H0=H0, OmegaM=OmegaM, halo_id_offset=halo_id_offset, halo_unique_id=halo_unique_id)
         else:
             lowmass_mock = create_synthetic_lowmass_mock_with_satellites(
-                umachine, dc2, mpeak_synthetic, mstar_synthetic,
+                umachine, dc2, synthetic_dict,
                 halo_id_offset=halo_id_offset, halo_unique_id=halo_unique_id)
         if len(lowmass_mock) > 0:
             dc2 = vstack((dc2, lowmass_mock))
