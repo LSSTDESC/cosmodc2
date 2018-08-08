@@ -214,7 +214,6 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
     num_sample = np.count_nonzero(mock_sample_mask)
     selection_indices = np.random.randint(0, num_sample, ngals)
 
-    gals = Table()
     #  select positions inside box defined by halos in healpix mock and remove any locations outside the healpixel
     halo_healpixels = hp.pixelfunc.vec2pix(Nside, healpix_mock['target_halo_x'],
         healpix_mock['target_halo_y'], healpix_mock['target_halo_z'], nest=False)
@@ -239,12 +238,14 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
     #  compute redshifts from comoving distance
     redshifts = get_redshifts_from_comoving_distances(r_gals[healpix_mask], H0=H0, OmegaM=OmegaM)
 
+    gals = Table()
     #  populate gals table with selected galaxies
     for key in mock.keys():
         if key in list(synthetic_dict.keys()):
             gals[key] = synthetic_dict[key]
         else:
-            gals[key] = mock[key][mock_sample_mask][selection_indices][healpix_mask]
+            gals[key] = mock[key][mock_sample_mask][selection_indices]
+    gals = gals[healpix_mask]
 
     #  overwrite positions with new random positions from healpix selection
     gals['x'] = gals_x[healpix_mask]
