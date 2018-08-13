@@ -155,6 +155,9 @@ def create_synthetic_lowmass_mock_with_satellites(
     gals['target_halo_mass'] = healpix_mock['target_halo_mass'][selected_host_indices]
     gals['upid'] = healpix_mock['target_halo_id'][selected_host_indices]
     gals['target_halo_redshift'] = healpix_mock['target_halo_redshift'][selected_host_indices]
+    gals['target_halo_vx'] = healpix_mock['target_halo_vx'][selected_host_indices]
+    gals['target_halo_vy'] = healpix_mock['target_halo_vy'][selected_host_indices]
+    gals['target_halo_vz'] = healpix_mock['target_halo_vz'][selected_host_indices]
 
     gals['host_halo_mvir'] = gals['target_halo_mass']
 
@@ -168,28 +171,25 @@ def create_synthetic_lowmass_mock_with_satellites(
     gals['y'] = gals['host_centric_y'] + gals['target_halo_y']
     gals['z'] = gals['host_centric_z'] + gals['target_halo_z']
 
-    gals['vx'] = np.random.uniform(-100, 100, ngals)
-    gals['vy'] = np.random.uniform(-100, 100, ngals)
-    gals['vz'] = np.random.uniform(-100, 100, ngals)
-    gals['host_centric_vx'] = 0.
-    gals['host_centric_vy'] = 0.
-    gals['host_centric_vz'] = 0.
+    gals['vx'] = np.random.uniform(-100, 100, ngals) + gals['target_halo_vx']
+    gals['vy'] = np.random.uniform(-100, 100, ngals) + gals['target_halo_vy']
+    gals['vz'] = np.random.uniform(-100, 100, ngals) + gals['target_halo_vz']
 
     gals['sfr_percentile'] = np.random.uniform(0, 1, ngals)
     ssfr = 10**norm.isf(1 - gals['sfr_percentile'], loc=-10, scale=0.5)
     gals['obs_sfr'] = ssfr*gals['obs_sm']
 
     gals['halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
+    
+    print('...Max and min synthetic halo_id = {} -> {}'.format(np.min(gals['halo_id']), np.max(gals['halo_id'])))
     gals['lightcone_id'] = -1
 
     return gals
 
 
-def get_redshifts_from_comoving_distances(comoving_distances, H0=71.0, OmegaM=0.2648):
+def get_redshifts_from_comoving_distances(comoving_distances, zmin, zmax, H0=71.0, OmegaM=0.2648):
     """
     """
-    zmin = np.min(comoving_distances)
-    zmax = np.max(comoving_distances)
     zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
     cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
     CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
@@ -236,7 +236,10 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
         return Table()
 
     #  compute redshifts from comoving distance
-    redshifts = get_redshifts_from_comoving_distances(r_gals[healpix_mask], H0=H0, OmegaM=OmegaM)
+    redshifts = get_redshifts_from_comoving_distances(r_gals[healpix_mask], 
+                    np.min(healpix_mock['target_halo_redshift'][healpix_mask]),
+                    np.max(healpix_mock['target_halo_redshift'][healpix_mask]), H0=H0, OmegaM=OmegaM)
+    print('...Min and max synthetic redshifts = {} -> {}'.format(np.min(redshifts), np.max(redshifts)))
 
     gals = Table()
     #  populate gals table with selected galaxies
@@ -286,6 +289,7 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
     gals['obs_sfr'] = ssfr*gals['obs_sm']
 
     gals['halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
+    print('...Max and min synthetic halo_id = {} -> {}'.format(np.min(gals['halo_id']), np.max(gals['halo_id'])))
     gals['lightcone_id'] = -1
 
     return gals

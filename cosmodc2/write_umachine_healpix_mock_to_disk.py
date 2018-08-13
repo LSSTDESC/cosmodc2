@@ -229,6 +229,8 @@ def write_umachine_healpix_mock_to_disk(
         with NumpyRNGContext(seed):
             selected_synthetic_indices = np.random.choice(
                 synthetic_indices, size=num_selected_synthetic, replace=False)
+        print('...down-sampling synthetic galaxies by {:.2g} to yield {} selected synthetics'.format(frac_gals_in_healpix, 
+                                                                                      num_selected_synthetic)) 
         mpeak_synthetic = mpeak_synthetic_snapshot[selected_synthetic_indices]
         mstar_synthetic = mstar_synthetic_snapshot[selected_synthetic_indices]
         magr_synthetic = magr_synthetic_snapshot[selected_synthetic_indices]
@@ -474,6 +476,7 @@ def build_output_snapshot_mock(
             print('...time to create {} galaxies in synthetic_lowmass_mock = {:.2f} secs'.format(len(lowmass_mock['halo_id']), time()-check_time))
 
     dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['halo_id'])).astype(int)
+    print('...Min and max galaxy_id = {} -> {}'.format(np.min(dc2['galaxy_id']), np.max(dc2['galaxy_id'])))
 
     #  Use gr and ri color to compute gi flux
     dc2['restframe_extincted_sdss_abs_magg'] = (
@@ -493,8 +496,8 @@ def build_output_snapshot_mock(
         dc2['redshift'] = dc2['target_halo_redshift']  #  copy halo redshifts to galaxies
         if redshift_method == 'galaxy':
             #  generate distance estimates for values between min and max redshifts
-            zmin = np.min(dc2['redshift_halo_only'])
-            zmax = np.max(dc2['redshift_halo_only'])
+            zmin = np.min(dc2['redshift'])
+            zmax = np.max(dc2['redshift'])
             zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
             cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
             CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
