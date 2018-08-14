@@ -118,6 +118,7 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
 
     new_mstar = np.zeros_like(composite_mpeak)
     new_mstar[:len(obs_sm_orig)] = obs_sm_orig
+    new_mstar[len(obs_sm_orig):] = new_mstar_lowmass[len(obs_sm_orig):]
     new_mstar[reassign_mstar_mask] = new_mstar_lowmass[reassign_mstar_mask]
 
     new_mstar_real = new_mstar[:len(obs_sm_orig)]
