@@ -96,7 +96,7 @@ def main_sequence_peak_gr(magr, redshift):
 def red_sequence_peak_gr(magr, redshift):
     """
     """
-    ymin, ymax = main_sequence_gr_zevol_sigmoid_params(magr)
+    ymin, ymax = red_sequence_gr_zevol_sigmoid_params(magr)
     return sigmoid(redshift, x0=0.7, k=7, ymin=ymin, ymax=ymax)
 
 
