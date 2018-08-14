@@ -70,16 +70,6 @@ def quiescent_fraction_ri(magr, redshift):
     return fq_at_z
 
 
-def red_sequence_peak_ri(magr, red_peak_ri, redshift, red_peak_ri_zevol_shift_table,
-            x=red_peak_ri_abscissa):
-    """
-    Location of the median value of <g-r | Mr> for quiescent galaxies.
-    """
-    z0_peak = _sequence_peak(magr, x, red_peak_ri)
-    zevol_factor = _peak_zevol_factor(redshift, red_peak_ri_zevol_shift_table)
-    return z0_peak + zevol_factor
-
-
 def red_sequence_width_ri(magr, red_scatter_ri, redshift, red_ri_scatter_zevol_table,
             x=red_peak_ri_abscissa):
     """
@@ -91,14 +81,38 @@ def red_sequence_width_ri(magr, red_scatter_ri, redshift, red_ri_scatter_zevol_t
     return z0_scatter*zevol_factor
 
 
-def main_sequence_peak_ri(magr, ms_peak_ri, redshift, ms_peak_ri_zevol_shift_table,
-            x=ms_peak_ri_abscissa):
+def main_sequence_ri_zevol_sigmoid_params(r):
     """
-    Location of the median value of <g-r | Mr> for star-forming galaxies.
     """
-    z0_peak = _sequence_peak(magr, x, ms_peak_ri)
-    zevol_factor = _peak_zevol_factor(redshift, ms_peak_ri_zevol_shift_table)
-    return z0_peak + zevol_factor
+    ymin = sigmoid(r, x0=-21, ymin=0.46, ymax=0.2, k=0.8)
+    ymax = sigmoid(r, x0=-21., ymin=0.18, ymax=-0.04, k=1)
+    return ymin, ymax
+
+
+def red_sequence_ri_zevol_sigmoid_params(r):
+    """
+    """
+    c0_ymin, c1_ymin = 0.2646, -0.0063
+    ymin = c0_ymin + c1_ymin*r
+
+    c0_ymax, c1_ymax = 0.0419, -0.00695
+    ymax = c0_ymax + c1_ymax*r
+
+    return ymin, ymax
+
+
+def main_sequence_peak_ri(magr, redshift):
+    """
+    """
+    ymin, ymax = main_sequence_ri_zevol_sigmoid_params(magr)
+    return sigmoid(redshift, x0=0.7, k=7, ymin=ymin, ymax=ymax)
+
+
+def red_sequence_peak_ri(magr, redshift):
+    """
+    """
+    ymin, ymax = red_sequence_ri_zevol_sigmoid_params(magr)
+    return sigmoid(redshift, x0=0.7, k=7, ymin=ymin, ymax=ymax)
 
 
 def main_sequence_width_ri(magr, ms_scatter_ri, redshift, ms_ri_scatter_zevol_table,
@@ -154,14 +168,12 @@ def r_minus_i(magr, redshift, seed=None,
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_ri(magr, redshift)
 
-    red_sequence_loc = red_sequence_peak_ri(
-        magr[is_quiescent], red_peak_ri, redshift[is_quiescent], red_peak_ri_zevol_shift_table)
+    red_sequence_loc = red_sequence_peak_ri(magr[is_quiescent], redshift[is_quiescent])
     red_sequence_scatter = red_sequence_width_ri(magr[is_quiescent],
             red_scatter_ri, redshift[is_quiescent], red_scatter_ri_zevol_table)
     red_sequence = np.random.normal(loc=red_sequence_loc, scale=red_sequence_scatter)
 
-    ms_sequence_loc = main_sequence_peak_ri(
-        magr[~is_quiescent], ms_peak_ri, redshift[~is_quiescent], ms_peak_ri_zevol_shift_table)
+    ms_sequence_loc = main_sequence_peak_ri(magr[~is_quiescent], redshift[~is_quiescent])
     ms_sequence_scatter = main_sequence_width_ri(magr[~is_quiescent],
             ms_scatter_ri, redshift[~is_quiescent], ms_scatter_ri_zevol_table)
     main_sequence = np.random.normal(loc=ms_sequence_loc, scale=ms_sequence_scatter)
