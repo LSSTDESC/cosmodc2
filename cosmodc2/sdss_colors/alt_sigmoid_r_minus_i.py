@@ -46,21 +46,6 @@ def sigmoid(x, x0=0, k=1, ymin=0, ymax=1):
     return ymin + height_diff/(1 + np.exp(-k*(x-x0)))
 
 
-def red_sequence_ri_zevol_sigmoid_params(r):
-    """
-    """
-    ymin = sigmoid(r, x0=-21, ymin=0.46, ymax=0.2, k=0.8)
-    ymax = sigmoid(r, x0=-21., ymin=0.18, ymax=-0.04, k=1)
-    return ymin, ymax
-
-
-def red_sequence_peak_ri(magr, redshift):
-    """
-    """
-    ymin, ymax = red_sequence_ri_zevol_sigmoid_params(magr)
-    return sigmoid(redshift, x0=0.7, k=7, ymin=ymin, ymax=ymax)
-
-
 def fq_ri_z0_vs_magr(magr, mr_z0_fq_ri_pivot=default_mr_z0_fq_ri_pivot,
             mr_z0_fq_ri_k=default_mr_z0_fq_ri_k, fq_ri_z0_floor=default_fq_ri_z0_floor,
             fq_ri_z0_ceil=default_fq_ri_z0_ceil):
@@ -83,6 +68,16 @@ def quiescent_fraction_ri(magr, redshift):
     fq_z1 = fq_ri_z1_vs_magr(magr)
     fq_at_z = sigmoid(redshift, x0=0.5, k=12, ymin=fq_z0, ymax=fq_z1)
     return fq_at_z
+
+
+def red_sequence_peak_ri(magr, red_peak_ri, redshift, red_peak_ri_zevol_shift_table,
+            x=red_peak_ri_abscissa):
+    """
+    Location of the median value of <g-r | Mr> for quiescent galaxies.
+    """
+    z0_peak = _sequence_peak(magr, x, red_peak_ri)
+    zevol_factor = _peak_zevol_factor(redshift, red_peak_ri_zevol_shift_table)
+    return z0_peak + zevol_factor
 
 
 def red_sequence_width_ri(magr, red_scatter_ri, redshift, red_ri_scatter_zevol_table,
@@ -159,7 +154,8 @@ def r_minus_i(magr, redshift, seed=None,
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_ri(magr, redshift)
 
-    red_sequence_loc = red_sequence_peak_ri(magr[is_quiescent], redshift[is_quiescent])
+    red_sequence_loc = red_sequence_peak_ri(
+        magr[is_quiescent], red_peak_ri, redshift[is_quiescent], red_peak_ri_zevol_shift_table)
     red_sequence_scatter = red_sequence_width_ri(magr[is_quiescent],
             red_scatter_ri, redshift[is_quiescent], red_scatter_ri_zevol_table)
     red_sequence = np.random.normal(loc=red_sequence_loc, scale=red_sequence_scatter)
