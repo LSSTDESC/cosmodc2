@@ -70,14 +70,34 @@ def quiescent_fraction_gr(magr, redshift):
     return fq_at_z
 
 
-def red_sequence_peak_gr(magr, red_peak_gr, redshift, red_peak_gr_zevol_shift_table,
-            x=red_peak_gr_abscissa):
+def main_sequence_gr_zevol_sigmoid_params(r):
     """
-    Location of the median value of <g-r | Mr> for quiescent galaxies.
     """
-    z0_peak = _sequence_peak(magr, x, red_peak_gr)
-    zevol_factor = _peak_zevol_factor(redshift, red_peak_gr_zevol_shift_table)
-    return z0_peak + zevol_factor
+    ymin = sigmoid(r, x0=-20.5, ymin=0.75, ymax=0.375, k=0.7)
+    ymax = sigmoid(r, x0=-20.5, ymin=0.385, ymax=0.02, k=0.7)
+    return ymin, ymax
+
+
+def red_sequence_gr_zevol_sigmoid_params(r):
+    """
+    """
+    ymin = sigmoid(r, x0=-20.85, ymin=0.94, ymax=0.695, k=1)
+    ymax = sigmoid(r, x0=-20.5, ymin=0.665, ymax=0.385, k=0.8)
+    return ymin, ymax
+
+
+def main_sequence_peak_gr(magr, redshift):
+    """
+    """
+    ymin, ymax = main_sequence_gr_zevol_sigmoid_params(magr)
+    return sigmoid(redshift, x0=0.7, k=7, ymin=ymin, ymax=ymax)
+
+
+def red_sequence_peak_gr(magr, redshift):
+    """
+    """
+    ymin, ymax = red_sequence_gr_zevol_sigmoid_params(magr)
+    return sigmoid(redshift, x0=0.7, k=7, ymin=ymin, ymax=ymax)
 
 
 def red_sequence_width_gr(magr, red_scatter_gr, redshift, red_gr_scatter_zevol_table,
@@ -89,16 +109,6 @@ def red_sequence_width_gr(magr, red_scatter_gr, redshift, red_gr_scatter_zevol_t
     zevol_factor = _scatter_zevol_factor(
             redshift, scatter_zevol_z_table, red_gr_scatter_zevol_table)
     return z0_scatter*zevol_factor
-
-
-def main_sequence_peak_gr(magr, ms_peak_gr, redshift, ms_peak_gr_zevol_shift_table,
-            x=ms_peak_gr_abscissa):
-    """
-    Location of the median value of <g-r | Mr> for star-forming galaxies.
-    """
-    z0_peak = _sequence_peak(magr, x, ms_peak_gr)
-    zevol_factor = _peak_zevol_factor(redshift, ms_peak_gr_zevol_shift_table)
-    return z0_peak + zevol_factor
 
 
 def main_sequence_width_gr(magr, ms_scatter_gr, redshift, ms_gr_scatter_zevol_table,
@@ -154,14 +164,12 @@ def g_minus_r(magr, redshift, seed=None,
     with NumpyRNGContext(seed):
         is_quiescent = np.random.rand(ngals) < quiescent_fraction_gr(magr, redshift)
 
-    red_sequence_loc = red_sequence_peak_gr(
-        magr[is_quiescent], red_peak_gr, redshift[is_quiescent], red_peak_gr_zevol_shift_table)
+    red_sequence_loc = red_sequence_peak_gr(magr[is_quiescent], redshift[is_quiescent])
     red_sequence_scatter = red_sequence_width_gr(magr[is_quiescent],
             red_scatter_gr, redshift[is_quiescent], red_scatter_gr_zevol_table)
     red_sequence = np.random.normal(loc=red_sequence_loc, scale=red_sequence_scatter)
 
-    ms_sequence_loc = main_sequence_peak_gr(
-        magr[~is_quiescent], ms_peak_gr, redshift[~is_quiescent], ms_peak_gr_zevol_shift_table)
+    ms_sequence_loc = main_sequence_peak_gr(magr[~is_quiescent], redshift[~is_quiescent])
     ms_sequence_scatter = main_sequence_width_gr(magr[~is_quiescent],
             ms_scatter_gr, redshift[~is_quiescent], ms_scatter_gr_zevol_table)
     main_sequence = np.random.normal(loc=ms_sequence_loc, scale=ms_sequence_scatter)
