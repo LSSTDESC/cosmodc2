@@ -127,8 +127,7 @@ def map_mstar_onto_lowmass_extension(corrected_mpeak, obs_sm_orig, mpeak_extensi
 
 
 def create_synthetic_lowmass_mock_with_satellites(
-        mock, healpix_mock, synthetic_dict,
-        halo_id_offset=0, halo_unique_id=0):
+        mock, healpix_mock, synthetic_dict):
     """
     """
     mstar_max = min(10**8., 10.**(np.log10(np.max(synthetic_dict['mpeak']))+1))
@@ -156,7 +155,10 @@ def create_synthetic_lowmass_mock_with_satellites(
     gals['target_halo_mass'] = healpix_mock['target_halo_mass'][selected_host_indices]
     gals['upid'] = healpix_mock['target_halo_id'][selected_host_indices]
     gals['target_halo_redshift'] = healpix_mock['target_halo_redshift'][selected_host_indices]
-
+    gals['target_halo_vx'] = healpix_mock['target_halo_vx'][selected_host_indices]
+    gals['target_halo_vy'] = healpix_mock['target_halo_vy'][selected_host_indices]
+    gals['target_halo_vz'] = healpix_mock['target_halo_vz'][selected_host_indices]
+    gals['target_halo_id'] = healpix_mock['target_halo_id'][selected_host_indices]
     gals['host_halo_mvir'] = gals['target_halo_mass']
 
     nfw = NFWPhaseSpace()
@@ -169,28 +171,23 @@ def create_synthetic_lowmass_mock_with_satellites(
     gals['y'] = gals['host_centric_y'] + gals['target_halo_y']
     gals['z'] = gals['host_centric_z'] + gals['target_halo_z']
 
-    gals['vx'] = np.random.uniform(-100, 100, ngals)
-    gals['vy'] = np.random.uniform(-100, 100, ngals)
-    gals['vz'] = np.random.uniform(-100, 100, ngals)
-    gals['host_centric_vx'] = 0.
-    gals['host_centric_vy'] = 0.
-    gals['host_centric_vz'] = 0.
+    gals['vx'] = np.random.uniform(-100, 100, ngals) + gals['target_halo_vx']
+    gals['vy'] = np.random.uniform(-100, 100, ngals) + gals['target_halo_vy']
+    gals['vz'] = np.random.uniform(-100, 100, ngals) + gals['target_halo_vz']
 
     gals['sfr_percentile'] = np.random.uniform(0, 1, ngals)
     ssfr = 10**norm.isf(1 - gals['sfr_percentile'], loc=-10, scale=0.5)
     gals['obs_sfr'] = ssfr*gals['obs_sm']
 
-    gals['halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
-    gals['lightcone_id'] = -1
+    gals['lightcone_id'] = -10
+    gals['halo_id'] = -10
 
     return gals
 
 
-def get_redshifts_from_comoving_distances(comoving_distances, H0=71.0, OmegaM=0.2648):
+def get_redshifts_from_comoving_distances(comoving_distances, zmin, zmax, H0=71.0, OmegaM=0.2648):
     """
     """
-    zmin = np.min(comoving_distances)
-    zmax = np.max(comoving_distances)
     zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
     cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
     CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
@@ -198,6 +195,18 @@ def get_redshifts_from_comoving_distances(comoving_distances, H0=71.0, OmegaM=0.
 
     return redshifts
 
+def mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max):
+    """                                                                                                                                  """
+    import healpy as hp
+    healpixels = hp.pixelfunc.vec2pix(Nside, gals_x, gals_y, gals_z, nest=False)
+    healpix_number_mask = (healpixels == cutout_id)
+    #print('.....removing {} fakes falling outside healpixel'.format(np.sum(~healpix_number_mask)))
+    r_gals = np.sqrt(gals_x**2 + gals_y**2 + gals_z**2)
+    r_mask = (r_gals >= r_min) & (r_gals <= r_max)
+    #print('.....removing {} fakes falling outside comoving distance bounds {:.2f}-{:.2f}'.format(np.sum(~r_mask), r_min, r_max))
+    healpix_mask = healpix_number_mask & r_mask
+    
+    return healpix_mask    
 
 def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_dict,
                                                 cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648,
@@ -215,30 +224,6 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
     num_sample = np.count_nonzero(mock_sample_mask)
     selection_indices = np.random.randint(0, num_sample, ngals)
 
-    #  select positions inside box defined by halos in healpix mock and remove any locations outside the healpixel
-    halo_healpixels = hp.pixelfunc.vec2pix(Nside, healpix_mock['target_halo_x'],
-        healpix_mock['target_halo_y'], healpix_mock['target_halo_z'], nest=False)
-    halo_healpix_mask = (halo_healpixels == cutout_id)
-    if np.sum(~halo_healpix_mask) > 0:
-        print('{} halo(s) detected outide healpixel'.format(np.sum(~halo_healpix_mask)))
-    gals_x = np.random.uniform(np.min(healpix_mock['target_halo_x']), np.max(healpix_mock['target_halo_x']), ngals)
-    gals_y = np.random.uniform(np.min(healpix_mock['target_halo_y']), np.max(healpix_mock['target_halo_y']), ngals)
-    gals_z = np.random.uniform(np.min(healpix_mock['target_halo_z']), np.max(healpix_mock['target_halo_z']), ngals)
-    healpixels = hp.pixelfunc.vec2pix(Nside, gals_x, gals_y, gals_z, nest=False)
-    healpix_number_mask = (healpixels == cutout_id)
-    print('...removing {} fakes falling outside healpixel'.format(np.sum(~healpix_number_mask)))
-    r_halo = np.sqrt(healpix_mock['target_halo_x']**2 + healpix_mock['target_halo_y']**2 + healpix_mock['target_halo_z']**2)
-    r_gals = np.sqrt(gals_x**2 + gals_y**2 + gals_z**2)
-    r_mask = (r_gals >= np.min(r_halo)) & (r_gals <= np.max(r_halo))
-    print('...removing {} fakes falling outside comoving distance bounds {:.2f}-{:.2f}'
-          .format(np.sum(~r_mask),np.min(r_halo), np.max(r_halo)))
-    healpix_mask = healpix_number_mask & r_mask
-    if np.sum(healpix_mask) == 0:
-        return Table()
-
-    #  compute redshifts from comoving distance
-    redshifts = get_redshifts_from_comoving_distances(r_gals[healpix_mask], H0=H0, OmegaM=OmegaM)
-
     gals = Table()
     #  populate gals table with selected galaxies
     for key in mock.keys():
@@ -246,18 +231,49 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
             gals[key] = synthetic_dict[key]
         else:
             gals[key] = mock[key][mock_sample_mask][selection_indices]
-    gals = gals[healpix_mask]
+    ngals = len(gals)
 
-    #  overwrite positions with new random positions from healpix selection
-    gals['x'] = gals_x[healpix_mask]
-    gals['y'] = gals_y[healpix_mask]
-    gals['z'] = gals_z[healpix_mask]
+    #  check that all halos are inside healpixel
+    halo_healpixels = hp.pixelfunc.vec2pix(Nside, healpix_mock['target_halo_x'],
+        healpix_mock['target_halo_y'], healpix_mock['target_halo_z'], nest=False)
+    halo_healpix_mask = (halo_healpixels == cutout_id)
+    if np.sum(~halo_healpix_mask) > 0:
+        print('...Warning: {} halo(s) detected outide healpixel'.format(np.sum(~halo_healpix_mask)))
+        healpix_mock = healpix_mock[halo_healpix_mask]
+
+    #  loop over galaxy-position generator until required number are created
+    total_num_created = 0
+    nloop = 0
+    print('...looping over position generation for synthetic centrals')
+    # setup r_min and r_max
+    r_halo = np.sqrt(healpix_mock['target_halo_x']**2 + healpix_mock['target_halo_y']**2 + healpix_mock['target_halo_z']**2)
+    r_min = np.min(r_halo)
+    r_max = np.max(r_halo)
+    while total_num_created < ngals:
+        start_index = total_num_created
+        num_needed = int(5*(ngals - total_num_created)) #  boost by factor of 5 to reduce number of loops
+        nloop = nloop + 1
+        #  select positions inside box defined by halos in healpix mock and remove any locations outside the healpixel
+        gals_x = np.random.uniform(np.min(healpix_mock['target_halo_x']), np.max(healpix_mock['target_halo_x']), num_needed)
+        gals_y = np.random.uniform(np.min(healpix_mock['target_halo_y']), np.max(healpix_mock['target_halo_y']), num_needed)
+        gals_z = np.random.uniform(np.min(healpix_mock['target_halo_z']), np.max(healpix_mock['target_halo_z']), num_needed)
+        healpix_mask = mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max)
+        num_created = np.sum(healpix_mask)
+        total_num_created = min(total_num_created + num_created, ngals)
+        print('.....created {} synthetic centrals in loop #{}; {} remaining'.format(num_created, nloop, ngals - total_num_created)) 
+        gals['x'][start_index:total_num_created] = gals_x[healpix_mask][0:total_num_created - start_index] 
+        gals['y'][start_index:total_num_created] = gals_y[healpix_mask][0:total_num_created - start_index]
+        gals['z'][start_index:total_num_created] = gals_z[healpix_mask][0:total_num_created - start_index]
+    
+    #  compute redshifts from comoving distance
+    r_gals = np.sqrt(gals['x']**2 + gals['y']**2 + gals['z']**2)
+    redshifts = get_redshifts_from_comoving_distances(r_gals, np.min(healpix_mock['target_halo_redshift']),
+                    np.max(healpix_mock['target_halo_redshift']), H0=H0, OmegaM=OmegaM)
+    print('...Min and max synthetic redshifts = {:.2f} -> {:.2f}'.format(np.min(redshifts), np.max(redshifts)))
 
     #  overwrite redshifts with new redshifts
     gals['target_halo_redshift'] = redshifts
     gals['_obs_sm_orig_um_snap'] = gals['obs_sm']
-
-    ngals = len(gals)
 
     gals['target_halo_x'] = gals['x']
     gals['target_halo_y'] = gals['y']
@@ -286,7 +302,10 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
     ssfr = 10**norm.isf(1 - gals['sfr_percentile'], loc=-10, scale=0.5)
     gals['obs_sfr'] = ssfr*gals['obs_sm']
 
-    gals['halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
-    gals['lightcone_id'] = -1
+    gals['target_halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
+    print('...Max and min synthetic target halo_id = {} -> {}'.format(np.min(gals['target_halo_id']), np.max(gals['target_halo_id'])))
+
+    gals['lightcone_id'] = -20
+    gals['halo_id'] = -20
 
     return gals

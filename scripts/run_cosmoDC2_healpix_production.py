@@ -47,7 +47,7 @@ parser.add_argument("-um_input_catalogs_dirname",
     default='um_snapshots')
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing output mock healpix files",
-    default='um_healpix_mocks')
+    default='baseline_healpix_mocks')
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
