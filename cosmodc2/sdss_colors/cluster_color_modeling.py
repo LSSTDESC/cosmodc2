@@ -105,10 +105,10 @@ def remap_cluster_bcg_gr_ri_color(upid, host_halo_mvir, magr, gr, ri,
         is_on_red_sequence_gr[remapping_mask] = True
         is_on_red_sequence_ri[remapping_mask] = True
 
-        gr_red_sequence_median = red_sequence_peak_gr(magr[remapping_mask], red_peak_gr,
-            redshift[remapping_mask], red_peak_gr_zevol_shift_table)
-        ri_red_sequence_median = red_sequence_peak_ri(magr[remapping_mask], red_peak_ri,
-            redshift[remapping_mask], red_peak_ri_zevol_shift_table)
+        gr_red_sequence_median = red_sequence_peak_gr(
+            magr[remapping_mask], redshift[remapping_mask])
+        ri_red_sequence_median = red_sequence_peak_ri(
+            magr[remapping_mask], redshift[remapping_mask])
 
         bcg_red_sequence_gr, bcg_red_sequence_ri = correlated_gr_ri(
             num_to_remap, gr_red_sequence_median,
@@ -151,10 +151,10 @@ def remap_cluster_satellite_gr_ri_color(upid, mstar, host_halo_mvir, magr, gr, r
         is_on_red_sequence_gr[remapping_mask] = True
         is_on_red_sequence_ri[remapping_mask] = True
 
-        gr_red_sequence_median = red_sequence_peak_gr(magr[remapping_mask], red_peak_gr,
-            redshift[remapping_mask], red_peak_gr_zevol_shift_table)
-        ri_red_sequence_median = red_sequence_peak_ri(magr[remapping_mask], red_peak_ri,
-            redshift[remapping_mask], red_peak_ri_zevol_shift_table)
+        gr_red_sequence_median = red_sequence_peak_gr(
+            magr[remapping_mask], redshift[remapping_mask])
+        ri_red_sequence_median = red_sequence_peak_ri(
+            magr[remapping_mask], redshift[remapping_mask])
 
         cluster_sat_red_sequence_gr, cluster_sat_red_sequence_ri = correlated_gr_ri(
             num_to_remap, gr_red_sequence_median, ri_red_sequence_median, scatter)
