@@ -214,7 +214,7 @@ def write_umachine_healpix_mock_to_disk(
 
         #  Assign colors to synthetic low-mass galaxies
         synthetic_upid = np.zeros_like(mpeak_synthetic_snapshot).astype(int) - 1
-        synthetic_redshift = np.zeros_like(mpeak_synthetic_snapshot) + redshift
+        synthetic_redshift = np.random.normal(loc=redshift, size=len(synthetic_upid), scale=0.05)
         with NumpyRNGContext(seed):
             synthetic_sfr_percentile = np.random.uniform(0, 1, len(synthetic_upid))
         _result = assign_restframe_sdss_gri(
@@ -240,8 +240,8 @@ def write_umachine_healpix_mock_to_disk(
         with NumpyRNGContext(seed):
             selected_synthetic_indices = np.random.choice(
                 synthetic_indices, size=num_selected_synthetic, replace=False)
-        print('...down-sampling synthetic galaxies by {:.2g} to yield {} selected synthetics'.format(frac_gals_in_healpix, 
-                                                                                      num_selected_synthetic)) 
+        print('...down-sampling synthetic galaxies by {:.2g} to yield {} selected synthetics'.format(frac_gals_in_healpix,
+                                                                                      num_selected_synthetic))
         mpeak_synthetic = mpeak_synthetic_snapshot[selected_synthetic_indices]
         mstar_synthetic = mstar_synthetic_snapshot[selected_synthetic_indices]
         magr_synthetic = magr_synthetic_snapshot[selected_synthetic_indices]
@@ -309,7 +309,7 @@ def write_umachine_healpix_mock_to_disk(
         if str(cutout_number_true) in cutout_remap.keys():
             if galaxy_id_offset > cutout_id_offset_galaxy + z_offsets[z_range_id+1]:
                 print('...Warning: galaxy_id bound exceeded for snapshot {}'.format(snapshot))
-        
+
         Ngals_total += len(output_mock[snapshot]['galaxy_id'])
         print('...saved {} galaxies to dict'.format(len(output_mock[snapshot]['galaxy_id'])))
 
