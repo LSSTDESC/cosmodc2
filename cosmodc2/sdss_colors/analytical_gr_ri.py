@@ -83,7 +83,7 @@ def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=8, **kwarg
     for i in np.unique(idx):
         binmask = idx == i
         gr_temp, ri_temp, is_quiescent_ri_temp, is_quiescent_gr_temp = gr_ri_monte_carlo(
-            magr[binmask], sfr_percentile[binmask], redshift[binmask])
+            magr[binmask], sfr_percentile[binmask], redshift[binmask], **kwargs)
         gr_substeps[binmask] = gr_temp
         ri_substeps[binmask] = ri_temp
 
