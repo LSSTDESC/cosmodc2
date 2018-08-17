@@ -36,8 +36,8 @@ endif
 
 set script_name = "run_cosmoDC2_healpix_production.py"
 set python = "/soft/libraries/anaconda-unstable/bin/python"
-set xtra_args = "-use_centrals yes"
-set xtra_label = "centrals"
+set xtra_args = "-output_mock_dirname baseDC2_min_10.1_centrals -synthetic_mass_min 10.1"
+set xtra_label = "10.1_centrals"
 if(${xtra_label} != "") then
     set jobname = ${jobname}_${xtra_label}
 endif
