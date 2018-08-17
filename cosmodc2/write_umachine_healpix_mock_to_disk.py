@@ -271,10 +271,12 @@ def write_umachine_healpix_mock_to_disk(
         print("...assigning rest-frame Mr and colors")
         check_time = time()
         with NumpyRNGContext(seed):
-            redshift_mock = np.random.normal(loc=redshift, scale=0.05, size=len(mock))
-            redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
-        redshift_mock[source_galaxy_indx] = np.repeat(
-            target_halos['halo_redshift'], target_halos['richness'])
+            redshift_mock = np.random.normal(loc=redshift, scale=0.03, size=len(mock))
+            redshift_mock[source_galaxy_indx] = np.repeat(
+                target_halos['halo_redshift'], target_halos['richness'])
+            redshift_mock[source_galaxy_indx] = np.random.normal(
+                    loc=redshift_mock[source_galaxy_indx], scale=0.03)
+        redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
         mock['target_halo_redshift'] = redshift_mock  #  used later for synthetic galaxies
 
         #  Allocate an array storing the trget halo mass for galaxies selected by GalSampler,
