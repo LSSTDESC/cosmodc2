@@ -3,7 +3,7 @@
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from halotools.empirical_models import conditional_abunmatch
-from halotools.utils import fuzzy_digitize
+from .probabilistic_binning import fuzzy_digitize
 
 from .sigmoid_g_minus_r import g_minus_r
 from .sigmoid_r_minus_i import r_minus_i
