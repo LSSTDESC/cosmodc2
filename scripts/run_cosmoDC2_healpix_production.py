@@ -47,7 +47,7 @@ parser.add_argument("-um_input_catalogs_dirname",
     default='um_snapshots')
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing output mock healpix files",
-    default='baseline_healpix_mocks')
+    default='baseDC2_healpix_mocks')
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
@@ -58,13 +58,16 @@ parser.add_argument("-zrange_value",
 parser.add_argument("-synthetic_mass_min",
     help="Value of minimum halo mass for synthetic halos",
                     type=float, default=9.8)
-parser.add_argument("-use_centrals",
-    help="Use central synthetic low-mass galaxies",
-    default='satellites')
+parser.add_argument("-use_satellites",
+    help="Use satellite synthetic low-mass galaxies",
+        action='store_true', default=False)
 parser.add_argument("-verbose",
     help="Turn on extra printing",
         action='store_true', default=False)
-
+parser.add_argument("-ndebug_snaps",
+    help="Number of debug snapshots to save",
+                    type=int, default=-1)
+        
 args = parser.parse_args()
 
 #setup directory names
@@ -76,7 +79,7 @@ output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirnam
 commit_hash = retrieve_commit_hash(path_to_cosmodc2)[0:7]
 print('Using commit hash {}'.format(commit_hash))
 synthetic_halo_minimum_mass = args.synthetic_mass_min
-use_centrals = False if args.use_centrals == 'satellites' else True
+use_centrals = not(args.use_satellites)
 
 #loop over z-ranges
 if args.zrange_value == 'all':
@@ -90,8 +93,11 @@ for zdir in z_range_dirs:
     healpix_cutout_fname = os.path.join(healpix_cutout_dirname, zdir, args.healpix_fname)
     print('Processing healpix cutout {}'.format(healpix_cutout_fname))
     healpix_data, redshift_strings, snapshots  = get_healpix_cutout_info(pkldirname, healpix_cutout_fname, sim_name='AlphaQ')
+    if args.ndebug_snaps > 0:
+        redshift_strings = redshift_strings[0:args.ndebug_snaps]
+        snapshots = snapshots[0:args.ndebug_snaps]
     expansion_factors = [1./(1+float(z)) for z in redshift_strings]
-    if(args.verbose):
+    if args.verbose:
         print("target z's and a's:", redshift_strings, expansion_factors)
 
     if len(snapshots) > 0:
@@ -120,7 +126,7 @@ for zdir in z_range_dirs:
             print('umachine_host_halo_fname_list:',umachine_host_halo_basename_list)
 
         healpix_basename = os.path.basename(args.healpix_fname)
-        output_mock_basename = ''.join(["umachine_color_mock_", zdir, '_', healpix_basename.replace('_fof_halo_mass', '')])
+        output_mock_basename = ''.join(["baseDC2_", zdir, '_', healpix_basename.replace('_fof_halo_mass', '')])
         output_healpix_mock_fname = os.path.join(output_mock_dirname, output_mock_basename)
         if(args.verbose):
             print('output_healpix_mock_fname:', output_healpix_mock_fname)
