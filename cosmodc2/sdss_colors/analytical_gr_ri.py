@@ -3,6 +3,8 @@
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext
 from halotools.empirical_models import conditional_abunmatch
+from halotools.utils import fuzzy_digitize
+
 from .sigmoid_g_minus_r import g_minus_r
 from .sigmoid_r_minus_i import r_minus_i
 
@@ -66,3 +68,26 @@ def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
     is_quiescent_ri = sfr_percentile < fq_ri_model
 
     return gr, ri, is_quiescent_ri, is_quiescent_gr
+
+
+def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=8, **kwargs):
+    """
+    """
+    zbin_edges = np.linspace(redshift.min()-0.001, redshift.max()+0.001, nzdivs)
+    idx = fuzzy_digitize(redshift, zbin_edges)
+
+    gr_substeps = np.zeros_like(idx).astype('f4')
+    ri_substeps = np.zeros_like(idx).astype('f4')
+    is_quiescent_ri_substeps = np.zeros_like(idx).astype(bool)
+    is_quiescent_gr_substeps = np.zeros_like(idx).astype(bool)
+    for i in np.unique(idx):
+        binmask = idx == i
+        gr_temp, ri_temp, is_quiescent_ri_temp, is_quiescent_gr_temp = gr_ri_monte_carlo(
+            magr[binmask], sfr_percentile[binmask], redshift[binmask])
+        gr_substeps[binmask] = gr_temp
+        ri_substeps[binmask] = ri_temp
+
+        is_quiescent_ri_substeps[binmask] = is_quiescent_ri_temp
+        is_quiescent_gr_substeps[binmask] = is_quiescent_gr_temp
+
+    return gr_substeps, ri_substeps, is_quiescent_ri_substeps, is_quiescent_gr_substeps
