@@ -219,6 +219,8 @@ def write_umachine_healpix_mock_to_disk(
             synthetic_redshift = np.where(synthetic_redshift < 0, 0, synthetic_redshift)
         with NumpyRNGContext(seed):
             synthetic_sfr_percentile = np.random.uniform(0, 1, len(synthetic_upid))
+        print("...Calling assign_restframe_sdss_gri "
+            "with synthetic_upid array having {0} elements".format(len(synthetic_upid)))
         _result = assign_restframe_sdss_gri(
             synthetic_upid, mstar_synthetic_snapshot, synthetic_sfr_percentile,
             mpeak_synthetic_snapshot, synthetic_redshift, seed=seed)
@@ -275,7 +277,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_mock[source_galaxy_indx] = np.repeat(
                 target_halos['halo_redshift'], target_halos['richness'])
             redshift_save = redshift_mock  #  save redshifts for building output mock
-            #  now randomize redshifts for assigning colors 
+            #  now randomize redshifts for assigning colors
             redshift_mock[source_galaxy_indx] = np.random.normal(
                     loc=redshift_mock[source_galaxy_indx], scale=0.03)
         redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
