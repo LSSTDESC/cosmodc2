@@ -17,7 +17,7 @@ fixed_seed = 43
 
 
 def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
-            local_random_scale=0.1, nwin=301, seed=fixed_seed, **kwargs):
+            local_random_scale=0.1, nwin=201, seed=fixed_seed, **kwargs):
     """ Generate a Monte Carlo realization of (g-r) and (r-i) restframe colors.
 
     Parameters
@@ -70,11 +70,12 @@ def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
     return gr, ri, is_quiescent_ri, is_quiescent_gr
 
 
-def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=8, **kwargs):
+def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=6,
+            nwin=201, nwin_min=21, **kwargs):
     """
     """
     zbin_edges = np.linspace(redshift.min()-0.001, redshift.max()+0.001, nzdivs)
-    idx = fuzzy_digitize(redshift, zbin_edges)
+    idx = fuzzy_digitize(redshift, zbin_edges, min_counts=nwin_min + 1)
 
     gr_substeps = np.zeros_like(idx).astype('f4')
     ri_substeps = np.zeros_like(idx).astype('f4')
@@ -82,8 +83,22 @@ def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=8, **kwarg
     is_quiescent_gr_substeps = np.zeros_like(idx).astype(bool)
     for i in np.unique(idx):
         binmask = idx == i
+        num_ibin = np.count_nonzero(binmask)
+        if nwin_min <= num_ibin < nwin:
+            print("...decreasing nwin from {0} to {1}".format((nwin, num_ibin)))
+            nwin = max(num_ibin, nwin_min)
+            nwin = 2*(nwin/2) + 1
+        elif num_ibin < nwin_min:
+            msg = ("Why are there only {0} galaxies in this call "
+                "to gr_ri_monte_carlo_substeps?\n"
+                "i = {1}; zbin_edges[i] = {2}\n"
+                "zbin_edges = {3}\n"
+                "redshift.min() = {4}\n"
+                "redshift.max() = {5}")
+            raise ValueError(msg.format((num_ibin, i, zbin_edges[i], zbin_edges,
+                redshift.min(), redshift.max())))
         gr_temp, ri_temp, is_quiescent_ri_temp, is_quiescent_gr_temp = gr_ri_monte_carlo(
-            magr[binmask], sfr_percentile[binmask], redshift[binmask], **kwargs)
+            magr[binmask], sfr_percentile[binmask], redshift[binmask], nwin=nwin, **kwargs)
         gr_substeps[binmask] = gr_temp
         ri_substeps[binmask] = ri_temp
 
