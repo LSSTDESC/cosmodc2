@@ -51,6 +51,8 @@ def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
         the galaxy is on the g-r red sequence
 
     """
+    print('.....Check: in gr_ri_monte_carlo using seed {} and {} galaxies'.format(seed, len(redshift)))
+
     with NumpyRNGContext(seed):
         p = np.random.normal(loc=1-sfr_percentile, scale=local_random_scale)
 
@@ -70,11 +72,21 @@ def gr_ri_monte_carlo(magr, sfr_percentile, redshift,
     return gr, ri, is_quiescent_ri, is_quiescent_gr
 
 
-def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=8, **kwargs):
+def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=6,
+            nwin=201, nwin_min=21, **kwargs):
     """
     """
-    zbin_edges = np.linspace(redshift.min()-0.001, redshift.max()+0.001, nzdivs)
-    idx = fuzzy_digitize(redshift, zbin_edges)
+    print('.....Check: in gr_ri_monte_carlo_substeps with supplied kwarg seed {}'.format(kwargs.get('seed', -1)))
+
+    ngals = len(magr)
+    sorted_redshift = np.sort(redshift)
+    _zbins = sorted_redshift[np.arange(nzdivs+4)*int(ngals/float(nzdivs+4))]
+    _zbins[0] = redshift.min() - 0.001
+    _zbins[-1] = redshift.max() + 0.001
+    zbin_edges = np.fromiter(
+        (z for i, z in enumerate(_zbins)
+            if i not in (1, 2, len(_zbins)-3, len(_zbins)-2)), dtype=float)
+    idx = fuzzy_digitize(redshift, zbin_edges, min_counts=nwin_min + 1)
 
     gr_substeps = np.zeros_like(idx).astype('f4')
     ri_substeps = np.zeros_like(idx).astype('f4')

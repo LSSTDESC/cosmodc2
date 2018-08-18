@@ -42,7 +42,7 @@ def write_umachine_healpix_mock_to_disk(
             healpix_data, snapshots, output_color_mock_fname,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1., 
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False, 
-            randomize_redshift_real=False, randomize_redshift_synthetic=True, Lbox=3000.):
+            randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -283,7 +283,7 @@ def write_umachine_healpix_mock_to_disk(
         check_time = time()
         if randomize_redshift_real:  # keep this code for now, but unselected galaxies aren't used in mock
             with NumpyRNGContext(seed):
-                redshift_mock = np.random.normal(loc=redshift, scale=0.03, size=len(mock))
+                redshift_mock = np.random.normal(loc=redshift, scale=0.02, size=len(mock))
                 redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
         else:
             redshift_mock = np.zeros(len(mock)) + redshift
