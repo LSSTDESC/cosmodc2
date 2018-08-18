@@ -42,7 +42,7 @@ def write_umachine_healpix_mock_to_disk(
             healpix_data, snapshots, output_color_mock_fname,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False,
-            randomize_redshift_real=False, randomize_redshift_synthetic=True, Lbox=3000.):
+            randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -289,12 +289,12 @@ def write_umachine_healpix_mock_to_disk(
                 redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
         else:
             redshift_mock = np.zeros(len(mock)) + redshift
-            redshift_mock[source_galaxy_indx] = np.repeat(
-                target_halos['halo_redshift'], target_halos['richness'])
-            redshift_save = np.copy(redshift_mock)  #  save redshifts for building output mock
-            #  now randomize redshifts for assigning colors
-            redshift_mock[source_galaxy_indx] = np.random.normal(
-                    loc=redshift_mock[source_galaxy_indx], scale=0.03)
+        redshift_mock[source_galaxy_indx] = np.repeat(
+            target_halos['halo_redshift'], target_halos['richness'])
+        redshift_save = np.copy(redshift_mock)  #  save redshifts for building output mock
+        #  now randomize redshifts for assigning colors
+        redshift_mock[source_galaxy_indx] = np.random.normal(
+                loc=redshift_mock[source_galaxy_indx], scale=0.03)
         redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
         mock['target_halo_redshift'] = np.where(redshift_save < 0, 0, redshift_save)
 
