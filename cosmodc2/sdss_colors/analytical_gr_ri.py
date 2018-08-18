@@ -85,6 +85,7 @@ def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=6,
         binmask = idx == i
         num_ibin = np.count_nonzero(binmask)
         if nwin_min <= num_ibin < nwin:
+            print("...decreasing nwin from {0} to {1}".format((nwin, num_ibin)))
             nwin = max(num_ibin, nwin_min)
             nwin = 2*(nwin/2) + 1
         elif num_ibin < nwin_min:
