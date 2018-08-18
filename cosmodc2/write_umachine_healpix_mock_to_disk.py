@@ -40,8 +40,9 @@ cutout_remap = {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629':7, '
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
-            redshift_list, commit_hash,
-            synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1., use_centrals=False, Lbox=3000.):
+            redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
+            use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False,
+            randomize_redshift_real=False, randomize_redshift_synthetic=True, Lbox=3000.):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -108,8 +109,14 @@ def write_umachine_healpix_mock_to_disk(
     Ngals_total = 0
 
     print('\nStarting snapshot processing')
+    print('Using initial seed = {}'.format(seed))
     print('Synthetic-halo minimum mass =  {}'.format(synthetic_halo_minimum_mass))
     print('Using {} synthetic low-mass galaxies'.format('central' if use_centrals else 'satellite'))
+    galaxy_types = ['real', 'synthetic']
+    for flag, t in zip([randomize_redshift_real, randomize_redshift_synthetic], galaxy_types):
+        print('Using {} redshifts for {} galaxies'.format('randomized' if flag else 'assigned', t))
+    for flag, t in zip([use_substeps_real, use_substeps_synthetic], galaxy_types):
+        print('{} for {} galaxies'.format('Using color sub-stepping' if flag else 'NO color sub-stepping', t))
     print('Using halo-id offset = {}'.format(halo_id_offset))
     print('Using galaxy-id offset = {} for cutout number {}'.format(galaxy_id_offset, cutout_number_true))
     for a, b, c, d in gen:
@@ -214,16 +221,20 @@ def write_umachine_healpix_mock_to_disk(
 
         #  Assign colors to synthetic low-mass galaxies
         synthetic_upid = np.zeros_like(mpeak_synthetic_snapshot).astype(int) - 1
-        with NumpyRNGContext(seed):
-            synthetic_redshift = np.random.normal(loc=redshift, size=len(synthetic_upid), scale=0.05)
-            synthetic_redshift = np.where(synthetic_redshift < 0, 0, synthetic_redshift)
+        if randomize_redshift_synthetic:
+            with NumpyRNGContext(seed):
+                synthetic_redshift = np.random.normal(loc=redshift, size=len(synthetic_upid), scale=0.05)
+                synthetic_redshift = np.where(synthetic_redshift < 0, 0, synthetic_redshift)
+        else:
+            synthetic_redshift = np.zeros(len(synthetic_upid)) + redshift
+
         with NumpyRNGContext(seed):
             synthetic_sfr_percentile = np.random.uniform(0, 1, len(synthetic_upid))
         print("...Calling assign_restframe_sdss_gri "
             "with synthetic_upid array having {0} elements".format(len(synthetic_upid)))
         _result = assign_restframe_sdss_gri(
             synthetic_upid, mstar_synthetic_snapshot, synthetic_sfr_percentile,
-            mpeak_synthetic_snapshot, synthetic_redshift, seed=seed)
+            mpeak_synthetic_snapshot, synthetic_redshift, seed=seed, use_substeps=use_substeps_synthetic)
         (magr_synthetic_snapshot, gr_synthetic_snapshot, ri_synthetic_snapshot,
             is_red_gr_synthetic_snapshot, is_red_ri_synthetic_snapshot) = _result
 
@@ -272,16 +283,20 @@ def write_umachine_healpix_mock_to_disk(
         #  otherwise use the redshift of the snapshot of the target simulation
         print("...assigning rest-frame Mr and colors")
         check_time = time()
-        with NumpyRNGContext(seed):
-            redshift_mock = np.random.normal(loc=redshift, scale=0.03, size=len(mock))
+        if randomize_redshift_real:  # keep this code for now, but unselected galaxies aren't used in mock
+            with NumpyRNGContext(seed):
+                redshift_mock = np.random.normal(loc=redshift, scale=0.03, size=len(mock))
+                redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
+        else:
+            redshift_mock = np.zeros(len(mock)) + redshift
             redshift_mock[source_galaxy_indx] = np.repeat(
                 target_halos['halo_redshift'], target_halos['richness'])
-            redshift_save = redshift_mock  #  save redshifts for building output mock
+            redshift_save = np.copy(redshift_mock)  #  save redshifts for building output mock
             #  now randomize redshifts for assigning colors
             redshift_mock[source_galaxy_indx] = np.random.normal(
                     loc=redshift_mock[source_galaxy_indx], scale=0.03)
         redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
-        mock['target_halo_redshift'] =  np.where(redshift_save < 0, 0, redshift_save)
+        mock['target_halo_redshift'] = np.where(redshift_save < 0, 0, redshift_save)
 
         #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
         #  with mock['host_halo_mvir'] in all other entries pertaining to unselected galaxies
@@ -291,7 +306,7 @@ def write_umachine_healpix_mock_to_disk(
 
         magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
             mock['upid'], mock['obs_sm'], mock['sfr_percentile'],
-            mock_remapped_halo_mass, redshift_mock, seed=seed)
+            mock_remapped_halo_mass, redshift_mock, seed=seed, use_substeps=use_substeps_real)
         #  check for bad values
         for m_id, m in zip(['magr', 'gr', 'ri'], [magr, gr_mock, ri_mock]):
             num_infinite = np.sum(~np.isfinite(m))

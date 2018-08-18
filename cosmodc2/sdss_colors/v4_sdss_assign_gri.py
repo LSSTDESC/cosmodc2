@@ -4,6 +4,7 @@ onto model galaxies.
 import numpy as np
 from .sigmoid_magr_model import magr_monte_carlo
 from .analytical_gr_ri import gr_ri_monte_carlo_substeps
+from .analytical_gr_ri import gr_ri_monte_carlo
 from .cluster_color_modeling import remap_cluster_bcg_gr_ri_color, remap_cluster_satellite_gr_ri_color
 
 
@@ -48,6 +49,8 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
 
     """
     ngals = len(upid_mock)
+    use_substeps = kwargs.get('use_substeps', False)
+    seed = kwargs.get('seed', 43)
 
     redshift_mock = np.atleast_1d(redshift_mock)
     if len(redshift_mock) == 1:
@@ -57,8 +60,14 @@ def assign_restframe_sdss_gri(upid_mock, mstar_mock, sfr_percentile_mock,
     magr = magr_monte_carlo(mstar_mock, upid_mock, redshift_mock, **kwargs)
 
     #  Calculate model values of (g-r) and (r-i)
-    gr_mock, ri_mock, is_red_ri_mock, is_red_gr_mock = gr_ri_monte_carlo_substeps(
-        magr, sfr_percentile_mock, redshift_mock, **kwargs)
+    if use_substeps:
+        print('.....Check: calling gr_ri_monte_carlo_substeps with seed {}'.format(seed))
+        gr_mock, ri_mock, is_red_ri_mock, is_red_gr_mock = gr_ri_monte_carlo_substeps(
+            magr, sfr_percentile_mock, redshift_mock, **kwargs)
+    else:
+        print('.....Check: calling gr_ri_monte_carlo with seed {}'.format(seed))
+        gr_mock, ri_mock, is_red_ri_mock, is_red_gr_mock = gr_ri_monte_carlo(
+            magr, sfr_percentile_mock, redshift_mock, **kwargs)
 
     #  Redden the centrals of cluster-mass halos
     _result = remap_cluster_bcg_gr_ri_color(upid_mock, host_halo_mvir_mock,
