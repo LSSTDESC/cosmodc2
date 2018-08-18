@@ -75,7 +75,7 @@ def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=6,
     """
     """
     zbin_edges = np.linspace(redshift.min()-0.001, redshift.max()+0.001, nzdivs)
-    idx = fuzzy_digitize(redshift, zbin_edges)
+    idx = fuzzy_digitize(redshift, zbin_edges, min_counts=nwin_min + 1)
 
     gr_substeps = np.zeros_like(idx).astype('f4')
     ri_substeps = np.zeros_like(idx).astype('f4')
