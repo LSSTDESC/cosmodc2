@@ -90,8 +90,12 @@ def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=6,
         elif num_ibin < nwin_min:
             msg = ("Why are there only {0} galaxies in this call "
                 "to gr_ri_monte_carlo_substeps?\n"
-                "i = {1}; zbin_edges[i] = {2}")
-            raise ValueError(msg.format((num_ibin, i, zbin_edges[i])))
+                "i = {1}; zbin_edges[i] = {2}\n"
+                "zbin_edges = {3}\n"
+                "redshift.min() = {4}\n"
+                "redshift.max() = {5}")
+            raise ValueError(msg.format((num_ibin, i, zbin_edges[i], zbin_edges,
+                redshift.min(), redshift.max())))
         gr_temp, ri_temp, is_quiescent_ri_temp, is_quiescent_gr_temp = gr_ri_monte_carlo(
             magr[binmask], sfr_percentile[binmask], redshift[binmask], nwin=nwin, **kwargs)
         gr_substeps[binmask] = gr_temp
