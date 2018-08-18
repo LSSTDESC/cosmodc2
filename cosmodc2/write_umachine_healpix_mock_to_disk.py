@@ -97,7 +97,7 @@ def write_umachine_healpix_mock_to_disk(
 
     cutout_number_true = file_ids[-1]
     cutout_number = cutout_remap.get(str(cutout_number_true), cutout_number_true) #  translate for imsims
-    z_range_id = file_ids[0]
+    z_range_id = file_ids[-3]  #  3rd-last digit in filename
     galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy + z_offsets[z_range_id])
     halo_id_cutout_offset = int(cutout_number*cutout_id_offset_halo)
 
@@ -283,7 +283,7 @@ def write_umachine_healpix_mock_to_disk(
         #  otherwise use the redshift of the snapshot of the target simulation
         print("...assigning rest-frame Mr and colors")
         check_time = time()
-        if randomize_redshift_real:  # keep this code for now, but unselected galaxies aren't used in mock
+        if randomize_redshift_real:  # randomize unselected galaxy redshifts to ensure sufficient numbers for sub-step binning 
             with NumpyRNGContext(seed):
                 redshift_mock = np.random.normal(loc=redshift, scale=0.02, size=len(mock))
                 redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
@@ -291,12 +291,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_mock = np.zeros(len(mock)) + redshift
         redshift_mock[source_galaxy_indx] = np.repeat(
             target_halos['halo_redshift'], target_halos['richness'])
-        redshift_save = np.copy(redshift_mock)  #  save redshifts for building output mock
-        #  now randomize redshifts for assigning colors
-        redshift_mock[source_galaxy_indx] = np.random.normal(
-                loc=redshift_mock[source_galaxy_indx], scale=0.03)
-        redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
-        mock['target_halo_redshift'] = np.where(redshift_save < 0, 0, redshift_save)
+        mock['target_halo_redshift'] = redshift_mock
 
         #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
         #  with mock['host_halo_mvir'] in all other entries pertaining to unselected galaxies
@@ -332,8 +327,9 @@ def write_umachine_healpix_mock_to_disk(
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['galaxy_id'])  #increment offset
         #check that offset is within index bounds for imsim pixels
         if str(cutout_number_true) in cutout_remap.keys():
-            if galaxy_id_offset > cutout_id_offset_galaxy + z_offsets[z_range_id+1]:
-                print('...Warning: galaxy_id bound exceeded for snapshot {}'.format(snapshot))
+            galaxy_id_bound = cutout_number*cutout_id_offset_galaxy + z_offsets[z_range_id+1]
+            if galaxy_id_offset > galaxy_id_bound:
+                print('...Warning: galaxy_id bound of {} exceeded for snapshot {}'.format(galaxy_id_bound, snapshot))
 
         Ngals_total += len(output_mock[snapshot]['galaxy_id'])
         print('...saved {} galaxies to dict'.format(len(output_mock[snapshot]['galaxy_id'])))
