@@ -285,7 +285,7 @@ def write_umachine_healpix_mock_to_disk(
         check_time = time()
         if randomize_redshift_real:  # keep this code for now, but unselected galaxies aren't used in mock
             with NumpyRNGContext(seed):
-                redshift_mock = np.random.normal(loc=redshift, scale=0.03, size=len(mock))
+                redshift_mock = np.random.normal(loc=redshift, scale=0.02, size=len(mock))
                 redshift_mock = np.where(redshift_mock < 0, 0, redshift_mock)
         else:
             redshift_mock = np.zeros(len(mock)) + redshift
