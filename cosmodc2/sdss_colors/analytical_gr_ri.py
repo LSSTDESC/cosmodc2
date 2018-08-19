@@ -77,7 +77,7 @@ def gr_ri_monte_carlo_substeps(magr, sfr_percentile, redshift, nzdivs=6,
     """
     """
     print('.....Check: in gr_ri_monte_carlo_substeps with supplied kwarg seed {}'.format(kwargs.get('seed', -1)))
-
+    print("\n...running gr_ri_monte_carlo_substeps with nzdivs = {0}".format(nzdivs))
     ngals = len(magr)
     sorted_redshift = np.sort(redshift)
     _zbins = sorted_redshift[np.arange(nzdivs+4)*int(ngals/float(nzdivs+4))]
