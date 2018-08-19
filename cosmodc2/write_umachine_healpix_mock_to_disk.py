@@ -614,8 +614,8 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile['metaData']['commit_hash'] = commit_hash
     hdfFile['metaData']['seed'] = seed
     hdfFile['metaData']['versionMajor'] = 0
-    hdfFile['metaData']['versionMinor'] = 0
-    hdfFile['metaData']['versionMinorMinor'] = 0
+    hdfFile['metaData']['versionMinor'] = 4
+    hdfFile['metaData']['versionMinorMinor'] = 5
     hdfFile['metaData']['H_0'] = H0
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
