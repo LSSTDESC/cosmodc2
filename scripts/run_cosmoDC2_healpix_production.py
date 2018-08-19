@@ -67,6 +67,12 @@ parser.add_argument("-verbose",
 parser.add_argument("-ndebug_snaps",
     help="Number of debug snapshots to save",
                     type=int, default=-1)
+parser.add_argument("-gaussian_smearing",
+    help="Value of gaussian_smearing_real_redshifts",
+                    type=float, default=0.)
+parser.add_argument("-nzdivs",
+    help="Number of sub-steps for CAM color assignment",
+                    type=int, default=6)
         
 args = parser.parse_args()
 
@@ -137,7 +143,8 @@ for zdir in z_range_dirs:
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_healpix_mock_fname,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=synthetic_halo_minimum_mass,
-            use_centrals=use_centrals)
+            use_centrals=use_centrals, gaussian_smearing_real_redshifts=args.gaussian_smearing, 
+            nzdivs=args.nzdivs)
 
     else:
         print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))
