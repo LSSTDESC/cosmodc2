@@ -299,8 +299,9 @@ def write_umachine_healpix_mock_to_disk(
                 "The functions involved in the color modeling will be passed\n"
                 "noisy versions of the target halo redshifts")
             print(msg.format(gaussian_smearing_real_redshifts))
-            redshift_mock[source_galaxy_indx] = np.random.normal(
-                loc=redshift_mock[source_galaxy_indx], scale=gaussian_smearing_real_redshifts)
+            with NumpyRNGContext(seed):
+                redshift_mock[source_galaxy_indx] = np.random.normal(
+                    loc=redshift_mock[source_galaxy_indx], scale=gaussian_smearing_real_redshifts)
         else:
             msg = ("\ngaussian_smearing_real_redshifts = 0\n"
                 "Using the exact target halo redshifts "
