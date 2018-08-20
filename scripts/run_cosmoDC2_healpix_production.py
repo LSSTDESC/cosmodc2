@@ -100,8 +100,9 @@ for zdir in z_range_dirs:
     print('Processing healpix cutout {}'.format(healpix_cutout_fname))
     healpix_data, redshift_strings, snapshots  = get_healpix_cutout_info(pkldirname, healpix_cutout_fname, sim_name='AlphaQ')
     if args.ndebug_snaps > 0:
-        redshift_strings = redshift_strings[0:args.ndebug_snaps]
-        snapshots = snapshots[0:args.ndebug_snaps]
+        
+        redshift_strings = redshift_strings[-args.ndebug_snaps:]
+        snapshots = snapshots[-args.ndebug_snaps:]
     expansion_factors = [1./(1+float(z)) for z in redshift_strings]
     if args.verbose:
         print("target z's and a's:", redshift_strings, expansion_factors)
