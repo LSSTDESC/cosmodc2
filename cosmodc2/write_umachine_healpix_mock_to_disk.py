@@ -295,16 +295,16 @@ def write_umachine_healpix_mock_to_disk(
             target_halos['halo_redshift'], target_halos['richness'])
         mock['target_halo_redshift'] = np.copy(redshift_mock)
         if gaussian_smearing_real_redshifts > 0:
-            msg = ("\ngaussian_smearing_real_redshifts = {0}\n"
-                "The functions involved in the color modeling will be passed\n"
-                "noisy versions of the target halo redshifts")
+            msg = ("\n...gaussian_smearing_real_redshifts = {0}\n"
+                "...The functions involved in the color modeling will be passed\n"
+                "...noisy versions of the target halo redshifts")
             print(msg.format(gaussian_smearing_real_redshifts))
             with NumpyRNGContext(seed):
                 redshift_mock[source_galaxy_indx] = np.random.normal(
                     loc=redshift_mock[source_galaxy_indx], scale=gaussian_smearing_real_redshifts)
         else:
-            msg = ("\ngaussian_smearing_real_redshifts = 0\n"
-                "Using the exact target halo redshifts "
+            msg = ("\n...gaussian_smearing_real_redshifts = 0\n"
+                "...Using the exact target halo redshifts "
                 "to assign restframe colors to galaxies")
             print(msg)
 
@@ -614,8 +614,8 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile['metaData']['commit_hash'] = commit_hash
     hdfFile['metaData']['seed'] = seed
     hdfFile['metaData']['versionMajor'] = 0
-    hdfFile['metaData']['versionMinor'] = 0
-    hdfFile['metaData']['versionMinorMinor'] = 0
+    hdfFile['metaData']['versionMinor'] = 4
+    hdfFile['metaData']['versionMinorMinor'] = 5
     hdfFile['metaData']['H_0'] = H0
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
