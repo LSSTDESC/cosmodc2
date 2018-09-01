@@ -604,7 +604,8 @@ def get_skyarea(output_mock):
 
 
 def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
-                              synthetic_halo_minimum_mass, cutout_number):
+                              synthetic_halo_minimum_mass, cutout_number,
+                              versionMajor=0, versionMinor=4, versionMinorMinor=6):
     """
     """
 
@@ -613,9 +614,9 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile.create_group('metaData')
     hdfFile['metaData']['commit_hash'] = commit_hash
     hdfFile['metaData']['seed'] = seed
-    hdfFile['metaData']['versionMajor'] = 0
-    hdfFile['metaData']['versionMinor'] = 4
-    hdfFile['metaData']['versionMinorMinor'] = 5
+    hdfFile['metaData']['versionMajor'] = versionMajor
+    hdfFile['metaData']['versionMinor'] = versionMinor
+    hdfFile['metaData']['versionMinorMinor'] = versionMinorMinor
     hdfFile['metaData']['H_0'] = H0
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
