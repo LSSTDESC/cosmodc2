@@ -6,7 +6,7 @@ import numpy as np
 from os.path import expanduser
 import h5py
 import pickle
-import re
+from time import time
 
 def velocity_bug_fix(input_snapshot, scalefactor=1.0):
     """
@@ -39,8 +39,8 @@ def healpix_mock_modify(healpix_filename, functions=None, correction_data=None):
             corrections = correction_data.get(str(f),{})
             for (k, v) in fh.items():
                 if k.isdigit():
-                    print('...Processing snap {} with {} and correction_data {}'.format(k, str(f), corrections[k]))
-                    output_mock[k] = f(v, corrections[k])
+                    print('...Processing snap {} with {} and data-correction value(s) {}'.format(k, str(f), corrections[int(k)]))
+                    output_mock[k] = f(v, corrections[int(k)])
                     
         # copy and correct metaData
         k = 'metaData'
@@ -66,6 +66,7 @@ def write_output_mock(output_mock, output_healpix_file):
             gGroup[tk] = v[tk]
 
     hdfFile.close()
+    print('...Wrote {} to disk'.format(output_healpix_file))
     return
 
 
@@ -90,7 +91,7 @@ parser.add_argument("-output_mock_dirname",
     default='baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix')
 parser.add_argument("-input_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing input mock healpix files",
-    default='baseDC2_min_9.8_centrals_v0.4.5_test')
+    default='baseDC2_min_9.8_centrals_v0.4.5')
 parser.add_argument("-modify_functions",
     help="Functions applied to modify input -> output",
     nargs='+', choices=[velocity_bug_fix],
@@ -114,16 +115,26 @@ correction_data = {}
 function_names = map(str, function_list)
 for f in map(str, function_list):
     if 'velocity_bug_fix' in f:
-        pklfile = os.path.join(path_to_cosmodc2, 'scripts/velocity_correction_factors.pkl')
-        with open(pklfile, 'rb') as handle:
+        datfile = os.path.join(path_to_cosmodc2, 'scripts/velocity_correction_factors.pkl')
+        #text file option
+        #datfile = os.path.join(path_to_cosmodc2, 'scripts/velocity_correction_factors.txt')
+        #ts, sf = np.loadtxt(datfile, unpack=True, usecols=[0, 1])
+        #correction_data[f] =dict(zip(ts.astype(int), sf))
+        with open(datfile, 'rb') as handle:
             correction_data[f] = pickle.load(handle)
-        print('Using correction data input from {}\n'.format(pklfile))    
+        print('Using correction data input from {}\n'.format(datfile))    
 
 healpix_files = glob.glob(os.path.join(input_mock_dirname, healpix_filename))
-
+start_time = time()
+print
 for hpx in healpix_files:
+    start_file = time()
     output_mock = healpix_mock_modify(hpx, functions=function_list, correction_data=correction_data)
     output_healpix_file = os.path.join(output_mock_dirname, os.path.basename(hpx), )
     write_output_mock(output_mock, output_healpix_file)
-    print('Processed {}\n'.format(os.path.basename(output_healpix_file)))
+    end_file = time()
+    print('Processed {} in {:.2f} minutes\n'.format(os.path.basename(output_healpix_file), (end_file - start_file)/60.))
     
+time_stamp = time()
+msg = "\nEnd-to-end runtime = {0:.2f} minutes\n"
+print(msg.format((time_stamp-start_time)/60.))
