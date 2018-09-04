@@ -13,6 +13,13 @@ __all__ = ('mean_des_red_sequence_gr_color_vs_redshift',
     'mean_des_red_sequence_iz_color_vs_redshift')
 
 
+def sigmoid(x, x0=0, k=1, ymin=0, ymax=1):
+    """
+    """
+    height_diff = ymax-ymin
+    return ymin + height_diff/(1 + np.exp(-k*(x-x0)))
+
+
 def mean_des_red_sequence_gr_color_vs_redshift(redshift):
     """
     Parameters
@@ -26,8 +33,7 @@ def mean_des_red_sequence_gr_color_vs_redshift(redshift):
         Numpy array of shape (npts, )
 
     """
-    z = np.atleast_1d(redshift)
-    return c0_gr + c1_gr*z + c2_gr*z**2 + c3_gr*z**3
+    return sigmoid(np.atleast_1d(redshift), x0=0.15, k=10, ymin=0.35, ymax=1.725)
 
 
 def mean_des_red_sequence_ri_color_vs_redshift(redshift):
@@ -42,8 +48,7 @@ def mean_des_red_sequence_ri_color_vs_redshift(redshift):
     mean_observed_color : ndarray
         Numpy array of shape (npts, )
     """
-    z = np.atleast_1d(redshift)
-    return c0_ri + c1_ri*z + c2_ri*z**2 + c3_ri*z**3
+    return sigmoid(np.atleast_1d(redshift), x0=0.55, k=9, ymin=0.4, ymax=1.25)
 
 
 def mean_des_red_sequence_iz_color_vs_redshift(redshift):
@@ -58,8 +63,7 @@ def mean_des_red_sequence_iz_color_vs_redshift(redshift):
     mean_observed_color : ndarray
         Numpy array of shape (npts, )
     """
-    z = np.atleast_1d(redshift)
-    return c0_iz + c1_iz*z + c2_iz*z**2 + c3_iz*z**3
+    return sigmoid(np.atleast_1d(redshift), x0=0.925, k=7, ymin=0.3, ymax=1.25)
 
 
 def _read_fits_files_provided_by_joe(fname_redshift, fname_mean_color):
