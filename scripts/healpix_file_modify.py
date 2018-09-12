@@ -7,8 +7,22 @@ from os.path import expanduser
 import h5py
 import pickle
 from time import time
+import subprocess
 
 velocity_bound=10000.
+
+def retrieve_commit_hash(path_to_repo):
+    """ Return the commit hash of the git branch currently live in the input path.
+    Parameters
+    ----------
+    path_to_repo : string
+    Returns
+    -------
+    commit_hash : string
+    """
+    cmd = 'cd {0} && git rev-parse HEAD'.format(path_to_repo)
+    return subprocess.check_output(cmd, shell=True).strip()
+
 
 def velocity_bug_fix(output_snapshot, scalefactor=1.0):
     """
@@ -48,9 +62,10 @@ def apply_mask(output_snapshot, mask):
     return output_snapshot
 
 
-def healpix_mock_modify(healpix_filename, functions=None, correction_data=None):
+def healpix_mock_modify(healpix_filename, commit_hash, functions=None, correction_data=None):
     
     output_mock = {}
+    masks_used = {}
     print('Starting correction of {}'.format(os.path.basename(healpix_filename)))
     with h5py.File(healpix_filename, 'r') as fh:
         print('...copying input to output_mock')
@@ -74,9 +89,10 @@ def healpix_mock_modify(healpix_filename, functions=None, correction_data=None):
 
                     #apply masks
                     mask = mask_large_velocities(output_mock[k], max_value=velocity_bound)
-
                     output_mock[k] = apply_mask(output_mock[k], mask)
                     print('...Masked length of arrays in snapshot {} = {}'.format(k, len(output_mock[k]['galaxy_id'])))
+                    masks_used['large_velocities'] =  mask_large_velocities
+
                     del mask
 
         # copy and correct metaData
@@ -85,11 +101,19 @@ def healpix_mock_modify(healpix_filename, functions=None, correction_data=None):
         for tk, v in fh[k].items():
             output_mock[k][tk] = v.value
 
-        output_mock[k]['versionMinorMinor'] = 7
+        output_mock[k]['versionMinorMinor'] += 1
         for n, f in enumerate(functions):
             ckey = 'comment_'+str(n)
             output_mock[k][ckey] = ' '.join(['Corrected with', str(f)])
             print('...Adding metaData comment: {}'.format(output_mock[k][ckey]))
+
+        output_mock[k]['versionMinorMinor'] += 1
+        for tk, v in masks_used.items():
+            ckey = 'mask_'+tk
+            output_mock[k][ckey] = ' '.join(['Corrected with', str(v)])
+            print('...Adding metaData comment: {}'.format(output_mock[k][ckey]))
+
+        output_mock[k]['current_commit_hash'] = commit_hash
 
     return output_mock
 
@@ -129,6 +153,7 @@ parser.add_argument("-output_mock_dirname",
 parser.add_argument("-input_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing input mock healpix files",
     default='baseDC2_min_9.8_centrals_v0.4.5')
+#    default='baseDC2_min_9.8_centrals_v0.4.5_test')
 parser.add_argument("-modify_functions",
     help="Functions applied to modify input -> output",
     nargs='+', choices=[velocity_bug_fix],
@@ -147,6 +172,9 @@ print('Reading input from {}\n'.format(input_mock_dirname))
 print('Writing output to {}\n'.format(output_mock_dirname))
 print('Modifying healpix files matching {} with function(s) {}\n'.format(healpix_filename, function_list))
 
+current_commit_hash = retrieve_commit_hash(path_to_cosmodc2)[0:7]
+print('Using current commit hash {}'.format(current_commit_hash))
+
 #load additional data needed for corrections
 correction_data = {}
 function_names = map(str, function_list)
@@ -163,11 +191,11 @@ for f in map(str, function_list):
 
 healpix_files = glob.glob(os.path.join(input_mock_dirname, healpix_filename))
 start_time = time()
-print
+
 for hpx in healpix_files:
     start_file = time()
-    output_mock = healpix_mock_modify(hpx, functions=function_list, correction_data=correction_data)
-    output_healpix_file = os.path.join(output_mock_dirname, os.path.basename(hpx), )
+    output_mock = healpix_mock_modify(hpx, current_commit_hash, functions=function_list, correction_data=correction_data)
+    output_healpix_file = os.path.join(output_mock_dirname, os.path.basename(hpx))
     write_output_mock(output_mock, output_healpix_file)
     end_file = time()
     print('Processed {} in {:.2f} minutes\n'.format(os.path.basename(output_healpix_file), (end_file - start_file)/60.))
