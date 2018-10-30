@@ -18,7 +18,7 @@ from halotools.utils import crossmatch
 from cosmodc2.synthetic_subhalos import map_mstar_onto_lowmass_extension
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_centrals
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_satellites
-from cosmodc2.synthetic_subhalos import create_synthetic_cluster_satellites
+from cosmodc2.synthetic_subhalos import model_synthetic_cluster_satellites
 from cosmodc2.synthetic_subhalos import synthetic_logmpeak
 
 fof_halo_mass = 'fof_halo_mass'
@@ -514,7 +514,7 @@ def build_output_snapshot_mock(
 
     print('...number of galaxies before adding synthetic satellites = {}'.format(len(dc2['halo_id'])))
     print("...generating and stacking any synthetic cluster satellites")
-    fake_cluster_sats = create_synthetic_cluster_satellites(dc2, Lbox=0.) # turn off periodicity
+    fake_cluster_sats = model_synthetic_cluster_satellites(dc2, Lbox=0.) # turn off periodicity
     if len(fake_cluster_sats) > 0:
         check_time = time()
         dc2 = vstack((dc2, fake_cluster_sats))
