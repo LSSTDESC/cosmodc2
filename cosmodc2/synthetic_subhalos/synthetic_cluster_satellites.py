@@ -98,12 +98,12 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         #  For every synthetic galaxy, calculate the mass, redshift, position, and velocity of the host halo
         synthetic_hostmass = np.repeat(host_mass, synthetic_richness)
         synthetic_redshift = np.repeat(host_redshift, synthetic_richness)
-        synthetic_target_halo_x = np.repeat(host_mass, host_x)
-        synthetic_target_halo_y = np.repeat(host_mass, host_y)
-        synthetic_target_halo_z = np.repeat(host_mass, host_z)
-        synthetic_target_halo_vx = np.repeat(host_mass, host_vx)
-        synthetic_target_halo_vy = np.repeat(host_mass, host_vy)
-        synthetic_target_halo_vz = np.repeat(host_mass, host_vz)
+        synthetic_target_halo_x = np.repeat(host_x, synthetic_richness)
+        synthetic_target_halo_y = np.repeat(host_y, synthetic_richness)
+        synthetic_target_halo_z = np.repeat(host_z, synthetic_richness)
+        synthetic_target_halo_vx = np.repeat(host_vx, synthetic_richness)
+        synthetic_target_halo_vy = np.repeat(host_vy, synthetic_richness)
+        synthetic_target_halo_vz = np.repeat(host_vz, synthetic_richness)
 
         #  Use Halotools to generate halo-centric positions and velocities according to NFW
         nfw = NFWPhaseSpace()
