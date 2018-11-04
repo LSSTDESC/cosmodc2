@@ -85,6 +85,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
     host_vy = mock['target_halo_vy'][idx]
     host_vz = mock['target_halo_vz'][idx]
     source_halo_mvir = mock['source_halo_mvir'][idx]
+    target_halo_id = mock['target_halo_id'][idx]
     host_richness = counts
 
     #  For each target halo, calculate the number of synthetic satellites we need to add
@@ -104,6 +105,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         synthetic_target_halo_vx = np.repeat(host_vx, synthetic_richness)
         synthetic_target_halo_vy = np.repeat(host_vy, synthetic_richness)
         synthetic_target_halo_vz = np.repeat(host_vz, synthetic_richness)
+        synthetic_target_halo_id = np.repeat(target_halo_id, synthetic_richness)
 
         #  Use Halotools to generate halo-centric positions and velocities according to NFW
         nfw = NFWPhaseSpace()
@@ -131,7 +133,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             sats['z'] = np.mod(sats['z'], Lbox)
 
         sats['host_halo_mvir'] = synthetic_hostmass
-        sats['upid'] = -1
+        sats['upid'] = synthetic_target_halo_id
 
         #  Assign synthetic subhalo mass according to a power law
         #  Maximum allowed value of the subhalo mass is the host halo mass
