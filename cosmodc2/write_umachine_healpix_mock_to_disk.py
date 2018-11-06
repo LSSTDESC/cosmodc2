@@ -27,15 +27,40 @@ fof_max = 14.5
 H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
-cutout_id_offset_galaxy = 1e9  #  offset to guarantee unique galaxy ids across cutout files
-z_offsets = [0, 4e7, 2e8, 1e9]  #  offset to guarantee unique galaxy ids across z-ranges
-cutout_id_offset_halo = int(1e3)  #  offset to generate unique id for cutouts and snapshots
-halo_id_offset = int(1e6)  #  offset to guarantee unique halo ids across cutout files and snapshots
 
+cutout_id_offset_halo = int(1e3)  #  offset to generate unique id for cutouts and snapshots
+halo_id_offset = int(1e8)  #  offset to guarantee unique halo ids across cutout files and snapshots
 Nside = 2048  #  fine pixelization for determining sky area
-Nside_cosmoDC2 = 8
-cutout_remap = {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629':7, '630':8,
-                '533':9, '534':10, '596':11, '599':12, '660':13, '661':14}
+
+cutout_id_offset_galaxy = {'8':1e9, '32': 62500000} #  offset to guarantee unique galaxy ids across cutout files
+z_offsets = {'8':[0, 4e7, 2e8, 1e9], '32':[0, 2500000, 12500000, 62500000]} #  offset to guarantee unique galaxy ids across z-ranges
+cutout_remap = {'8': {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629':7, '630':8,
+                      '533':9, '534':10, '596':11, '599':12, '660':13, '661':14},
+                '32': {
+ '8276': 0, '8280': 1, '8403': 2, '8404': 3, '8407': 4, '8408': 5, '8531': 6, '8532': 7, '8533': 8, '8535': 9, '8536': 10,
+ '8537': 11, '8658': 12, '8659': 13, '8660': 14, '8661': 15, '8662': 16, '8663': 17, '8664': 18, '8665': 19, '8786': 20, '8787': 21,
+ '8788': 22, '8789': 23, '8790': 24, '8791': 25, '8792': 26, '8793': 27, '8794': 28, '8913': 29, '8914': 30, '8915': 31, '8916': 32,
+ '8917': 33, '8918': 34, '8919': 35, '8920': 36, '8921': 37, '8922': 38, '9041': 39, '9042': 40, '9043': 41, '9044': 42, '9045': 43,
+ '9046': 44, '9047': 45, '9048': 46, '9049': 47, '9050': 48, '9051': 49, '9168': 50, '9169': 51, '9170': 52, '9171': 53, '9172': 54,
+ '9173': 55, '9174': 56, '9175': 57, '9176': 58, '9177': 59, '9178': 60, '9179': 61, '9296': 62, '9297': 63, '9298': 64, '9299': 65,
+ '9300': 66, '9301': 67, '9302': 68, '9303': 69, '9304': 70, '9305': 71, '9306': 72, '9307': 73, '9308': 74, '9423': 75, '9424': 76,
+ '9425': 77, '9426': 78, '9427': 79, '9428': 80, '9429': 81, '9430': 82, '9431': 83, '9432': 84, '9433': 85, '9434': 86, '9435': 87,
+ '9436': 88, '9551': 89, '9552': 90, '9553': 91, '9554': 92, '9555': 93, '9556': 94, '9557': 95, '9558': 96, '9559': 97, '9560': 98,
+ '9561': 99, '9562': 100, '9563': 101, '9564': 102, '9565': 103, '9678': 104, '9679': 105, '9680': 106, '9681': 107, '9682': 108,
+ '9683': 109, '9684': 110, '9685': 111, '9686': 112, '9687': 113, '9688': 114, '9689': 115, '9690': 116, '9691': 117, '9692': 118,
+ '9693': 119, '9807': 120, '9808': 121, '9809': 122, '9810': 123, '9811': 124, '9812': 125, '9813': 126, '9814': 127, '9815': 128,
+ '9816': 129, '9817': 130, '9818': 131, '9819': 132, '9820': 133, '9821': 134, '9935': 135, '9936': 136, '9937': 137, '9938': 138,
+ '9939': 139, '9940': 140, '9941': 141, '9942': 142, '9943': 143, '9944': 144, '9945': 145, '9946': 146, '9947': 147, '9948': 148,
+ '10064': 149, '10065': 150, '10066': 151, '10067': 152, '10068': 153, '10069': 154, '10070': 155, '10071': 156, '10072': 157,
+ '10073': 158, '10074': 159, '10075': 160, '10076': 161, '10192': 162, '10193': 163, '10194': 164, '10195': 165, '10196': 166,
+ '10197': 167, '10198': 168, '10199': 169, '10200': 170, '10201': 171, '10202': 172, '10203': 173, '10320': 174, '10321': 175,
+ '10322': 176, '10323': 177, '10324': 178, '10325': 179, '10326': 180, '10327': 181, '10328': 182, '10329': 183, '10330': 184,
+ '10444': 185, '10445': 186, '10446': 187, '10447': 188, '10448': 189, '10449': 190, '10450': 191, '10451': 192, '10452': 193,
+ '10453': 194, '10564': 195, '10565': 196, '10566': 197, '10567': 198, '10568': 199, '10569': 200, '10570': 201, '10571': 202,
+ '10572': 203, '10680': 204, '10681': 205, '10682': 206, '10683': 207, '10684': 208, '10685': 209, '10686': 210, '10687': 211,
+ '10792': 212, '10793': 213, '10794': 214, '10796': 215, '10797': 216, '10798': 217, '10900': 218, '10901': 219, '10904': 220,
+ '10905': 221, '11004': 222, '11008': 223}
+                }
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -43,7 +68,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
-            gaussian_smearing_real_redshifts=0., nzdivs=6):
+            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -97,9 +122,9 @@ def write_umachine_healpix_mock_to_disk(
     file_ids = [int(d) for d in re.findall(r'\d+', os.path.splitext(output_mock_basename)[0])]
 
     cutout_number_true = file_ids[-1]
-    cutout_number = cutout_remap.get(str(cutout_number_true), cutout_number_true) #  translate for imsims
-    z_range_id = file_ids[-3]  #  3rd-last digit in filename
-    galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy + z_offsets[z_range_id])
+    cutout_number = cutout_remap[str(Nside_cosmoDC2)].get(str(cutout_number_true), cutout_number_true) #  translate for imsims
+    z_range_id = file_ids[-3]  #  3rd-last digits in filename
+    galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy[str(Nside_cosmoDC2)] + z_offsets[str(Nside_cosmoDC2)][z_range_id])
     halo_id_cutout_offset = int(cutout_number*cutout_id_offset_halo)
 
     #  determine seed from output filename
@@ -111,6 +136,7 @@ def write_umachine_healpix_mock_to_disk(
 
     print('\nStarting snapshot processing')
     print('Using initial seed = {}'.format(seed))
+    print('Using nside = {}'.format(Nside_cosmoDC2))
     print('Synthetic-halo minimum mass =  {}'.format(synthetic_halo_minimum_mass))
     print('Using {} synthetic low-mass galaxies'.format('central' if use_centrals else 'satellite'))
     galaxy_types = ['real', 'synthetic']
@@ -132,6 +158,12 @@ def write_umachine_healpix_mock_to_disk(
 
         #  seed should be changed for each new shell
         seed = seed + 2
+
+        #  check for halos in healpixel
+        if len(healpix_data[snapshot]['id']) == 0:
+            output_mock[snapshot] = {}
+            print("\n...skipping empty snapshot {}".format(snapshot))
+            continue
 
         #  Get galaxy properties from UM catalogs and target halo properties
         print("\n...loading z = {0:.2f} galaxy catalog into memory".format(redshift))
@@ -363,7 +395,7 @@ def write_umachine_healpix_mock_to_disk(
     if len(output_mock) > 0:
         check_time = time()
         write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
-                                  synthetic_halo_minimum_mass, cutout_number_true)
+                                  synthetic_halo_minimum_mass, cutout_number_true, Nside_cosmoDC2)
         print('...time to write mock to disk = {:.2f} minutes'.format((time()-check_time)/60.))
 
     print('Maximum halo mass for {} ={}\n'.format(output_mock_basename, fof_halo_mass_max))
@@ -581,16 +613,17 @@ def build_output_snapshot_mock(
     return output_dc2
 
 
-def get_skyarea(output_mock):
+def get_skyarea(output_mock, Nside):
     """
     """
     import healpy as hp
     #  compute sky area from ra and dec ranges of galaxies
-    nominal_skyarea = np.rad2deg(np.rad2deg(4.0*np.pi/hp.nside2npix(Nside_cosmoDC2)))
+    nominal_skyarea = np.rad2deg(np.rad2deg(4.0*np.pi/hp.nside2npix(Nside)))
     pixels = set()
     for k in output_mock.keys():
-        for ra, dec in zip(output_mock[k]['ra'], output_mock[k]['dec']):
-            pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
+        if output_mock[k].has_key('ra') and output_mock[k].has_key('dec'):
+            for ra, dec in zip(output_mock[k]['ra'], output_mock[k]['dec']):
+                pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
     frac = len(pixels)/float(hp.nside2npix(Nside))
     skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
     if np.isclose(skyarea, nominal_skyarea, rtol=.02):  #  agreement to about 1 sq. deg.
@@ -604,8 +637,8 @@ def get_skyarea(output_mock):
 
 
 def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
-                              synthetic_halo_minimum_mass, cutout_number,
-                              versionMajor=0, versionMinor=4, versionMinorMinor=6):
+                              synthetic_halo_minimum_mass, cutout_number, Nside,
+                              versionMajor=1, versionMinor=1, versionMinorMinor=0):
     """
     """
 
@@ -620,7 +653,7 @@ def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash,
     hdfFile['metaData']['H_0'] = H0
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
-    hdfFile['metaData']['skyArea'] = get_skyarea(output_mock)
+    hdfFile['metaData']['skyArea'] = get_skyarea(output_mock, Nside)
     hdfFile['metaData']['synthetic_halo_minimum_mass'] = synthetic_halo_minimum_mass
     hdfFile['metaData']['healpix_cutout_number'] = cutout_number
 
