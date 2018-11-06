@@ -9,7 +9,7 @@ from ..sdss_colors.sigmoid_r_minus_i import red_sequence_peak_ri
 
 
 __all__ = ('nearby_hostmass_selection_indices', 'calculate_synthetic_richness',
-        'create_synthetic_cluster_satellites')
+           'create_synthetic_cluster_satellites', 'model_synthetic_cluster_satellites')
 
 
 def nearby_hostmass_selection_indices(hostmass, desired_hostmass):

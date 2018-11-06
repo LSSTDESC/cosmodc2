@@ -73,6 +73,9 @@ parser.add_argument("-gaussian_smearing",
 parser.add_argument("-nzdivs",
     help="Number of sub-steps for CAM color assignment",
                     type=int, default=6)
+parser.add_argument("-nside",
+    help="Nside used to create healpixels",
+                    type=int, default=32)
         
 args = parser.parse_args()
 
@@ -86,6 +89,9 @@ commit_hash = retrieve_commit_hash(path_to_cosmodc2)[0:7]
 print('Using commit hash {}'.format(commit_hash))
 synthetic_halo_minimum_mass = args.synthetic_mass_min
 use_centrals = not(args.use_satellites)
+
+if args.verbose:
+        print("paths=", home, path_to_cosmodc2, sys.path)
 
 #loop over z-ranges
 if args.zrange_value == 'all':
@@ -145,7 +151,7 @@ for zdir in z_range_dirs:
             healpix_data, snapshots, output_healpix_mock_fname,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=synthetic_halo_minimum_mass,
             use_centrals=use_centrals, gaussian_smearing_real_redshifts=args.gaussian_smearing, 
-            nzdivs=args.nzdivs)
+            nzdivs=args.nzdivs, Nside_cosmoDC2=args.nside)
 
     else:
         print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))

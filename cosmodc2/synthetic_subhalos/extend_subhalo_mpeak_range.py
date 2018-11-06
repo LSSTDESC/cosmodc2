@@ -238,7 +238,7 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
         healpix_mock['target_halo_y'], healpix_mock['target_halo_z'], nest=False)
     halo_healpix_mask = (halo_healpixels == cutout_id)
     if np.sum(~halo_healpix_mask) > 0:
-        print('...Warning: {} halo(s) detected outide healpixel'.format(np.sum(~halo_healpix_mask)))
+        print('...Warning: {} halo(s) detected outside healpixel'.format(np.sum(~halo_healpix_mask)))
         healpix_mock = healpix_mock[halo_healpix_mask]
 
     #  loop over galaxy-position generator until required number are created
