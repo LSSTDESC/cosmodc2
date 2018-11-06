@@ -138,9 +138,8 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         #  Assign synthetic subhalo mass according to a power law
         #  Maximum allowed value of the subhalo mass is the host halo mass
         #  Power law distribution in subhalo mass spans [11, logMhost]
-        dlogm = np.log10(synthetic_hostmass) - 11.
-        alpha = 2.0  #  power-law slope
-        sats['mpeak'] = 10**(synthetic_hostmass - dlogm*powerlaw.rvs(alpha, size=len(sats)))
+        alpha = np.zeros_like(synthetic_hostmass) + 2.0  #  power-law slope
+        sats['mpeak'] = 10**(np.log10(synthetic_hostmass) - 4*powerlaw.rvs(alpha))
 
         sats['halo_id'] = -1
         sats['lightcone_id'] = -1
