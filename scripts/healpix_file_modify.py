@@ -84,6 +84,9 @@ def healpix_mock_modify(healpix_filename, commit_hash, functions=None, correctio
             corrections = correction_data.get(str(f),{})
             for (k, v) in output_mock.items():
                 if k.isdigit():
+                    if len(v) == 0:
+                        print('Skipping empty snap {}'.format(k))
+                        continue
                     print('...Processing snap {} with {} and data-correction value(s) {}'.format(k, str(f), corrections[int(k)]))
                     output_mock[k] = f(v, corrections[int(k)])
 
@@ -149,10 +152,12 @@ parser.add_argument("-input_master_dirname",
     default='cosmology/DC2/OR_Production')
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing output mock healpix files",
-    default='baseDC2_min_9.8_centrals_v0.4.7_velocity_bug_fixes')
+    default='baseDC2_9.8C_v1.1_velocity_bug_fixes')
+#    default='baseDC2_min_9.8_centrals_v0.4.7_velocity_bug_fixes')
 parser.add_argument("-input_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing input mock healpix files",
-    default='baseDC2_min_9.8_centrals_v0.4.5')
+    default='baseDC2_9.8C_v1.1')
+#    default='baseDC2_min_9.8_centrals_v0.4.5')
 #    default='baseDC2_min_9.8_centrals_v0.4.5_test')
 parser.add_argument("-modify_functions",
     help="Functions applied to modify input -> output",
