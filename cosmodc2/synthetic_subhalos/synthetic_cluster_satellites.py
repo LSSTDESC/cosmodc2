@@ -9,7 +9,7 @@ from ..sdss_colors.sigmoid_r_minus_i import red_sequence_peak_ri
 
 
 __all__ = ('nearby_hostmass_selection_indices', 'calculate_synthetic_richness',
-           'create_synthetic_cluster_satellites', 'model_synthetic_cluster_satellites')
+        'create_synthetic_cluster_satellites')
 
 
 def nearby_hostmass_selection_indices(hostmass, desired_hostmass):
@@ -189,6 +189,16 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         #  In case we missed one of the obscure ones, just add it to the table
         #  Note that this is what we previously did for *ALL* columns
         satkeys = list(sats.keys())
+        mockkeys = list(mock.keys())
+        missing_keys_from_sats = list(set(mockkeys)-set(satkeys))
+        unwanted_keys_in_sats = list(set(satkeys)-set(mockkeys))
+
+        msg = "The following keys are missing from the sats table:\n{0}"
+        assert len(missing_keys_from_sats) == 0, msg.format(missing_keys_from_sats)
+
+        msg = "The following keys should never have been assigned to the sats table:\n{0}"
+        assert len(unwanted_keys_in_sats) == 0, msg.format(unwanted_keys_in_sats)
+
         for key in mock.keys():
             if key not in satkeys:
                 sats[key] = mock[key][sat_sample_mask][nn_indices]
