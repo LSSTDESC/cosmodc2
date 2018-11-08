@@ -194,10 +194,10 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         unwanted_keys_in_sats = list(set(satkeys)-set(mockkeys))
 
         msg = "The following keys are missing from the sats table:\n{0}"
-        assert missing_keys_from_sats, msg.format(missing_keys_from_sats)
+        assert len(missing_keys_from_sats) == 0, msg.format(missing_keys_from_sats)
 
         msg = "The following keys should never have been assigned to the sats table:\n{0}"
-        assert unwanted_keys_in_sats, msg.format(unwanted_keys_in_sats)
+        assert len(unwanted_keys_in_sats) == 0, msg.format(unwanted_keys_in_sats)
 
         for key in mock.keys():
             if key not in satkeys:
