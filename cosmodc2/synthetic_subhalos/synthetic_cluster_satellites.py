@@ -89,7 +89,6 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         #  Use Halotools to generate halo-centric positions and velocities according to NFW
         nfw = NFWPhaseSpace()
         nfw_sats = nfw.mc_generate_nfw_phase_space_points(mass=sats['target_halo_mass'])
-        print('Check: lengths mass:{}  x:{}'.format(len(sats['target_halo_mass']), len(nfw_sats['x'])))
 
         sats['host_centric_x'] = nfw_sats['x']
         sats['host_centric_y'] = nfw_sats['y']
