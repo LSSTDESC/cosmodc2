@@ -53,7 +53,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
     host_vz = mock['target_halo_vz'][idx]
     source_halo_mvir = mock['source_halo_mvir'][idx]
     target_halo_id = mock['target_halo_id'][idx]
-    target_halo_fof_halo_id = mock['fof_halo_id'][idx]
+    target_halo_fof_halo_id = mock['target_halo_fof_halo_id'][idx]
     target_halo_lightcone_replication = mock['lightcone_replication'][idx]
     target_halo_lightcone_rotation = mock['lightcone_rotation'][idx]
 
@@ -64,7 +64,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         host_richness, np.log10(host_mass), np.log10(source_halo_mvir),
         cluster_satboost_logm_table, cluster_satboost_table)
 
-    if np.sum(synthetic_richness) == 0:
+    if np.sum(synthetic_richness) <= 1:
         return Table()
     else:
         sats = Table()
@@ -89,6 +89,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         #  Use Halotools to generate halo-centric positions and velocities according to NFW
         nfw = NFWPhaseSpace()
         nfw_sats = nfw.mc_generate_nfw_phase_space_points(mass=sats['target_halo_mass'])
+        print('Check: lengths mass:{}  x:{}'.format(len(sats['target_halo_mass']), len(nfw_sats['x'])))
 
         sats['host_centric_x'] = nfw_sats['x']
         sats['host_centric_y'] = nfw_sats['y']
@@ -118,7 +119,6 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
 
         sats['halo_id'] = -1
         sats['source_halo_id'] = -1
-        sats['lightcone_id'] = -1
         sats['um_target_halo_id'] = -1
         sats['um_target_halo_mass'] = sats['target_halo_mass']
         sats['source_halo_mvir'] = sats['target_halo_mass']

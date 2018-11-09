@@ -619,19 +619,22 @@ def get_skyarea(output_mock, Nside):
     import healpy as hp
     #  compute sky area from ra and dec ranges of galaxies
     nominal_skyarea = np.rad2deg(np.rad2deg(4.0*np.pi/hp.nside2npix(Nside)))
-    pixels = set()
-    for k in output_mock.keys():
-        if output_mock[k].has_key('ra') and output_mock[k].has_key('dec'):
-            for ra, dec in zip(output_mock[k]['ra'], output_mock[k]['dec']):
-                pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
-    frac = len(pixels)/float(hp.nside2npix(Nside))
-    skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
-    if np.isclose(skyarea, nominal_skyarea, rtol=.02):  #  agreement to about 1 sq. deg.
-        print(' Replacing calculated sky area {} with nominal_area'.format(skyarea))
+    if Nside > 8:
         skyarea = nominal_skyarea
-    if np.isclose(skyarea, nominal_skyarea/2., rtol=.01):  #  check for half-filled pixels
-        print(' Replacing calculated sky area {} with (nominal_area)/2'.format(skyarea))
-        skyarea = nominal_skyarea/2.
+    else:
+        pixels = set()
+        for k in output_mock.keys():
+            if output_mock[k].has_key('ra') and output_mock[k].has_key('dec'):
+                for ra, dec in zip(output_mock[k]['ra'], output_mock[k]['dec']):
+                    pixels.add(hp.ang2pix(Nside, ra, dec, lonlat=True))
+        frac = len(pixels)/float(hp.nside2npix(Nside))
+        skyarea = frac*np.rad2deg(np.rad2deg(4.0*np.pi))
+        if np.isclose(skyarea, nominal_skyarea, rtol=.02):  #  agreement to about 1 sq. deg.
+            print(' Replacing calculated sky area {} with nominal_area'.format(skyarea))
+            skyarea = nominal_skyarea
+        if np.isclose(skyarea, nominal_skyarea/2., rtol=.01):  #  check for half-filled pixels
+            print(' Replacing calculated sky area {} with (nominal_area)/2'.format(skyarea))
+            skyarea = nominal_skyarea/2.
 
     return skyarea
 
