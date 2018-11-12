@@ -194,7 +194,7 @@ for f in map(str, function_list):
             correction_data[f] = pickle.load(handle)
         print('Using correction data input from {}\n'.format(datfile))    
 
-healpix_files = glob.glob(os.path.join(input_mock_dirname, healpix_filename))
+healpix_files = sorted(glob.glob(os.path.join(input_mock_dirname, healpix_filename)))
 start_time = time()
 
 for hpx in healpix_files:
@@ -208,3 +208,4 @@ for hpx in healpix_files:
 time_stamp = time()
 msg = "End-to-end runtime = {0:.2f} minutes\n"
 print(msg.format((time_stamp-start_time)/60.))
+
