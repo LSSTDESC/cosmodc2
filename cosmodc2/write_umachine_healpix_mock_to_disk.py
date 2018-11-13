@@ -1,10 +1,11 @@
-""" Module storing the primary driver script used for the v4 release of DC2.
+""" Module storing the primary driver script used for the v1 release of cosmoDC2.
 """
 import os
 import psutil
 import numpy as np
 import h5py
 import re
+import healpy as hp
 from time import time
 from astropy.table import Table, vstack
 from astropy.cosmology import FlatLambdaCDM
@@ -62,13 +63,18 @@ cutout_remap = {'8': {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629
  '10905': 221, '11004': 222, '11008': 223}
                 }
 
+# constants to determine synthetic number density
+Ntotal_synthetics = 1932058570
+Area_total = float(131)/float(hp.nside2npix(32)) #drop factor of 4pi since it will cancel later
+snapshot_min = 121 
+
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
-            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32):
+            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, z2ts={}):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -130,6 +136,12 @@ def write_umachine_healpix_mock_to_disk(
     #  determine seed from output filename
     seed = get_random_seed(output_mock_basename)
 
+    #  determine maximum redshift used in creating catalog
+    redshift_max = [float(k) for k,v in z2ts.items() if int(v)==snapshot_min][0]
+    #  determine total number of synthetic galaxies for this healpixel
+    #  area of this healpixel = 1/hp.nside2npix(Nside_cosmoDC2) (dropping the factor of 4pi)
+    synthetic_number = int(Ntotal_synthetics/Area_total/hp.nside2npix(Nside_cosmoDC2)) 
+
     #  initialize book-keeping variables
     fof_halo_mass_max = 0.
     Ngals_total = 0
@@ -137,7 +149,9 @@ def write_umachine_healpix_mock_to_disk(
     print('\nStarting snapshot processing')
     print('Using initial seed = {}'.format(seed))
     print('Using nside = {}'.format(Nside_cosmoDC2))
+    print('Maximum redshift for catalog = {}'.format(redshift_max))
     print('Synthetic-halo minimum mass =  {}'.format(synthetic_halo_minimum_mass))
+    print('Number of synthetic ultra-faint galaxies = {}'.format(synthetic_number))
     print('Using {} synthetic low-mass galaxies'.format('central' if use_centrals else 'satellite'))
     galaxy_types = ['real', 'synthetic']
     for flag, t in zip([randomize_redshift_real, randomize_redshift_synthetic], galaxy_types):
@@ -278,19 +292,18 @@ def write_umachine_healpix_mock_to_disk(
             if num_infinite > 0:
                 print('...Warning: {} infinite values in synthetic {}'.format(num_infinite, m_id))
 
-        #  Now appropriately downsample the synthetic galaxies
-        #  according to the size of the healpixel
-        num_galsampled_into_healpix = len(source_galaxy_indx)
-        frac_gals_in_healpix = num_galsampled_into_healpix/float(len(mock))
+        #  Now downsample the synthetic galaxies according to the 
+        #  desired number = synthetic_number*comoving_vol(snapshot)/comoving_vol(healpixel)
+        volume_factor = get_volume_factor(snapshot, redshift_max, z2ts)
+        num_selected_synthetic = int(synthetic_number*volume_factor)
         num_synthetic_gals_in_snapshot = len(mpeak_synthetic_snapshot)
-        num_synthetic_in_healpix = int(frac_gals_in_healpix*num_synthetic_gals_in_snapshot)
-        num_selected_synthetic = int(num_synthetic_in_healpix*num_synthetic_gal_ratio)
         synthetic_indices = np.arange(0, num_synthetic_gals_in_snapshot).astype(int)
         with NumpyRNGContext(seed):
             selected_synthetic_indices = np.random.choice(
                 synthetic_indices, size=num_selected_synthetic, replace=False)
-        print('...down-sampling synthetic galaxies by {:.2g} to yield {} selected synthetics'.format(frac_gals_in_healpix,
-                                                                                      num_selected_synthetic))
+        print('...down-sampling synthetic galaxies with volume factor {} to yield {} selected synthetics'.format(volume_factor,
+                                                                                                                 num_selected_synthetic))
+
         mpeak_synthetic = mpeak_synthetic_snapshot[selected_synthetic_indices]
         mstar_synthetic = mstar_synthetic_snapshot[selected_synthetic_indices]
         magr_synthetic = magr_synthetic_snapshot[selected_synthetic_indices]
@@ -416,6 +429,19 @@ def get_random_seed(filename, seed_max=4294967095):  #reduce max seed by 200 to 
     if seed%2 == 0:
         seed = seed + 1
     return seed
+
+
+def get_volume_factor(snapshot, redshift_max, z2ts):
+    assert (len(z2ts) > 0), 'z2ts data NOT supplied'
+    cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
+    #  find for z limits for shell in healpixel
+    zshell_hi = [float(k) for k,v in z2ts.items() if int(v)==int(snapshot)][0]
+    snapshots = sorted([v for k,v in z2ts.items()])
+    zshell_lo = [float(k) for k,v in z2ts.items() if int(v)==snapshots[snapshots.index(int(snapshot)) + 1]][0]
+
+    Vtotal = cosmology.comoving_volume(redshift_max).value
+    Vshell = cosmology.comoving_volume(zshell_hi).value - cosmology.comoving_volume(zshell_lo).value 
+    return Vshell/Vtotal
 
 
 def get_astropy_table(table_data, halo_unique_id=0, check=False):
@@ -641,7 +667,7 @@ def get_skyarea(output_mock, Nside):
 
 def write_output_mock_to_disk(output_color_mock_fname, output_mock, commit_hash, seed,
                               synthetic_halo_minimum_mass, cutout_number, Nside,
-                              versionMajor=1, versionMinor=1, versionMinorMinor=0):
+                              versionMajor=1, versionMinor=1, versionMinorMinor=1):
     """
     """
 

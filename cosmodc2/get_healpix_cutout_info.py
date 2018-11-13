@@ -19,4 +19,4 @@ def get_healpix_cutout_info(pkldirname, infile, sim_name='AlphaQ', pklname='{}_z
     else:
         print('{} not found'.format(infile))
 
-    return h5file, redshifts, snapshots
+    return h5file, redshifts, snapshots, z2ts

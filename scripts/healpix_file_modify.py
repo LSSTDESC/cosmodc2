@@ -110,7 +110,6 @@ def healpix_mock_modify(healpix_filename, commit_hash, functions=None, correctio
             output_mock[k][ckey] = ' '.join(['Corrected with', str(f)])
             print('...Adding metaData comment: {}'.format(output_mock[k][ckey]))
 
-        output_mock[k]['versionMinorMinor'] += 1
         for tk, v in masks_used.items():
             ckey = 'mask_'+tk
             output_mock[k][ckey] = ' '.join(['Corrected with', str(v)])
