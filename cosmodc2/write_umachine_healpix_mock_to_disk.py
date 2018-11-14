@@ -11,6 +11,8 @@ from astropy.table import Table, vstack
 from astropy.cosmology import FlatLambdaCDM
 from astropy.utils.misc import NumpyRNGContext
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
+from cosmodc2.sdss_colors.sigmoid_magr_model import magr_monte_carlo
+
 from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
@@ -531,6 +533,16 @@ def build_output_snapshot_mock(
             msg = ("The build_output_snapshot_mock function was passed a umachine mock\n"
                 "that does not contain the ``{0}`` key")
             raise KeyError(msg.format(key))
+
+    ultra_high_mvir_halo_mask = (dc2['upid'] == -1) & (dc2['target_halo_mass'] > dc2['source_halo_mvir'].max())
+    num_to_remap = np.count_nonzero(ultra_high_mvir_halo_mask)
+    if num_to_remap > 0:
+        dc2['obs_sm'][ultra_high_mvir_halo_mask] = remap_stellar_mass_in_snapshot(
+            dc2['target_halo_redshift'][ultra_high_mvir_halo_mask],
+            dc2['mpeak'][ultra_high_mvir_halo_mask], dc2['obs_sm'][ultra_high_mvir_halo_mask])
+        dc2['restframe_extincted_sdss_abs_magr'][ultra_high_mvir_halo_mask] = magr_monte_carlo(
+            dc2['obs_sm'][ultra_high_mvir_halo_mask], dc2['upid'][ultra_high_mvir_halo_mask],
+            dc2['target_halo_redshift'][ultra_high_mvir_halo_mask])
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
