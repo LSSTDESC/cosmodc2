@@ -334,7 +334,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_mock = np.zeros(len(mock)) + redshift
         redshift_mock[source_galaxy_indx] = np.repeat(
             target_halos['halo_redshift'], target_halos['richness'])
-        mock['target_halo_redshift'] = np.copy(redshift_mock)
+
         if gaussian_smearing_real_redshifts > 0:
             msg = ("\n...gaussian_smearing_real_redshifts = {0}\n"
                 "...The functions involved in the color modeling will be passed\n"
@@ -506,6 +506,8 @@ def build_output_snapshot_mock(
         target_halos['halo_id'], target_halos['richness'])
 
     #  copy lightcone information
+    dc2['target_halo_redshift'] = np.repeat(
+        target_halos['halo_redshift'], target_halos['richness'])
     dc2['target_halo_fof_halo_id'] = np.repeat(
         target_halos['fof_halo_id'], target_halos['richness'])
     dc2['lightcone_rotation'] = np.repeat(
@@ -546,7 +548,7 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
-            'um_target_halo_mass', 'target_halo_redshift',
+            'um_target_halo_mass',
             '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         try:
