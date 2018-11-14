@@ -66,7 +66,7 @@ cutout_remap = {'8': {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629
 # constants to determine synthetic number density
 Ntotal_synthetics = 1932058570
 Area_total = float(131)/float(hp.nside2npix(32)) #drop factor of 4pi since it will cancel later
-snapshot_min = 121 
+snapshot_min = 121
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -140,7 +140,7 @@ def write_umachine_healpix_mock_to_disk(
     redshift_max = [float(k) for k,v in z2ts.items() if int(v)==snapshot_min][0]
     #  determine total number of synthetic galaxies for this healpixel
     #  area of this healpixel = 1/hp.nside2npix(Nside_cosmoDC2) (dropping the factor of 4pi)
-    synthetic_number = int(Ntotal_synthetics/Area_total/hp.nside2npix(Nside_cosmoDC2)) 
+    synthetic_number = int(Ntotal_synthetics/Area_total/hp.nside2npix(Nside_cosmoDC2))
 
     #  initialize book-keeping variables
     fof_halo_mass_max = 0.
@@ -292,7 +292,7 @@ def write_umachine_healpix_mock_to_disk(
             if num_infinite > 0:
                 print('...Warning: {} infinite values in synthetic {}'.format(num_infinite, m_id))
 
-        #  Now downsample the synthetic galaxies according to the 
+        #  Now downsample the synthetic galaxies according to the
         #  desired number = synthetic_number*comoving_vol(snapshot)/comoving_vol(healpixel)
         volume_factor = get_volume_factor(snapshot, redshift_max, z2ts)
         num_selected_synthetic = int(synthetic_number*volume_factor)
@@ -440,7 +440,7 @@ def get_volume_factor(snapshot, redshift_max, z2ts):
     zshell_lo = [float(k) for k,v in z2ts.items() if int(v)==snapshots[snapshots.index(int(snapshot)) + 1]][0]
 
     Vtotal = cosmology.comoving_volume(redshift_max).value
-    Vshell = cosmology.comoving_volume(zshell_hi).value - cosmology.comoving_volume(zshell_lo).value 
+    Vshell = cosmology.comoving_volume(zshell_hi).value - cosmology.comoving_volume(zshell_lo).value
     return Vshell/Vtotal
 
 
