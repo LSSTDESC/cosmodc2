@@ -118,8 +118,6 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
 
         sats['halo_id'] = -1
         sats['source_halo_id'] = -1
-        sats['um_target_halo_id'] = -1
-        sats['um_target_halo_mass'] = sats['target_halo_mass']
         sats['source_halo_mvir'] = sats['target_halo_mass']
 
         #  Assign M* according to the Halotools implementation

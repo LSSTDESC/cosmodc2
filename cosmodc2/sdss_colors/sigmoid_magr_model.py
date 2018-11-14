@@ -22,6 +22,10 @@ def sigmoid(x, x0=0, k=1, ymin=0, ymax=1):
 def magr_monte_carlo(mstar, upid, redshift, scatter=0.15, **kwargs):
     """
     """
+    mstar = np.atleast_1d(mstar)
+    upid = np.atleast_1d(upid)
+    redshift = np.atleast_1d(redshift)
+
     median_magr = median_magr_from_mstar(mstar, upid, redshift, **kwargs)
     with NumpyRNGContext(fixed_seed):
         result = np.random.normal(loc=median_magr, scale=scatter)
