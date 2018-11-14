@@ -317,10 +317,6 @@ def write_umachine_healpix_mock_to_disk(
             is_on_red_sequence_gr=is_red_gr_synthetic, is_on_red_sequence_ri=is_red_ri_synthetic)
 
         #  Assign target halo id and target halo mass to selected galaxies in mock
-        mock_target_halo_id = np.zeros(len(mock)) - 1.
-        mock_target_halo_id[source_galaxy_indx] = np.repeat(
-            target_halos['halo_id'], target_halos['richness'])
-        mock['target_halo_id'] = mock_target_halo_id
         mock['target_halo_mass'] = mock_target_halo_mass
 
         ###################################################
@@ -508,7 +504,6 @@ def build_output_snapshot_mock(
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
         target_halos['halo_id'], target_halos['richness'])
-    umachine.rename_column('target_halo_id', 'um_target_halo_id')
 
     #  copy lightcone information
     dc2['target_halo_fof_halo_id'] = np.repeat(
@@ -551,7 +546,7 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
-            'um_target_halo_id', 'um_target_halo_mass', 'target_halo_redshift',
+            'um_target_halo_mass', 'target_halo_redshift',
             '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         try:
