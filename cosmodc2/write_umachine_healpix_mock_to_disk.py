@@ -428,8 +428,8 @@ def get_astropy_table(table_data, halo_unique_id=0, check=False):
     t['halo_id'] = (np.arange(len(table_data['id']))*halo_id_offset + halo_unique_id).astype(int)
 
     #  rename column mass if found
-    if 'mass' in t.colnames:
-        t.rename_column('mass', 'fof_halo_mass')
+    if mass in t.colnames:
+        t.rename_column(mass, fof_halo_mass)
 
     if check:
         #  compute comoving distance from z and from position
