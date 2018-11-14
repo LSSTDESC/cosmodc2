@@ -233,27 +233,12 @@ def write_umachine_healpix_mock_to_disk(
         print('...assembling {} synthetic galaxies'.format(len(mpeak_synthetic_snapshot)))
 
         ########################################################################
-        #  Assign stellar mass, using Outer Rim halo mass for very massive halos
+        #  Assign stellar mass
         ########################################################################
         print("...re-assigning high-mass mstar values")
-        #  For mock central galaxies that have been assigned to a very massive target halo,
-        #  we use the target halo mass instead of the source halo mpeak to assign M*
-        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
-        #  with -1 in all other entries pertaining to unselected galaxies
-
-        mock_target_halo_mass = np.zeros(len(mock)) - 1.
-        mock_target_halo_mass[source_galaxy_indx] = np.repeat(
-            target_halos['fof_halo_mass'], target_halos['richness'])
-
-        #  Calculate a boolean mask for those centrals that get mapped to very massive target halos
-        cenmask = mock['upid'] == -1
-        massive_target_halo_mask = mock_target_halo_mass > np.max(mock['mpeak'])
-        remap_mpeak_mask = cenmask & massive_target_halo_mask
-        mpeak_mock = np.where(remap_mpeak_mask, mock_target_halo_mass, mock['mpeak'])
-        assert np.all(mpeak_mock > 0), "Bookkeeping error in remapping target halo mass onto cluster BCGs"
 
         #  Map stellar mass onto mock using target halo mass instead of UM Mpeak for cluster BCGs
-        new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, mock['obs_sm'])
+        new_mstar = remap_stellar_mass_in_snapshot(redshift, mock['mpeak'], mock['obs_sm'])
         mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
         mock['obs_sm'] = new_mstar
 
@@ -315,9 +300,6 @@ def write_umachine_healpix_mock_to_disk(
             mpeak=mpeak_synthetic, obs_sm=mstar_synthetic, restframe_extincted_sdss_abs_magr=magr_synthetic,
             restframe_extincted_sdss_gr=gr_synthetic, restframe_extincted_sdss_ri=ri_synthetic,
             is_on_red_sequence_gr=is_red_gr_synthetic, is_on_red_sequence_ri=is_red_ri_synthetic)
-
-        #  Assign target halo id and target halo mass to selected galaxies in mock
-        mock['target_halo_mass'] = mock_target_halo_mass
 
         ###################################################
         #  Map restframe Mr, g-r, r-i onto mock
@@ -539,7 +521,6 @@ def build_output_snapshot_mock(
 
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
-    umachine.rename_column('target_halo_mass', 'um_target_halo_mass')
 
     source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
@@ -548,7 +529,6 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
-            'um_target_halo_mass',
             '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         try:
