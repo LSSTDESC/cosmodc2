@@ -331,15 +331,9 @@ def write_umachine_healpix_mock_to_disk(
                 "to assign restframe colors to galaxies")
             print(msg)
 
-        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
-        #  with mock['host_halo_mvir'] in all other entries pertaining to unselected galaxies
-        mock_remapped_halo_mass = mock['host_halo_mvir']
-        mock_remapped_halo_mass[source_galaxy_indx] = np.repeat(
-            target_halos['fof_halo_mass'], target_halos['richness'])
-
         magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
             mock['upid'], mock['obs_sm'], mock['sfr_percentile'],
-            mock_remapped_halo_mass, redshift_mock, seed=seed, use_substeps=use_substeps_real,
+            mock['host_halo_mvir'], redshift_mock, seed=seed, use_substeps=use_substeps_real,
             nzdivs=nzdivs)
         #  check for bad values
         for m_id, m in zip(['magr', 'gr', 'ri'], [magr, gr_mock, ri_mock]):
