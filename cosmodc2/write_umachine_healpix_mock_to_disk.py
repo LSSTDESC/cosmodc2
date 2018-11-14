@@ -66,7 +66,7 @@ cutout_remap = {'8': {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629
 # constants to determine synthetic number density
 Ntotal_synthetics = 1932058570
 Area_total = float(131)/float(hp.nside2npix(32)) #drop factor of 4pi since it will cancel later
-snapshot_min = 121 
+snapshot_min = 121
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -140,7 +140,7 @@ def write_umachine_healpix_mock_to_disk(
     redshift_max = [float(k) for k,v in z2ts.items() if int(v)==snapshot_min][0]
     #  determine total number of synthetic galaxies for this healpixel
     #  area of this healpixel = 1/hp.nside2npix(Nside_cosmoDC2) (dropping the factor of 4pi)
-    synthetic_number = int(Ntotal_synthetics/Area_total/hp.nside2npix(Nside_cosmoDC2)) 
+    synthetic_number = int(Ntotal_synthetics/Area_total/hp.nside2npix(Nside_cosmoDC2))
 
     #  initialize book-keeping variables
     fof_halo_mass_max = 0.
@@ -233,27 +233,12 @@ def write_umachine_healpix_mock_to_disk(
         print('...assembling {} synthetic galaxies'.format(len(mpeak_synthetic_snapshot)))
 
         ########################################################################
-        #  Assign stellar mass, using Outer Rim halo mass for very massive halos
+        #  Assign stellar mass
         ########################################################################
         print("...re-assigning high-mass mstar values")
-        #  For mock central galaxies that have been assigned to a very massive target halo,
-        #  we use the target halo mass instead of the source halo mpeak to assign M*
-        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
-        #  with -1 in all other entries pertaining to unselected galaxies
-
-        mock_target_halo_mass = np.zeros(len(mock)) - 1.
-        mock_target_halo_mass[source_galaxy_indx] = np.repeat(
-            target_halos['fof_halo_mass'], target_halos['richness'])
-
-        #  Calculate a boolean mask for those centrals that get mapped to very massive target halos
-        cenmask = mock['upid'] == -1
-        massive_target_halo_mask = mock_target_halo_mass > np.max(mock['mpeak'])
-        remap_mpeak_mask = cenmask & massive_target_halo_mask
-        mpeak_mock = np.where(remap_mpeak_mask, mock_target_halo_mass, mock['mpeak'])
-        assert np.all(mpeak_mock > 0), "Bookkeeping error in remapping target halo mass onto cluster BCGs"
 
         #  Map stellar mass onto mock using target halo mass instead of UM Mpeak for cluster BCGs
-        new_mstar = remap_stellar_mass_in_snapshot(redshift, mpeak_mock, mock['obs_sm'])
+        new_mstar = remap_stellar_mass_in_snapshot(redshift, mock['mpeak'], mock['obs_sm'])
         mock.rename_column('obs_sm', '_obs_sm_orig_um_snap')
         mock['obs_sm'] = new_mstar
 
@@ -292,7 +277,7 @@ def write_umachine_healpix_mock_to_disk(
             if num_infinite > 0:
                 print('...Warning: {} infinite values in synthetic {}'.format(num_infinite, m_id))
 
-        #  Now downsample the synthetic galaxies according to the 
+        #  Now downsample the synthetic galaxies according to the
         #  desired number = synthetic_number*comoving_vol(snapshot)/comoving_vol(healpixel)
         volume_factor = get_volume_factor(snapshot, redshift_max, z2ts)
         num_selected_synthetic = int(synthetic_number*volume_factor)
@@ -316,13 +301,6 @@ def write_umachine_healpix_mock_to_disk(
             restframe_extincted_sdss_gr=gr_synthetic, restframe_extincted_sdss_ri=ri_synthetic,
             is_on_red_sequence_gr=is_red_gr_synthetic, is_on_red_sequence_ri=is_red_ri_synthetic)
 
-        #  Assign target halo id and target halo mass to selected galaxies in mock
-        mock_target_halo_id = np.zeros(len(mock)) - 1.
-        mock_target_halo_id[source_galaxy_indx] = np.repeat(
-            target_halos['halo_id'], target_halos['richness'])
-        mock['target_halo_id'] = mock_target_halo_id
-        mock['target_halo_mass'] = mock_target_halo_mass
-
         ###################################################
         #  Map restframe Mr, g-r, r-i onto mock
         ###################################################
@@ -338,7 +316,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_mock = np.zeros(len(mock)) + redshift
         redshift_mock[source_galaxy_indx] = np.repeat(
             target_halos['halo_redshift'], target_halos['richness'])
-        mock['target_halo_redshift'] = np.copy(redshift_mock)
+
         if gaussian_smearing_real_redshifts > 0:
             msg = ("\n...gaussian_smearing_real_redshifts = {0}\n"
                 "...The functions involved in the color modeling will be passed\n"
@@ -353,15 +331,9 @@ def write_umachine_healpix_mock_to_disk(
                 "to assign restframe colors to galaxies")
             print(msg)
 
-        #  Allocate an array storing the target halo mass for galaxies selected by GalSampler,
-        #  with mock['host_halo_mvir'] in all other entries pertaining to unselected galaxies
-        mock_remapped_halo_mass = mock['host_halo_mvir']
-        mock_remapped_halo_mass[source_galaxy_indx] = np.repeat(
-            target_halos['fof_halo_mass'], target_halos['richness'])
-
         magr, gr_mock, ri_mock, is_red_gr, is_red_ri = assign_restframe_sdss_gri(
             mock['upid'], mock['obs_sm'], mock['sfr_percentile'],
-            mock_remapped_halo_mass, redshift_mock, seed=seed, use_substeps=use_substeps_real,
+            mock['host_halo_mvir'], redshift_mock, seed=seed, use_substeps=use_substeps_real,
             nzdivs=nzdivs)
         #  check for bad values
         for m_id, m in zip(['magr', 'gr', 'ri'], [magr, gr_mock, ri_mock]):
@@ -440,7 +412,7 @@ def get_volume_factor(snapshot, redshift_max, z2ts):
     zshell_lo = [float(k) for k,v in z2ts.items() if int(v)==snapshots[snapshots.index(int(snapshot)) + 1]][0]
 
     Vtotal = cosmology.comoving_volume(redshift_max).value
-    Vshell = cosmology.comoving_volume(zshell_hi).value - cosmology.comoving_volume(zshell_lo).value 
+    Vshell = cosmology.comoving_volume(zshell_hi).value - cosmology.comoving_volume(zshell_lo).value
     return Vshell/Vtotal
 
 
@@ -508,9 +480,10 @@ def build_output_snapshot_mock(
     dc2['source_halo_id'] = umachine['hostid'][galaxy_indices]
     dc2['target_halo_id'] = np.repeat(
         target_halos['halo_id'], target_halos['richness'])
-    umachine.rename_column('target_halo_id', 'um_target_halo_id')
 
     #  copy lightcone information
+    dc2['target_halo_redshift'] = np.repeat(
+        target_halos['halo_redshift'], target_halos['richness'])
     dc2['target_halo_fof_halo_id'] = np.repeat(
         target_halos['fof_halo_id'], target_halos['richness'])
     dc2['lightcone_rotation'] = np.repeat(
@@ -542,7 +515,6 @@ def build_output_snapshot_mock(
 
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
-    umachine.rename_column('target_halo_mass', 'um_target_halo_mass')
 
     source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
@@ -551,7 +523,6 @@ def build_output_snapshot_mock(
             'restframe_extincted_sdss_abs_magr',
             'restframe_extincted_sdss_gr', 'restframe_extincted_sdss_ri',
             'is_on_red_sequence_gr', 'is_on_red_sequence_ri',
-            'um_target_halo_id', 'um_target_halo_mass', 'target_halo_redshift',
             '_obs_sm_orig_um_snap', 'halo_id')
     for key in source_galaxy_keys:
         try:
