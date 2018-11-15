@@ -561,7 +561,7 @@ def build_output_snapshot_mock(
             dc2['obs_sm'][ultra_high_mvir_halo_mask], upid_array, redshift_array)
         idx = np.argmax(dc2['obs_sm'])
         halo_id_most_massive = dc2['halo_id'][idx]
-        assert dc2['obs_sm'][idx] < 10**13, "halo_id = {0} has stellar mass {1:.3e}".format(
+        assert dc2['obs_sm'][idx] < 10**13.5, "halo_id = {0} has stellar mass {1:.3e}".format(
             halo_id_most_massive, dc2['obs_sm'][idx])
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
