@@ -540,12 +540,22 @@ def build_output_snapshot_mock(
     ultra_high_mvir_halo_mask = (dc2['upid'] == -1) & (dc2['target_halo_mass'] > dc2['source_halo_mvir'].max())
     num_to_remap = np.count_nonzero(ultra_high_mvir_halo_mask)
     if num_to_remap > 0:
+        print("...remapping stellar mass of {0} BCGs in ultra-massive halos".format(num_to_remap))
+
+        halo_mass_array = dc2['target_halo_mass'][ultra_high_mvir_halo_mask]
+        mstar_array = dc2['obs_sm'][ultra_high_mvir_halo_mask]
+        redshift_array = dc2['target_halo_redshift'][ultra_high_mvir_halo_mask]
+        upid_array = dc2['upid'][ultra_high_mvir_halo_mask]
+
+        assert np.shape(halo_mass_array) == (num_to_remap, ), "halo_mass_array has shape = {0}".format(np.shape(halo_mass_array))
+        assert np.shape(mstar_array) == (num_to_remap, ), "mstar_array has shape = {0}".format(np.shape(mstar_array))
+        assert np.shape(redshift_array) == (num_to_remap, ), "redshift_array has shape = {0}".format(np.shape(redshift_array))
+        assert np.shape(upid_array) == (num_to_remap, ), "upid_array has shape = {0}".format(np.shape(upid_array))
+
         dc2['obs_sm'][ultra_high_mvir_halo_mask] = remap_stellar_mass_in_snapshot(
-            snapshot_redshift, dc2['target_halo_mass'][ultra_high_mvir_halo_mask],
-            dc2['obs_sm'][ultra_high_mvir_halo_mask])
+            snapshot_redshift, halo_mass_array, mstar_array)
         dc2['restframe_extincted_sdss_abs_magr'][ultra_high_mvir_halo_mask] = magr_monte_carlo(
-            dc2['obs_sm'][ultra_high_mvir_halo_mask], dc2['upid'][ultra_high_mvir_halo_mask],
-            dc2['target_halo_redshift'][ultra_high_mvir_halo_mask])
+            mstar_array, upid_array, redshift_array)
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
