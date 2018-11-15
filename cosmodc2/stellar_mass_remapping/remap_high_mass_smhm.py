@@ -17,6 +17,7 @@ def remap_stellar_mass_in_snapshot(snapshot_redshift, mpeak, mstar,
     msg = "Input snapshot_redshift must be a single float.\nReceived an array of shape {0}"
     _x = np.atleast_1d(snapshot_redshift)
     assert len(_x) == 1, msg.format(_x.shape)
+    snapshot_redshift = _x[0]
 
     logmpeak_pivot = np.interp(snapshot_redshift, z_table, pivot_table)
     slope = np.interp(snapshot_redshift, z_table, slope_table)
