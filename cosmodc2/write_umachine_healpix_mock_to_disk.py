@@ -558,7 +558,7 @@ def build_output_snapshot_mock(
 
         dc2['obs_sm'][ultra_high_mvir_halo_mask] = mstar_array*(mhalo_ratio**0.5)
         dc2['restframe_extincted_sdss_abs_magr'][ultra_high_mvir_halo_mask] = magr_monte_carlo(
-            mstar_array, upid_array, redshift_array)
+            dc2['obs_sm'][ultra_high_mvir_halo_mask], upid_array, redshift_array)
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
