@@ -544,6 +544,8 @@ def build_output_snapshot_mock(
         print("...remapping stellar mass of {0} BCGs in ultra-massive halos".format(num_to_remap))
 
         halo_mass_array = dc2['target_halo_mass'][ultra_high_mvir_halo_mask]
+        mpeak_array = dc2['mpeak'][ultra_high_mvir_halo_mask]
+        mhalo_ratio = halo_mass_array/mpeak_array
         mstar_array = dc2['obs_sm'][ultra_high_mvir_halo_mask]
         redshift_array = dc2['target_halo_redshift'][ultra_high_mvir_halo_mask]
         upid_array = dc2['upid'][ultra_high_mvir_halo_mask]
@@ -552,9 +554,9 @@ def build_output_snapshot_mock(
         assert np.shape(mstar_array) == (num_to_remap, ), "mstar_array has shape = {0}".format(np.shape(mstar_array))
         assert np.shape(redshift_array) == (num_to_remap, ), "redshift_array has shape = {0}".format(np.shape(redshift_array))
         assert np.shape(upid_array) == (num_to_remap, ), "upid_array has shape = {0}".format(np.shape(upid_array))
+        assert np.all(mhalo_ratio >= 1), "Bookkeeping error: all values of mhalo_ratio ={0} should be >= 1".format(mhalo_ratio)
 
-        dc2['obs_sm'][ultra_high_mvir_halo_mask] = remap_stellar_mass_in_snapshot(
-            snapshot_redshift, halo_mass_array, mstar_array)
+        dc2['obs_sm'][ultra_high_mvir_halo_mask] = mstar_array*(mhalo_ratio**0.5)
         dc2['restframe_extincted_sdss_abs_magr'][ultra_high_mvir_halo_mask] = magr_monte_carlo(
             mstar_array, upid_array, redshift_array)
 
