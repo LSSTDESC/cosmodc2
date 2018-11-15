@@ -539,7 +539,7 @@ def build_output_snapshot_mock(
     if num_to_remap > 0:
         dc2['obs_sm'][ultra_high_mvir_halo_mask] = remap_stellar_mass_in_snapshot(
             dc2['target_halo_redshift'][ultra_high_mvir_halo_mask],
-            dc2['mpeak'][ultra_high_mvir_halo_mask], dc2['obs_sm'][ultra_high_mvir_halo_mask])
+            dc2['target_halo_mass'][ultra_high_mvir_halo_mask], dc2['obs_sm'][ultra_high_mvir_halo_mask])
         dc2['restframe_extincted_sdss_abs_magr'][ultra_high_mvir_halo_mask] = magr_monte_carlo(
             dc2['obs_sm'][ultra_high_mvir_halo_mask], dc2['upid'][ultra_high_mvir_halo_mask],
             dc2['target_halo_redshift'][ultra_high_mvir_halo_mask])
