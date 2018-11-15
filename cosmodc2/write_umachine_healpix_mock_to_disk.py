@@ -537,7 +537,8 @@ def build_output_snapshot_mock(
                 "that does not contain the ``{0}`` key")
             raise KeyError(msg.format(key))
 
-    ultra_high_mvir_halo_mask = (dc2['upid'] == -1) & (dc2['target_halo_mass'] > dc2['source_halo_mvir'].max())
+    max_umachine_halo_mass = np.max(umachine['source_halo_mvir'])
+    ultra_high_mvir_halo_mask = (dc2['upid'] == -1) & (dc2['target_halo_mass'] > max_umachine_halo_mass)
     num_to_remap = np.count_nonzero(ultra_high_mvir_halo_mask)
     if num_to_remap > 0:
         print("...remapping stellar mass of {0} BCGs in ultra-massive halos".format(num_to_remap))
