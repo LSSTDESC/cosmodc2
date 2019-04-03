@@ -19,11 +19,11 @@ def load_gio_halo_snapshot(filename, all_properties=True):
     else:
         properties_list = []
     halo_properties_list = sorted([property_template.format(p) for p in other_properties + properties_list])
-    print('Reading halo file {}'.format(os.path.split(filename)[-1]))
+    print('.....Reading halo file {}'.format(os.path.split(filename)[-1]))
 
     halo_table = Table()
     for halo_prop in halo_properties_list:
-        print('Reading column {}'.format(halo_prop))
+        print('.....Reading column {}'.format(halo_prop))
         #cast properties into 1-d ndarray by selecting first element
         halo_table[halo_prop] = gio.gio_read(filename, halo_prop)[:,0]
 
