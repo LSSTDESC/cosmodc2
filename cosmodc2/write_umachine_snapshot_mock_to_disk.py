@@ -235,7 +235,7 @@ def write_umachine_snapshot_mock_to_disk(
         if len(output_mock) > 0:
             check_time = time()
             write_output_mock_to_disk(output_snap_fname, output_mock, commit_hash, seed,
-                                      redshift, snapshot, block)
+                                      redshift, snapshot, block, Lbox)
             print('...time to write mock to disk = {:.2f} minutes'.format((time()-check_time)/60.))
 
         time_stamp = time()
@@ -423,7 +423,7 @@ def build_output_snapshot_mock(
 
 
 def write_output_mock_to_disk(output_snapshot_mock_fname, output_mock, commit_hash, seed,
-                              redshift, snapshot, block,
+                              redshift, snapshot, block, Lbox,
                               versionMajor=0, versionMinor=1, versionMinorMinor=0):
     """
     """
@@ -439,6 +439,7 @@ def write_output_mock_to_disk(output_snapshot_mock_fname, output_mock, commit_ha
     hdfFile['metaData']['H_0'] = H0
     hdfFile['metaData']['Omega_matter'] = OmegaM
     hdfFile['metaData']['Omega_b'] = OmegaB
+    hdfFile['metaData']['box_size'] = Lbox
     hdfFile['metaData']['redshift'] = redshift
     hdfFile['metaData']['timestep'] = snapshot
     hdfFile['metaData']['block_number'] = block
