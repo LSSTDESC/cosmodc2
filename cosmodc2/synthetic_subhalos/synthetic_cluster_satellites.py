@@ -37,7 +37,7 @@ def calculate_synthetic_richness(halo_richness, logmhalo, logmhalo_source,
 
 def model_synthetic_cluster_satellites(mock, Lbox=256.,
         cluster_satboost_logm_table=[13.5, 13.75, 14],
-        cluster_satboost_table=[0., 0.15, 0.2], **kwargs):
+        cluster_satboost_table=[0., 0.15, 0.2], snapshot=False, **kwargs):
     """
     """
     #  Calculate the mass and richness of every target halo
@@ -54,8 +54,9 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
     source_halo_mvir = mock['source_halo_mvir'][idx]
     target_halo_id = mock['target_halo_id'][idx]
     target_halo_fof_halo_id = mock['target_halo_fof_halo_id'][idx]
-    target_halo_lightcone_replication = mock['lightcone_replication'][idx]
-    target_halo_lightcone_rotation = mock['lightcone_rotation'][idx]
+    if not snapshot:
+        target_halo_lightcone_replication = mock['lightcone_replication'][idx]
+        target_halo_lightcone_rotation = mock['lightcone_rotation'][idx]
 
     host_richness = counts
 
@@ -81,8 +82,9 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         sats['target_halo_vz'] = np.repeat(host_vz, synthetic_richness)
         sats['target_halo_id'] = np.repeat(target_halo_id, synthetic_richness)
         sats['target_halo_fof_halo_id'] = np.repeat(target_halo_fof_halo_id, synthetic_richness)
-        sats['lightcone_replication'] = np.repeat(target_halo_lightcone_replication, synthetic_richness)
-        sats['lightcone_rotation'] = np.repeat(target_halo_lightcone_rotation, synthetic_richness)
+        if not snapshot:
+            sats['lightcone_replication'] = np.repeat(target_halo_lightcone_replication, synthetic_richness)
+            sats['lightcone_rotation'] = np.repeat(target_halo_lightcone_rotation, synthetic_richness)
 
         sats['upid'] = sats['target_halo_id']
 
