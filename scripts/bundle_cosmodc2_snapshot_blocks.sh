@@ -1,8 +1,9 @@
 #!/bin/sh
 NODES=`cat $COBALT_NODEFILE | wc -l`
 PROCS=1
-nblock=0
 # starting block number 
+nblock=0
+# setup
 cd /gpfs/mira-home/ekovacs/cosmology/DC2/cosmoDC2/OR_Snapshots
 export PYTHONDIRS=/gpfs/mira-home/ekovacs/.local/lib/python2.7/site-packages:/gpfs/mira-home/ekovacs/cosmology/cosmodc2:/gpfs/mira-home/ekovacs/cosmology/galsampler/build/lib.linux-x86_64-2.7:/gpfs/mira-home/ekovacs/cosmology/halotools/build/lib.linux-x86_64-2.7
 PYTHONPATH=/gpfs/mira-home/ekovacs/.local/lib/python2.7/site-packages:/gpfs/mira-home/ekovacs/cosmology/cosmodc2:/gpfs/mira-home/ekovacs/cosmology/galsampler/build/lib.linux-x86_64-2.7:/gpfs/mira-home/ekovacs/cosmology/halotools/build/lib.linux-x86_64-2.7
@@ -11,10 +12,11 @@ vsnap="snapshots_v0.1"
 xtra_args="-input_master_dirname cosmology/DC2/OR_Snapshots -output_mock_dirname baseDC2_${vsnap}"
 snapshot=${1}
 echo "Running snapshot ${1}"
-total_block_num=128
-blocks_per_node=16
-blocks_per_core=2
-jobs_per_node=8
+total_block_num=1200
+blocks_per_node=80
+blocks_per_core=20
+#change filenumber range below to match jobs_per_core - 1
+jobs_per_node=4
 
 script_name=run_cosmoDC2_snapshot_production.py
 pythonpath=/soft/libraries/anaconda-unstable/bin/python
@@ -25,12 +27,10 @@ for nodenumber in "${nodenumbers[@]}"
 #for nodenumber in {1..3}
 do
   hostname1=$nodenumber
-  #hostname1=expr xargs $nodenumber
-  #hostname1=${ xargs $nodenumber}
   hostname1=${hostname1%?}
-  #echo $hostname1
   #hostname1=$(cat $COBALT_NODEFILE | awk 'NR=='${nodenumber})
-  for filenumber in {0..7}
+  #filemax=$(expr $jobs_per_core - 1)
+  for filenumber in {0..3}
   do
   if [ "$nblock" -lt "$total_block_num" ]
   then
@@ -38,7 +38,7 @@ do
   subhi=$(expr $sublo + $blocks_per_core - 1 )
   blockrange="$sublo-$subhi"
   echo "$blockrange"
-  echo "${blockrange}" >> started_blocks.txt
+  echo "${blockrange}" >> started_blocks_${snapshot}.txt
   args="${snapshot} -blocks ${blockrange} ${xtra_args}"
   #echo $args
   #   mpirun --host ${hostname1}
@@ -53,5 +53,5 @@ do
   done
   subgrp=$(expr $subgrp + $blocks_per_node)
 done
-echo "$nblock" >> restart_nblock.txt
+echo "$nblock" >> restart_nblock_${snapshot}.txt
 wait

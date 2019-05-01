@@ -31,13 +31,13 @@ OmegaM = 0.2648
 OmegaB = 0.0448
 
 #unique galaxy_id
-galaxy_id_factor = int(1e3)  #  factor to guarantee unique galaxy_id across blocks in snapshot
+galaxy_id_factor = int(1e4)  #  factor to guarantee unique galaxy_id across blocks in snapshot
 
 desired_logm_completeness=9.8
 
 def write_umachine_snapshot_mock_to_disk(
         umachine_mock_fname, umachine_halo_fname,
-        target_halo_catalog_fname_list, snapshot, blocks, output_snapshot_mock_fname_list,
+        target_halo_catalog_fname, snapshot, blocks, output_snapshot_mock_fname_list,
         redshift, commit_hash, Lbox=3000.):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
@@ -52,18 +52,18 @@ def write_umachine_snapshot_mock_to_disk(
         the absolute path to the
         value-added host halo catalog hosting the UniverseMachine snapshot mock
 
-    target_halo_catalog_fname : list
-        list of the absolute paths to the files of
+    target_halo_catalog_fname : str
+        the absolute path to the gio file(s) of
         source halos into which UniverseMachine will be GalSampled
 
     snapshot : str
         snapshot being processed
 
     blocks : list  
-        list of blocks (str format) in of halo-catalog file being processed
+        list of blocks (str format) of halo-catalog file being processed
 
     output_snapshot_mock_fname_list : list
-        list of absolute paths to the output snapshot mock filenames
+        list of absolute paths to the output snapshot mock filenames (1 per block)
 
     redshift : str
         value of the redshift for the target halo catalog
@@ -106,9 +106,7 @@ def write_umachine_snapshot_mock_to_disk(
     source_halos['mass_bin'] = halo_bin_indices(
         mass=(source_halos['mvir'], mass_bins))
 
-    for block, target_halo_fname, output_snap_fname  in zip(blocks,
-                                                           target_halo_catalog_fname_list,
-                                                           output_snapshot_mock_fname_list):
+    for block, output_snap_fname  in zip(blocks, output_snapshot_mock_fname_list):
         new_time_stamp = time()
         #  determine seed from output filename (includes snapshot and block)
         seed = get_random_seed(os.path.basename(output_snap_fname))
@@ -120,7 +118,7 @@ def write_umachine_snapshot_mock_to_disk(
         mock = um_mock.copy()
         
         print("\n...loading step {} fof target-halo catalogs into memory".format(snapshot))
-        target_halos = load_gio_halo_snapshot(target_halo_fname)
+        target_halos = load_gio_halo_snapshot(target_halo_catalog_fname, block=block)
         target_halos.rename_column('fof_halo_tag', 'fof_halo_id')
         target_halos.rename_column('fof_halo_center_x', 'x')
         target_halos.rename_column('fof_halo_center_y', 'y')
@@ -431,6 +429,8 @@ def write_output_mock_to_disk(output_snapshot_mock_fname, output_mock, commit_ha
     print("\n...writing to file {} using commit hash {}".format(output_snapshot_mock_fname, commit_hash))
     hdfFile = h5py.File(output_snapshot_mock_fname, 'w')
     hdfFile.create_group('metaData')
+    gkey = 'galaxyProperties'
+
     hdfFile['metaData']['commit_hash'] = commit_hash
     hdfFile['metaData']['seed'] = seed
     hdfFile['metaData']['versionMajor'] = versionMajor
@@ -443,14 +443,16 @@ def write_output_mock_to_disk(output_snapshot_mock_fname, output_mock, commit_ha
     hdfFile['metaData']['redshift'] = redshift
     hdfFile['metaData']['timestep'] = snapshot
     hdfFile['metaData']['block_number'] = block
+    for d in ['x', 'y', 'z']:
+        hdfFile['metaData'][d + '_max'] = np.max(output_mock[d]) 
+        hdfFile['metaData'][d + '_min'] = np.min(output_mock[d]) 
 
-    zkey = 'z={:.4f}'.format(redshift)
-    gGroup = hdfFile.create_group(zkey)
+    gGroup = hdfFile.create_group(gkey)
     check_time = time()
     for k, v in output_mock.items():
         gGroup[k] = v
 
-    print('.....time to write group {} = {:.4f} secs'.format(zkey, time()-check_time))
+    print('.....time to write group {} = {:.4f} secs'.format(gkey, time()-check_time))
 
     check_time = time()
     hdfFile.close()

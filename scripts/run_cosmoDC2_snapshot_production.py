@@ -9,7 +9,6 @@ from os.path import expanduser
 import subprocess
 
 #halo_snapshot_fname = '03_31_2018.OR.{}.fofproperties#{}'
-halo_fname_template = '{}.{}#{}'
 sim_name='AlphaQ'
 pklname='{}_z2ts.pkl'
 
@@ -55,7 +54,7 @@ parser.add_argument("-input_halo_catalog_dirname",
     default='OR_HaloCatalog')
 parser.add_argument("-input_halo_catalog_filename",
     help="Filename for halo-catalog files",
-    default='test')
+    default='03_31_2018.OR.{}.fofproperties')
 parser.add_argument("-um_input_catalogs_dirname",
     help="Directory name (relative to input_master_dirname) storing um input catalogs",
     default='um_snapshots')
@@ -132,11 +131,10 @@ for timestep, redshift, um_mstar_ssfr_fname, um_host_halo_fname in zip(timesteps
                                                             umachine_mstar_ssfr_mock_fname_list, 
                                                             umachine_host_halo_fname_list):
     #get list of input files for requested blocks 
-    input_halo_catalog_fname_list = list((os.path.join(input_halo_catalog_dirname, 'STEP{}'.format(timestep),
-                                                       halo_fname_template.format(args.input_halo_catalog_filename,
-                                                                                  timestep, block))
-                                          for block in blocks))
-    print('Processing halo snapshot file(s) {}'.format(', '.join(input_halo_catalog_fname_list)))
+    input_halo_catalog_fname = os.path.join(input_halo_catalog_dirname,
+                                            args.input_halo_catalog_filename.format(timestep))
+
+    print('Processing halo snapshot file {}, blocks {}'.format(input_halo_catalog_fname, ', '.join(blocks)))
     output_snapshot_mock_fname_list = list((os.path.join(output_mock_dirname, 'STEP'+ timestep,
                                                          '_'.join(["baseDC2",'Step'+timestep, 'z'+str(redshift),
                                                                    '#'+block+'.hdf5']))
@@ -147,5 +145,5 @@ for timestep, redshift, um_mstar_ssfr_fname, um_host_halo_fname in zip(timesteps
 
     write_umachine_snapshot_mock_to_disk(
         um_mstar_ssfr_fname, um_host_halo_fname,
-        input_halo_catalog_fname_list, timestep, blocks, output_snapshot_mock_fname_list,
+        input_halo_catalog_fname, timestep, blocks, output_snapshot_mock_fname_list,
         redshift, commit_hash)
