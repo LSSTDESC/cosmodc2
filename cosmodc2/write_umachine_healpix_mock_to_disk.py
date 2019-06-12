@@ -202,6 +202,7 @@ def write_umachine_healpix_mock_to_disk(
             mass=(target_halos[fof_halo_mass], mass_bins))
 
         #  Randomly draw halos from corresponding mass bins
+        #  THIS NEEDS TO BE ADAPTED TO BE BIN-FREE
         nhalo_min = 10
         source_halo_bin_numbers = source_halos['mass_bin']
         target_halo_bin_numbers = target_halos['mass_bin']
@@ -521,6 +522,9 @@ def build_output_snapshot_mock(
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
 
+    #  Here the host_centric_xyz_vxvyvz in umachine should be overwritten
+    #  Then we can associate x <--> A, y <--> B, z <--> C and then apply a random rotation
+    #  It will be important to record the true direction of the major axis as a stored column
     source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
             'host_centric_vx', 'host_centric_vy', 'host_centric_vz',
