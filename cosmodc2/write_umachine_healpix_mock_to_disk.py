@@ -25,6 +25,7 @@ from cosmodc2.synthetic_subhalos import model_synthetic_cluster_satellites
 from cosmodc2.synthetic_subhalos import synthetic_logmpeak
 from cosmodc2.axis_ratio_model import monte_carlo_halo_shapes
 from halotools.empirical_models import halo_mass_to_halo_radius
+from halotools.utils import normalized_vectors
 
 
 fof_halo_mass = 'fof_halo_mass'
@@ -203,6 +204,14 @@ def write_umachine_healpix_mock_to_disk(
         target_halos['axis_A_length'] = 1.5*spherical_halo_radius  #  crude fix for B and C shrinking
         target_halos['axis_B_length'] = b_to_a*target_halos['axis_A_length']
         target_halos['axis_C_length'] = c_to_a*target_halos['axis_A_length']
+
+        nvectors = len(target_halos)
+        rng = np.random.RandomState(seed)
+        random_vectors = rng.uniform(-1, 1, nvectors*3).reshape((nvectors, 3))
+        axis_A = normalized_vectors(random_vectors)*target_halos['axis_A_length'].reshape((-1, 1))
+        target_halos['axis_A_x'] = axis_A[:, 0]
+        target_halos['axis_A_y'] = axis_A[:, 1]
+        target_halos['axis_A_z'] = axis_A[:, 2]
 
         print("...Finding halo--halo correspondence with GalSampler")
         #  Bin the halos in each simulation by mass
@@ -546,6 +555,13 @@ def build_output_snapshot_mock(
     dc2['target_halo_axis_A_length'][idxA] = target_halos['axis_A_length'][idxB]
     dc2['target_halo_axis_B_length'][idxA] = target_halos['axis_B_length'][idxB]
     dc2['target_halo_axis_C_length'][idxA] = target_halos['axis_C_length'][idxB]
+
+    dc2['target_halo_axis_A_x'] = 0.
+    dc2['target_halo_axis_A_y'] = 0.
+    dc2['target_halo_axis_A_z'] = 0.
+    dc2['target_halo_axis_A_x'][idxA] = target_halos['axis_A_x'][idxB]
+    dc2['target_halo_axis_A_y'][idxA] = target_halos['axis_A_y'][idxB]
+    dc2['target_halo_axis_A_z'][idxA] = target_halos['axis_A_z'][idxB]
 
     #  Here the host_centric_xyz_vxvyvz in umachine should be overwritten
     #  Then we can associate x <--> A, y <--> B, z <--> C and then apply a random rotation
