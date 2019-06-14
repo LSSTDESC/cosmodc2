@@ -8,7 +8,7 @@ import re
 import healpy as hp
 from time import time
 from astropy.table import Table, vstack
-from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import FlatLambdaCDM, WMAP7
 from astropy.utils.misc import NumpyRNGContext
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from cosmodc2.sdss_colors.sigmoid_magr_model import magr_monte_carlo
@@ -23,6 +23,9 @@ from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_centr
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_satellites
 from cosmodc2.synthetic_subhalos import model_synthetic_cluster_satellites
 from cosmodc2.synthetic_subhalos import synthetic_logmpeak
+from cosmodc2.axis_ratio_model import monte_carlo_halo_shapes
+from halotools.empirical_models import halo_mass_to_halo_radius
+
 
 fof_halo_mass = 'fof_halo_mass'
 mass = 'mass'
@@ -191,6 +194,15 @@ def write_umachine_healpix_mock_to_disk(
         #
         target_halos = get_astropy_table(healpix_data[snapshot], halo_unique_id=halo_unique_id)
         fof_halo_mass_max = max(np.max(target_halos[fof_halo_mass].quantity.value), fof_halo_mass_max)
+
+        b_to_a, c_to_a, e, p = monte_carlo_halo_shapes(np.log10(target_halos[fof_halo_mass]))
+        target_halos['halo_ellipticity'] = e
+        target_halos['halo_prolaticity'] = p
+        spherical_halo_radius = halo_mass_to_halo_radius(
+            target_halos[fof_halo_mass], WMAP7, redshift, 'vir')
+        target_halos['axis_A_length'] = 1.5*spherical_halo_radius  #  crude fix for B and C shrinking
+        target_halos['axis_B_length'] = b_to_a*target_halos['axis_A_length']
+        target_halos['axis_C_length'] = c_to_a*target_halos['axis_A_length']
 
         print("...Finding halo--halo correspondence with GalSampler")
         #  Bin the halos in each simulation by mass
