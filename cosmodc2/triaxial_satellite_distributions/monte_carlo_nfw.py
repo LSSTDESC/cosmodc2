@@ -33,7 +33,7 @@ def _pnfwunorm(q, conc):
     return np.log(1.0 + y)-y/(1.0 + y)
 
 
-def _qnfw(p, conc, logp=False):
+def _qnfw(p, conc):
     """
     """
     p[p>1] = 1
