@@ -23,10 +23,10 @@ from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_centr
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_satellites
 from cosmodc2.synthetic_subhalos import model_synthetic_cluster_satellites
 from cosmodc2.synthetic_subhalos import synthetic_logmpeak
-from cosmodc2.axis_ratio_model import monte_carlo_halo_shapes
+from cosmodc2.triaxial_satellite_distributions.axis_ratio_model import monte_carlo_halo_shapes
 from halotools.empirical_models import halo_mass_to_halo_radius
 from halotools.utils import normalized_vectors
-
+from cosmodc2.triaxial_satellite_distributions.monte_carlo_triaxial_profile import generate_triaxial_satellite_distribution
 
 fof_halo_mass = 'fof_halo_mass'
 mass = 'mass'
@@ -608,6 +608,21 @@ def build_output_snapshot_mock(
         halo_id_most_massive = dc2['halo_id'][idx]
         assert dc2['obs_sm'][idx] < 10**13.5, "halo_id = {0} has stellar mass {1:.3e}".format(
             halo_id_most_massive, dc2['obs_sm'][idx])
+
+    satmask = dc2['upid'] != -1
+    nsats = np.count_nonzero(satmask)
+    if nsats > 0:
+        host_conc = 5.
+        host_Ax = dc2['target_halo_axis_A_x'][satmask]
+        host_Ay = dc2['target_halo_axis_A_y'][satmask]
+        host_Az = dc2['target_halo_axis_A_z'][satmask]
+        b_to_a = dc2['target_halo_axis_B_length'][satmask]/dc2['target_halo_axis_A_length'][satmask]
+        c_to_a = dc2['target_halo_axis_C_length'][satmask]/dc2['target_halo_axis_A_length'][satmask]
+        host_centric_x, host_centric_y, host_centric_z = generate_triaxial_satellite_distribution(
+            host_conc, host_Ax, host_Ay, host_Az, b_to_a, c_to_a)
+        dc2['host_centric_x'][satmask] = host_centric_x
+        dc2['host_centric_y'][satmask] = host_centric_y
+        dc2['host_centric_z'][satmask] = host_centric_z
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
