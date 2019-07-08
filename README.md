@@ -31,6 +31,9 @@ Code implementing the model used in cosmoDC2 for black hole mass and accretion r
 Code implementing the model used in cosmoDC2 to map half-light radii onto the galaxy's bulge and disk component is located in the `size_modeling ` directory. The primary callables of interest are the `mc_size_vs_luminosity_early_type` function and the `mc_size_vs_luminosity_late_type` function in the `zhang_yang17.py` module.
 
 #### Ultra-faint population 
-Code implementing the model used in cosmoDC2 to extend the resolution limits of the Outer Rim simulation to capture the ultra-faint galaxy population is located in the `synthetic_subhalos ` directory. The primary callable of interest is the `model_extended_mpeak` function located in the `extend_subhalo_mpeak_range.py` module.
+Code implementing the model used in cosmoDC2 to extend the resolution limits of the Outer Rim simulation to capture the ultra-faint galaxy population is located in the `synthetic_subhalos ` directory. The primary callables of interest are:
+
+* The `model_extended_mpeak` function located in the `extend_subhalo_mpeak_range.py` module.
+* The `create_synthetic_lowmass_mock_with_centrals` function located in the `extend_subhalo_mpeak_range.py` module. 
 
 
