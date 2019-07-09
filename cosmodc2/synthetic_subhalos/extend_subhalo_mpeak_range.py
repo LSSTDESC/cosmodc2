@@ -205,13 +205,34 @@ def mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_mi
     r_mask = (r_gals >= r_min) & (r_gals <= r_max)
     #print('.....removing {} fakes falling outside comoving distance bounds {:.2f}-{:.2f}'.format(np.sum(~r_mask), r_min, r_max))
     healpix_mask = healpix_number_mask & r_mask
-    
-    return healpix_mask    
 
-def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_dict,
-                                                cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648,
-                                                halo_id_offset=0, halo_unique_id=0):
-    """
+    return healpix_mask
+
+
+def create_synthetic_lowmass_mock_with_centrals(
+            mock, healpix_mock, synthetic_dict,
+            cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648,
+            halo_id_offset=0, halo_unique_id=0):
+    """ Function generates a data table storing synthetic ultra-faint galaxies
+    for purposes of extending the resolution limit of the simulation.
+    The generated ultra-faint population will be made up exclusively of central galaxies.
+
+    Parameters
+    ----------
+    mock : Astropy Table
+        Table storing the UniverseMachine galaxy population that we will sample from
+
+    healpix_mock : Astropy Table
+        Table storing the galaxies in the healpixel of the Outer Rim simulation being populated
+
+    synthetic_dict : dict
+        Dictionary of additional properties being modeled onto synthetic galaxies
+
+    Returns
+    -------
+    ultra_faints : Astropy Table
+        Table storing the synthetic population of ultra-faint galaxies
+
     """
     import healpy as hp
     if cutout_id is None:
@@ -260,11 +281,11 @@ def create_synthetic_lowmass_mock_with_centrals(mock, healpix_mock, synthetic_di
         healpix_mask = mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max)
         num_created = np.sum(healpix_mask)
         total_num_created = min(total_num_created + num_created, ngals)
-        print('.....created {} synthetic centrals in loop #{}; {} remaining'.format(num_created, nloop, ngals - total_num_created)) 
-        gals['x'][start_index:total_num_created] = gals_x[healpix_mask][0:total_num_created - start_index] 
+        print('.....created {} synthetic centrals in loop #{}; {} remaining'.format(num_created, nloop, ngals - total_num_created))
+        gals['x'][start_index:total_num_created] = gals_x[healpix_mask][0:total_num_created - start_index]
         gals['y'][start_index:total_num_created] = gals_y[healpix_mask][0:total_num_created - start_index]
         gals['z'][start_index:total_num_created] = gals_z[healpix_mask][0:total_num_created - start_index]
-    
+
     #  compute redshifts from comoving distance
     r_gals = np.sqrt(gals['x']**2 + gals['y']**2 + gals['z']**2)
     redshifts = get_redshifts_from_comoving_distances(r_gals, np.min(healpix_mock['target_halo_redshift']),
