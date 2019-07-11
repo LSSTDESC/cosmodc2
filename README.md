@@ -1,11 +1,11 @@
 # CosmoDC2 python package
 
-This python package generates the cosmoDC2 synthetic galaxy catalog used by LSST-DESC for Data Challenge 2.
+This python package generates the cosmoDC2 synthetic galaxy catalog used by LSST-DESC for Data Challenge 2. 
 
 
 ## Code Overview
 
-Here we provide the locations of the most important functions used to generate the cosmoDC2 synthetic galaxy catalog. Users of our code should ignore undocumented modules and notebooks not appearing in the descriptions below, as such code is primarily used for internal purposes and is not intended to provide user-facing functionality.
+Here we provide the locations of the most important functions used to generate the cosmoDC2 synthetic galaxy catalog. Undocumented modules and notebooks are not intended to provide user-facing functionality.
 
 
 ### Mock production scripts
@@ -39,3 +39,8 @@ Code implementing the model used in cosmoDC2 to extend the resolution limits of 
 * The `create_synthetic_lowmass_mock_with_centrals` function located in the `extend_subhalo_mpeak_range.py` module. 
 
 
+### Code versions
+
+The following git tags can be used to check out various versions of the code:
+
+* v1.1.4 - This version of the code generated the ~440 deg**2 extragalactic catalog for the DC2 image simulation.
