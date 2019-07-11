@@ -5,6 +5,8 @@ This python package generates the cosmoDC2 synthetic galaxy catalog used by LSST
 
 ## Code Overview
 
+Here we provide the locations of the most important functions used to generate the cosmoDC2 synthetic galaxy catalog. Users of our code should ignore undocumented modules and notebooks not appearing in the descriptions below, as such code is primarily used for internal purposes and is not intended to provide user-facing functionality.
+
 
 ### Mock production scripts
 
