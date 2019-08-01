@@ -16,7 +16,7 @@ __all__ = ('monte_carlo_bh_acc_rate', )
 def eddington_ratio_distribution(redshift, npts=1000):
     """ Power law model for the PDF of the Eddington ratio.
 
-    Model is based on Aird, Coil & Georgakakis (2017), arXiv:1705.01132
+    Model is based on Aird, Coil, et al. (2011), arXiv:1107.4368.
 
     Parameters
     ----------
