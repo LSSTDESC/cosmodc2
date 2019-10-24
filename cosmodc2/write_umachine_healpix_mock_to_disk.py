@@ -8,7 +8,7 @@ import re
 import healpy as hp
 from time import time
 from astropy.table import Table, vstack
-from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import FlatLambdaCDM, WMAP7
 from astropy.utils.misc import NumpyRNGContext
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from cosmodc2.sdss_colors.sigmoid_magr_model import magr_monte_carlo
@@ -23,6 +23,10 @@ from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_centr
 from cosmodc2.synthetic_subhalos import create_synthetic_lowmass_mock_with_satellites
 from cosmodc2.synthetic_subhalos import model_synthetic_cluster_satellites
 from cosmodc2.synthetic_subhalos import synthetic_logmpeak
+from cosmodc2.triaxial_satellite_distributions.axis_ratio_model import monte_carlo_halo_shapes
+from halotools.empirical_models import halo_mass_to_halo_radius
+from halotools.utils import normalized_vectors
+from cosmodc2.triaxial_satellite_distributions.monte_carlo_triaxial_profile import generate_triaxial_satellite_distribution
 
 fof_halo_mass = 'fof_halo_mass'
 mass = 'mass'
@@ -192,6 +196,23 @@ def write_umachine_healpix_mock_to_disk(
         target_halos = get_astropy_table(healpix_data[snapshot], halo_unique_id=halo_unique_id)
         fof_halo_mass_max = max(np.max(target_halos[fof_halo_mass].quantity.value), fof_halo_mass_max)
 
+        b_to_a, c_to_a, e, p = monte_carlo_halo_shapes(np.log10(target_halos[fof_halo_mass]))
+        target_halos['halo_ellipticity'] = e
+        target_halos['halo_prolaticity'] = p
+        spherical_halo_radius = halo_mass_to_halo_radius(
+            target_halos[fof_halo_mass], WMAP7, redshift, 'vir')
+        target_halos['axis_A_length'] = 1.5*spherical_halo_radius  #  crude fix for B and C shrinking
+        target_halos['axis_B_length'] = b_to_a*target_halos['axis_A_length']
+        target_halos['axis_C_length'] = c_to_a*target_halos['axis_A_length']
+
+        nvectors = len(target_halos)
+        rng = np.random.RandomState(seed)
+        random_vectors = rng.uniform(-1, 1, nvectors*3).reshape((nvectors, 3))
+        axis_A = normalized_vectors(random_vectors)*target_halos['axis_A_length'].reshape((-1, 1))
+        target_halos['axis_A_x'] = axis_A[:, 0]
+        target_halos['axis_A_y'] = axis_A[:, 1]
+        target_halos['axis_A_z'] = axis_A[:, 2]
+
         print("...Finding halo--halo correspondence with GalSampler")
         #  Bin the halos in each simulation by mass
         dlogM = 0.15
@@ -202,6 +223,7 @@ def write_umachine_healpix_mock_to_disk(
             mass=(target_halos[fof_halo_mass], mass_bins))
 
         #  Randomly draw halos from corresponding mass bins
+        #  THIS NEEDS TO BE ADAPTED TO BE BIN-FREE
         nhalo_min = 10
         source_halo_bin_numbers = source_halos['mass_bin']
         target_halo_bin_numbers = target_halos['mass_bin']
@@ -521,6 +543,29 @@ def build_output_snapshot_mock(
     dc2['target_halo_mass'] = 0.
     dc2['target_halo_mass'][idxA] = target_halos['fof_halo_mass'][idxB]
 
+    dc2['target_halo_ellipticity'] = 0.
+    dc2['target_halo_ellipticity'][idxA] = target_halos['halo_ellipticity'][idxB]
+
+    dc2['target_halo_prolaticity'] = 0.
+    dc2['target_halo_prolaticity'][idxA] = target_halos['halo_prolaticity'][idxB]
+
+    dc2['target_halo_axis_A_length'] = 0.
+    dc2['target_halo_axis_B_length'] = 0.
+    dc2['target_halo_axis_C_length'] = 0.
+    dc2['target_halo_axis_A_length'][idxA] = target_halos['axis_A_length'][idxB]
+    dc2['target_halo_axis_B_length'][idxA] = target_halos['axis_B_length'][idxB]
+    dc2['target_halo_axis_C_length'][idxA] = target_halos['axis_C_length'][idxB]
+
+    dc2['target_halo_axis_A_x'] = 0.
+    dc2['target_halo_axis_A_y'] = 0.
+    dc2['target_halo_axis_A_z'] = 0.
+    dc2['target_halo_axis_A_x'][idxA] = target_halos['axis_A_x'][idxB]
+    dc2['target_halo_axis_A_y'][idxA] = target_halos['axis_A_y'][idxB]
+    dc2['target_halo_axis_A_z'][idxA] = target_halos['axis_A_z'][idxB]
+
+    #  Here the host_centric_xyz_vxvyvz in umachine should be overwritten
+    #  Then we can associate x <--> A, y <--> B, z <--> C and then apply a random rotation
+    #  It will be important to record the true direction of the major axis as a stored column
     source_galaxy_keys = ('host_halo_mvir', 'upid', 'mpeak',
             'host_centric_x', 'host_centric_y', 'host_centric_z',
             'host_centric_vx', 'host_centric_vy', 'host_centric_vz',
@@ -563,6 +608,21 @@ def build_output_snapshot_mock(
         halo_id_most_massive = dc2['halo_id'][idx]
         assert dc2['obs_sm'][idx] < 10**13.5, "halo_id = {0} has stellar mass {1:.3e}".format(
             halo_id_most_massive, dc2['obs_sm'][idx])
+
+    satmask = dc2['upid'] != -1
+    nsats = np.count_nonzero(satmask)
+    if nsats > 0:
+        host_conc = 5.
+        host_Ax = dc2['target_halo_axis_A_x'][satmask]
+        host_Ay = dc2['target_halo_axis_A_y'][satmask]
+        host_Az = dc2['target_halo_axis_A_z'][satmask]
+        b_to_a = dc2['target_halo_axis_B_length'][satmask]/dc2['target_halo_axis_A_length'][satmask]
+        c_to_a = dc2['target_halo_axis_C_length'][satmask]/dc2['target_halo_axis_A_length'][satmask]
+        host_centric_x, host_centric_y, host_centric_z = generate_triaxial_satellite_distribution(
+            host_conc, host_Ax, host_Ay, host_Az, b_to_a, c_to_a)
+        dc2['host_centric_x'][satmask] = host_centric_x
+        dc2['host_centric_y'][satmask] = host_centric_y
+        dc2['host_centric_z'][satmask] = host_centric_z
 
     dc2['x'] = dc2['target_halo_x'] + dc2['host_centric_x']
     dc2['vx'] = dc2['target_halo_vx'] + dc2['host_centric_vx']
