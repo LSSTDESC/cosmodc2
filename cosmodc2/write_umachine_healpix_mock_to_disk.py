@@ -35,10 +35,16 @@ H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
 
-cutout_id_offset_halo = int(1e3)  #  offset to generate unique id for cutouts and snapshots
-halo_id_offset = int(1e8)  #  offset to guarantee unique halo ids across cutout files and snapshots
 Nside = 2048  #  fine pixelization for determining sky area
 
+# halo id offsets
+cutout_id_offset_halo = int(1e3)  # offset to generate unique id for cutouts and snapshots
+halo_id_offset = int(1e8)  # offset to guarantee unique halo ids across cutout files and snapshots
+
+#galaxy id offsets for non image-sim catalogs (eg. 5000 sq. deg.)
+cutout_id_offset = int(1e9)
+
+# galaxy id offsets for image simulations
 cutout_id_offset_galaxy = {'8':1e9, '32': 62500000} #  offset to guarantee unique galaxy ids across cutout files
 z_offsets = {'8':[0, 4e7, 2e8, 1e9], '32':[0, 2500000, 12500000, 62500000]} #  offset to guarantee unique galaxy ids across z-ranges
 cutout_remap = {'8': {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629':7, '630':8,
@@ -78,7 +84,7 @@ def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
             healpix_data, snapshots, output_color_mock_fname,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
-            use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False,
+            use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False, image=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
             gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, z2ts={}):
     """
@@ -120,6 +126,20 @@ def write_umachine_healpix_mock_to_disk(
     synthetic_halo_minimum_mass: float
         Minimum value of log_10 of synthetic halo mass
 
+    num_synthetic_gal_ratio: float
+        Ratio to control number of synthetic galaxies generated
+
+    use_centrals: boolean
+        Flag controlling if ultra faint galaxies are added as centrals or satellites
+
+    use_substeps_real: boolean
+        Flag controlling use of color substepping for real galaxies
+
+    use_substeps_synthetic: boolean
+        Flag controlling use of color substepping for synthetic galaxies
+
+    image: boolean
+        Flag specifying if catalog will be used for image simulations (affects ids)
     """
 
     output_mock = {}
@@ -134,10 +154,18 @@ def write_umachine_healpix_mock_to_disk(
     file_ids = [int(d) for d in re.findall(r'\d+', os.path.splitext(output_mock_basename)[0])]
 
     cutout_number_true = file_ids[-1]
-    cutout_number = cutout_remap[str(Nside_cosmoDC2)].get(str(cutout_number_true), cutout_number_true) #  translate for imsims
     z_range_id = file_ids[-3]  #  3rd-last digits in filename
-    galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy[str(Nside_cosmoDC2)] + z_offsets[str(Nside_cosmoDC2)][z_range_id])
-    halo_id_cutout_offset = int(cutout_number*cutout_id_offset_halo)
+    print(cutout_number_true, z_range_id)
+
+    if image:
+        cutout_number = cutout_remap[str(Nside_cosmoDC2)].get(str(cutout_number_true),
+                                                              cutout_number_true) #  translate for imsims
+        galaxy_id_offset = int(cutout_number*cutout_id_offset_galaxy[str(Nside_cosmoDC2)] +\
+                               z_offsets[str(Nside_cosmoDC2)][z_range_id])
+        halo_id_cutout_offset = int(cutout_number*cutout_id_offset_halo)
+    else:
+        galaxy_id_offset = int(cutout_number_true*cutout_id_offset + z_range_id*cutout_id_offset)
+        halo_id_cutout_offset = int(cutout_number_true*cutout_id_offset_halo)
 
     #  determine seed from output filename
     seed = get_random_seed(output_mock_basename)
