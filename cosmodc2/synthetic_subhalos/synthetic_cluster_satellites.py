@@ -1,10 +1,12 @@
 import numpy as np
 from astropy.table import Table
+from astropy.utils.misc import NumpyRNGContext
 from halotools.empirical_models import NFWPhaseSpace, Moster13SmHm
 from scipy.stats import powerlaw
 from ..sdss_colors.sigmoid_magr_model import magr_monte_carlo
 from ..sdss_colors.sigmoid_g_minus_r import red_sequence_peak_gr
 from ..sdss_colors.sigmoid_r_minus_i import red_sequence_peak_ri
+from ..triaxial_satellite_distributions.monte_carlo_triaxial_profile import generate_triaxial_satellite_distribution
 
 __all__ = ('calculate_synthetic_richness', 'model_synthetic_cluster_satellites')
 
@@ -35,9 +37,50 @@ def calculate_synthetic_richness(halo_richness, logmhalo, logmhalo_source,
     return np.array(halo_richness*boost_factor, dtype=int)
 
 
+def get_ellipsoidal_positions_and_velocities(sats, host_conc=5.0):
+    """
+    generate positions and velocities base on ellipsoidal distributions
+    """
+    print('    Using tri-axial positions for synthetic satellites')
+    e_sats = {}
+    b_to_a = sats['target_halo_axis_B_length']/sats['target_halo_axis_A_length']
+    c_to_a = sats['target_halo_axis_C_length']/sats['target_halo_axis_A_length']
+    e_sats['x'], e_sats['y'], e_sats['z'] = generate_triaxial_satellite_distribution(
+        host_conc, sats['target_halo_axis_A_x'], sats['target_halo_axis_A_y'],
+        sats['target_halo_axis_A_z'], b_to_a, c_to_a)
+    
+    # compute velocities based on gaussian draw centered on halo velocity 
+    e_sats['vx'], e_sats['vy'], e_sats['vz'] = get_satellite_velocities(
+        sats['target_halo_vx'], sats['target_halo_vy'], sats['target_halo_vz'],
+        sats['target_halo_mass'])
+
+    return e_sats
+
+
+def get_satellite_velocities(halo_vx, halo_vy, halo_vz, halo_mass, seed=43,
+                             sigma_v0 = 100., logmass_v0 = 12., sigma_v1 = 1000.,
+                             logmass_v1 = 15., sigma_min = 10.):
+    
+    # setup linear interpolation on log(halomass)
+    w = (sigma_v1 - sigma_v0)/(logmass_v1 - logmass_v0)
+    w0 =  sigma_v0 - w*logmass_v0
+    
+    # setup widths based on halo mass and force minimum value
+    widths = w0 + w*np.log10(halo_mass)
+    mask = (widths < sigma_min)
+    widths[mask] = sigma_min
+
+    with NumpyRNGContext(seed):
+        sat_vx = np.random.normal(halo_vx, widths)
+        sat_vy = np.random.normal(halo_vy, widths)
+        sat_vz = np.random.normal(halo_vz, widths)
+
+    return sat_vx, sat_vy, sat_vz
+
 def model_synthetic_cluster_satellites(mock, Lbox=256.,
         cluster_satboost_logm_table=[13.5, 13.75, 14],
-        cluster_satboost_table=[0., 0.15, 0.2], snapshot=False, **kwargs):
+        cluster_satboost_table=[0., 0.15, 0.2],
+        tri_axial_positions=True, host_conc=5.0, snapshot=False, **kwargs):
     """
     """
     #  Calculate the mass and richness of every target halo
@@ -54,6 +97,17 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
     source_halo_mvir = mock['source_halo_mvir'][idx]
     target_halo_id = mock['target_halo_id'][idx]
     target_halo_fof_halo_id = mock['target_halo_fof_halo_id'][idx]
+    
+    #  Calculate tri-axial properties
+    tri_axial_properties = ('target_halo_ellipticity', 'target_halo_prolaticity',
+                            'target_halo_axis_A_length', 'target_halo_axis_B_length',
+                            'target_halo_axis_C_length',
+                            'target_halo_axis_A_x', 'target_halo_axis_A_y', 'target_halo_axis_A_z')
+    host_tri_axial_properties = {}
+    for t in tri_axial_properties:
+        host_tri_axial_properties[t] = mock[t][idx]
+
+    #  Light-cone additions
     if not snapshot:
         target_halo_lightcone_replication = mock['lightcone_replication'][idx]
         target_halo_lightcone_rotation = mock['lightcone_rotation'][idx]
@@ -82,15 +136,24 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         sats['target_halo_vz'] = np.repeat(host_vz, synthetic_richness)
         sats['target_halo_id'] = np.repeat(target_halo_id, synthetic_richness)
         sats['target_halo_fof_halo_id'] = np.repeat(target_halo_fof_halo_id, synthetic_richness)
+
+        #  Add tri-axial properties
+        for k, v in host_tri_axial_properties.items():
+            sats[k] = np.repeat(v, synthetic_richness)
+
+        #  Light-cone additions
         if not snapshot:
             sats['lightcone_replication'] = np.repeat(target_halo_lightcone_replication, synthetic_richness)
             sats['lightcone_rotation'] = np.repeat(target_halo_lightcone_rotation, synthetic_richness)
 
         sats['upid'] = sats['target_halo_id']
 
-        #  Use Halotools to generate halo-centric positions and velocities according to NFW
-        nfw = NFWPhaseSpace()
-        nfw_sats = nfw.mc_generate_nfw_phase_space_points(mass=sats['target_halo_mass'])
+        if tri_axial_positions: 
+            nfw_sats = get_ellipsoidal_positions_and_velocities(sats, host_conc=host_conc)
+        else:
+            #  Use Halotools to generate halo-centric positions and velocities according to NFW
+            nfw = NFWPhaseSpace()
+            nfw_sats = nfw.mc_generate_nfw_phase_space_points(mass=sats['target_halo_mass'])
 
         sats['host_centric_x'] = nfw_sats['x']
         sats['host_centric_y'] = nfw_sats['y']

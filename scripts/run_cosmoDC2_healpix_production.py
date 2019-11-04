@@ -85,6 +85,10 @@ pkldirname = os.path.join(home, args.pkldirname)
 healpix_cutout_dirname = os.path.join(input_master_dirname, args.healpix_cutout_dirname)
 output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirname)
 
+print('Setting master directory to {}'.format(input_master_dirname))
+print('Reading inputs from {}'.format(healpix_cutout_dirname))
+print('Writing outputs to {}'.format(output_mock_dirname))
+
 commit_hash = retrieve_commit_hash(path_to_cosmodc2)[0:7]
 print('Using commit hash {}'.format(commit_hash))
 synthetic_halo_minimum_mass = args.synthetic_mass_min
