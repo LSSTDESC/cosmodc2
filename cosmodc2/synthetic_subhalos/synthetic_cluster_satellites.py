@@ -57,7 +57,7 @@ def get_ellipsoidal_positions_and_velocities(sats, host_conc=5.0):
     return e_sats
 
 
-def get_satellite_velocities(halo_vx, halo_vy, halo_vz, halo_mass, seed=43,
+def get_satellite_velocities(halo_vx, halo_vy, halo_vz, halo_mass, seed=43, seed_inc=2,
                              sigma_v0 = 100., logmass_v0 = 12., sigma_v1 = 1000.,
                              logmass_v1 = 15., sigma_min = 10.):
     
@@ -72,7 +72,9 @@ def get_satellite_velocities(halo_vx, halo_vy, halo_vz, halo_mass, seed=43,
 
     with NumpyRNGContext(seed):
         sat_vx = np.random.normal(halo_vx, widths)
+    with NumpyRNGContext(seed + seed_inc):
         sat_vy = np.random.normal(halo_vy, widths)
+    with NumpyRNGContext(seed + 2*seed_inc):
         sat_vz = np.random.normal(halo_vz, widths)
 
     return sat_vx, sat_vy, sat_vz
