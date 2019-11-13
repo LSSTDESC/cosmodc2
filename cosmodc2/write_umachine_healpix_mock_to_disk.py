@@ -13,6 +13,7 @@ from astropy.utils.misc import NumpyRNGContext
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from cosmodc2.sdss_colors.sigmoid_magr_model import magr_monte_carlo
 
+from scipy.spatial import cKDTree
 from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
 from galsampler import halo_bin_indices, source_halo_index_selection
 from galsampler.cython_kernels import galaxy_selection_kernel
@@ -254,15 +255,12 @@ def write_umachine_healpix_mock_to_disk(
         target_halos['mass_bin'] = halo_bin_indices(
             mass=(target_halos[fof_halo_mass], mass_bins))
 
-        #  Randomly draw halos from corresponding mass bins
-        #  THIS NEEDS TO BE ADAPTED TO BE BIN-FREE
-        nhalo_min = 10
-        source_halo_bin_numbers = source_halos['mass_bin']
-        target_halo_bin_numbers = target_halos['mass_bin']
-        target_halo_ids = target_halos['halo_id']
-        _result = source_halo_index_selection(source_halo_bin_numbers,
-                      target_halo_bin_numbers, target_halo_ids, nhalo_min, mass_bins, seed=seed)
-        source_halo_indx, matching_target_halo_ids = _result
+        #  For every target halo, find a source halo with closely matching mass
+        X = np.vstack((np.log10(source_halos['mvir']), )).T
+        source_halo_tree = cKDTree(X)
+        Y = np.vstack((np.log10(target_halos[fof_halo_mass]), )).T
+        target_halo_tree = cKDTree(Y)
+        source_halo_dlogm, source_halo_indx = target_halo_tree.query(source_halo_tree)
 
         #  Transfer quantities from the source halos to the corresponding target halo
         target_halos['source_halo_id'] = source_halos['halo_id'][source_halo_indx]
