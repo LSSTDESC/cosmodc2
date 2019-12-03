@@ -89,7 +89,8 @@ def write_umachine_healpix_mock_to_disk(
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False, image=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
-            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min= 1e7, z2ts={}):
+            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min= 1e7, z2ts={},
+            mass_match_noise=0.1):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
     GalSample the mock into the lightcone healpix cutout, and write the healpix mock to disk.
@@ -145,6 +146,8 @@ def write_umachine_healpix_mock_to_disk(
         Flag specifying if catalog will be used for image simulations (affects ids)
 
     mstar_min: stellar mass cut for synthetic galaxies (not used in image simulations)
+
+    mass_match_noise: noise added to log of source halo masses to randomize the match to target halos
     """
 
     output_mock = {}
@@ -255,12 +258,18 @@ def write_umachine_healpix_mock_to_disk(
         target_halos['mass_bin'] = halo_bin_indices(
             mass=(target_halos[fof_halo_mass], mass_bins))
 
-        #  For every target halo, find a source halo with closely matching mass
-        X = np.vstack((np.log10(source_halos['mvir']), )).T
+        #  For every target halo, find a source halo with closely matching mass 
+        #  Add noise to randomize the selections around the closest match
+        log_src_mass = np.log10(source_halos['mvir'])
+        noisy_log_src_mass = np.random.normal(loc=log_src_mass, scale=mass_match_noise)
+        X = np.vstack((noisy_log_src_mass, )).T
         source_halo_tree = cKDTree(X)
         Y = np.vstack((np.log10(target_halos[fof_halo_mass]), )).T
-        target_halo_tree = cKDTree(Y)
-        source_halo_dlogm, source_halo_indx = target_halo_tree.query(source_halo_tree)
+        # original code crashes - don't need 2 KDTrees
+        #target_halo_tree = cKDTree(Y)
+        #source_halo_dlogm, source_halo_indx = target_halo_tree.query(source_halo_tree)
+        #  Find indices of source halos masses that match target halo masses 
+        source_halo_dlogm, source_halo_indx = source_halo_tree.query(Y)
 
         #  Transfer quantities from the source halos to the corresponding target halo
         target_halos['source_halo_id'] = source_halos['halo_id'][source_halo_indx]
