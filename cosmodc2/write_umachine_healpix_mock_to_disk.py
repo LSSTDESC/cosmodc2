@@ -28,6 +28,8 @@ from cosmodc2.triaxial_satellite_distributions.axis_ratio_model import monte_car
 from halotools.empirical_models import halo_mass_to_halo_radius
 from halotools.utils import normalized_vectors
 from cosmodc2.triaxial_satellite_distributions.monte_carlo_triaxial_profile import generate_triaxial_satellite_distribution
+from cosmodc2.get_fof_halo_shapes import get_halo_shapes
+from cosmodc2.get_fof_halo_shapes import get_matched_shapes
 
 fof_halo_mass = 'fof_halo_mass'
 # fof halo mass in healpix cutouts
@@ -85,7 +87,7 @@ snapshot_min = 121
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
-            healpix_data, snapshots, output_color_mock_fname,
+            healpix_data, snapshots, output_color_mock_fname,  shape_dir,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False, image=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
@@ -114,6 +116,9 @@ def write_umachine_healpix_mock_to_disk(
 
     output_color_mock_fname : string
         Absolute path to the output healpix mock
+
+    shape_dir: string
+        Directory storing files with halo-shape information
 
     redshift_list : list
         List of length num_snaps storing the value of the redshifts
@@ -248,6 +253,11 @@ def write_umachine_healpix_mock_to_disk(
         target_halos['axis_A_x'] = axis_A[:, 0]
         target_halos['axis_A_y'] = axis_A[:, 1]
         target_halos['axis_A_z'] = axis_A[:, 2]
+        # now add halo shape information for those halos with matches in shape files 
+        shapes = get_halo_shapes(snapshot, target_halos['fof_halo_id'],  target_halos['rep'],
+                                 shape_dir)
+        if shapes:
+            target_halos = get_matched_shapes(shapes, target_halos)
 
         print("...Finding halo--halo correspondence with GalSampler")
         #  Bin the halos in each simulation by mass

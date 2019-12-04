@@ -48,6 +48,9 @@ parser.add_argument("-um_input_catalogs_dirname",
 parser.add_argument("-output_mock_dirname",
     help="Directory name (relative to input_master_dirname) storing output mock healpix files",
     default='baseDC2_healpix_mocks')
+parser.add_argument("-shape_dirname",
+    help="Directory name (relative to input_master_dirname) storing halo shape files",
+    default='OR_haloshapes')
 parser.add_argument("-pkldirname",
     help="Directory name (relative to home) storing pkl file with snapshot <-> redshift correspondence",
     default='cosmology/cosmodc2/cosmodc2')
@@ -84,6 +87,7 @@ input_master_dirname = os.path.join(home, args.input_master_dirname)
 pkldirname = os.path.join(home, args.pkldirname)
 healpix_cutout_dirname = os.path.join(input_master_dirname, args.healpix_cutout_dirname)
 output_mock_dirname = os.path.join(input_master_dirname, args.output_mock_dirname)
+shape_dir = os.path.join(input_master_dirname, args.shape_dirname)
 
 print('Setting master directory to {}'.format(input_master_dirname))
 print('Reading inputs from {}'.format(healpix_cutout_dirname))
@@ -154,10 +158,10 @@ for zdir in z_range_dirs:
 
         write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
-            healpix_data, snapshots, output_healpix_mock_fname,
+            healpix_data, snapshots, output_healpix_mock_fname, shape_dir,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=synthetic_halo_minimum_mass,
             use_centrals=use_centrals, gaussian_smearing_real_redshifts=args.gaussian_smearing, 
-            nzdivs=args.nzdivs, Nside_cosmoDC2=args.nside, z2ts=z2ts)
+            nzdivs=args.nzdivs, Nside_cosmoDC2=args.nside, z2ts=z2ts, )
 
     else:
         print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))
