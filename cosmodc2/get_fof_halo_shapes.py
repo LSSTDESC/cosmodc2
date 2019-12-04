@@ -46,7 +46,7 @@ def get_halo_shapes(snapshot, hpx_fof_tags, hpx_reps, shape_dir, debug=True):
 
     return shapes
 
-def get_matched_shapes(shapes, target_halos, check_positions=False):
+def get_matched_shapes(shapes, target_halos, check_positions=False, Lbox=3000.):
     """
     modify array of target halo shape information to include 
     host halo shape information if available
@@ -103,7 +103,9 @@ def get_matched_shapes(shapes, target_halos, check_positions=False):
     # check positions
     if check_positions:
         for q in ['x', 'y', 'z']:
-            dq  = np.abs(target_halos[q][locations] - shapes['c'+q].flatten())
+            dq = np.mod(target_halos[q][locations] - shapes['c'+q].flatten(), Lbox)
+            mask = abs(dq) > Lbox/2
+            dq[mask] = dq[mask] - Lbox
             print('...Min/max for |d{}| = {:.2g}/{:.2g}:'.format(q, np.min(dq), np.max(dq)))
  
     return target_halos
@@ -147,6 +149,6 @@ def run_check(healpix_file, shape_dir): #for testing
         target_halos = get_halo_table(fh[snapshot])
         if shapes[snapshot]:
             print("Processing {}".format(snapshot))
-            target_halos = get_matched_shapes(shapes[snapshot], target_halos)
+            target_halos = get_matched_shapes(shapes[snapshot], target_halos, check_positions=True)
         else:
             print("Skipping: no shape information for {}".format(snapshot))
