@@ -96,6 +96,7 @@ def get_matched_shapes(shapes, target_halos, check_positions=False, Lbox=3000.):
     norms = np.asarray([np.dot(major_axis_evectors[i], major_axis_evectors[i].T) for i in range(nvals)])
     assert all(np.isclose(norms, 1)), "Major-axis eigenvector has incorrect norm"
 
+    # save axis vector; z direction is already flipped to cosmoDC2 coordinates
     target_halos['axis_A_x'][locations] = major_axis_evectors[:,0]
     target_halos['axis_A_y'][locations] = major_axis_evectors[:,1]
     target_halos['axis_A_z'][locations] = major_axis_evectors[:,2]
@@ -103,7 +104,10 @@ def get_matched_shapes(shapes, target_halos, check_positions=False, Lbox=3000.):
     # check positions
     if check_positions:
         for q in ['x', 'y', 'z']:
-            dq = np.mod(target_halos[q][locations] - shapes['c'+q].flatten(), Lbox)
+            if 'z' in q: # flip sign of z component since positions were not flipped
+                dq = np.mod(target_halos[q][locations] + shapes['c'+q].flatten(), Lbox)
+            else:
+                dq = np.mod(target_halos[q][locations] - shapes['c'+q].flatten(), Lbox)
             mask = abs(dq) > Lbox/2
             dq[mask] = dq[mask] - Lbox
             print('...Min/max for |d{}| = {:.2g}/{:.2g}:'.format(q, np.min(dq), np.max(dq)))
