@@ -91,7 +91,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False, image=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
-            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min= 1e7, z2ts={},
+            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min= 6.6e6, z2ts={},
             mass_match_noise=0.1):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
