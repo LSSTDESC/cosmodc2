@@ -624,6 +624,16 @@ def build_output_snapshot_mock(
     dc2['target_halo_axis_A_y'][idxA] = target_halos['axis_A_y'][idxB]
     dc2['target_halo_axis_A_z'][idxA] = target_halos['axis_A_z'][idxB]
 
+    # add SOD information from target_halo table
+    dc2['sod_halo_cdelta'] = 0.
+    dc2['sod_halo_cdelta_error'] = 0.
+    dc2['sod_halo_mass'] = 0.
+    dc2['sod_halo_radius'] = 0.
+    dc2['sod_halo_cdelta'][idxA] = target_halos['sod_cdelta'][idxB]
+    dc2['sod_halo_cdelta_error'][idxA] = target_halos['sod_cdelta_error'][idxB]
+    dc2['sod_halo_mass'][idxA] = target_halos['sod_mass'][idxB]
+    dc2['sod_halo_radius'][idxA] = target_halos['sod_radius'][idxB]
+
     #  Here the host_centric_xyz_vxvyvz in umachine should be overwritten
     #  Then we can associate x <--> A, y <--> B, z <--> C and then apply a random rotation
     #  It will be important to record the true direction of the major axis as a stored column
