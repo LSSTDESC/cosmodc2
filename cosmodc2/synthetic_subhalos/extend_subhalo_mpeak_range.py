@@ -326,7 +326,8 @@ def create_synthetic_lowmass_mock_with_centrals(
     gals['target_halo_id'] = -(np.arange(ngals)*halo_id_offset + halo_unique_id).astype(int)
     print('...Max and min synthetic target halo_id = {} -> {}'.format(np.min(gals['target_halo_id']), np.max(gals['target_halo_id'])))
 
+    #  add other keys
     gals['lightcone_id'] = -20
     gals['halo_id'] = -20
-
+    
     return gals

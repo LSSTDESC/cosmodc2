@@ -723,7 +723,7 @@ def build_output_snapshot_mock(
             lowmass_mock = create_synthetic_lowmass_mock_with_satellites(
                 umachine, dc2, synthetic_dict)
         if len(lowmass_mock) > 0:
-            dc2 = vstack((dc2, lowmass_mock))
+            dc2 = vstack((dc2, lowmass_mock)) # astropy vstack pads missing values with zeros in lowmass_mock
             print('...time to create {} galaxies in synthetic_lowmass_mock = {:.2f} secs'.format(len(lowmass_mock['target_halo_id']), time()-check_time))
 
     dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['target_halo_id'])).astype(int)

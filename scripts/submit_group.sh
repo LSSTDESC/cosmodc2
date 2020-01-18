@@ -10,8 +10,19 @@ else
 hpx_group=${1}
 echo "hpx_group=${hpx_group}"
 fi
+
+tot_pix_grp=16
+if [ "$hpx_group" -lt "$tot_pix_grp" ]
+then
+# 128 pixels per file; 4 pixels per node
+nodes=32
+else
+# 74 pixels per file                   
+nodes=19
+fi
+
 #qsub -n 2 -t 00:10:00 -A ExtCosmology_2 -M ${EMAIL} -I 
 #qsub -n 1 -t 00:10:00 -A ExtCosmology_2 -M ${EMAIL} ./bundle_cosmodc2_z_0.sh
-qsub -n 30 -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 0
-qsub -n 30 -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 1
-qsub -n 30 -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 2
+qsub -n ${nodes} -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 0
+qsub -n ${nodes} -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 1
+qsub -n ${nodes} -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 2

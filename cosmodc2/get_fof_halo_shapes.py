@@ -29,11 +29,24 @@ def get_halo_shapes(snapshot, hpx_fof_tags, hpx_reps, shape_dir, debug=True):
     if os.path.isfile(fn):
         with h5py.File(fn) as fh:
             fof_tags = fh['fof_halo_tag'].value
-            mask = np.in1d(fof_tags, hpx_fof_tags)
+            mask = np.in1d(fof_tags, hpx_fof_tags) # duplicates possible
             nfof = np.count_nonzero(mask)
             if nfof > 0:
                 reps = fh['replication'].value
-                mask &= np.in1d(reps, hpx_reps) 
+                mask &= np.in1d(reps, hpx_reps) # duplicates possible
+                #check foftag/replication pairs to verify they are matched
+                mask_locations = np.where(mask==True)[0]
+                for mloc, foftag, rep  in zip(mask_locations, fof_tags[mask], reps[mask]):
+                    locs = np.where(hpx_fof_tags==foftag)[0]
+                    found = False
+                    n=0
+                    while not found and n < len(locs):
+                        found = (hpx_reps[locs[n]] == rep)
+                        #print(mloc, foftag, rep, hpx_fof_tags[locs[n]], hpx_reps[locs[n]], n, found, locs[n])
+                        n += 1
+
+                    mask[mloc] = found
+
                 print('...Matched {} fof & replication tags (/{} fof tags) for snapshot {}'.format(
                     np.count_nonzero(mask), nfof, snapshot))
                 for k, v in fh.items():
@@ -45,6 +58,29 @@ def get_halo_shapes(snapshot, hpx_fof_tags, hpx_reps, shape_dir, debug=True):
 
 
     return shapes
+
+def get_locations(shapes, fof_halo_tags, replications):
+    # searchsorted returns location of first occurrence and fails for multiple occurrences
+    #orig_indices = target_halos['fof_halo_id'].argsort()
+    #insertions = np.searchsorted(target_halos['fof_halo_id'][orig_indices], shapes['fof_halo_tag'])
+    #locations = orig_indices[insertions]
+
+    # find position of fof_halo_tags in target_halo array
+    locations = []
+    for foftag, rep in zip(shapes['fof_halo_tag'], shapes['replication']):
+        loc = np.where(fof_halo_tags==foftag)[0]
+        if len(loc) > 1:
+            idx = np.where(replications[loc]==rep)[0]
+            if len(idx) == 1:
+                locations.append(loc[idx[0]])
+            else:
+                print('Error: entry not found for fof_tag {} rep {}'.format(foftag, rep))
+        elif len(loc) == 1:
+            locations.append(loc[0])
+        else:
+            print('Error: entry not found for fof_tag {}'.format(foftag))
+
+    return np.asarray(locations)
 
 def get_matched_shapes(shapes, target_halos, check_positions=False, Lbox=3000.):
     """
@@ -59,13 +95,8 @@ def get_matched_shapes(shapes, target_halos, check_positions=False, Lbox=3000.):
     -------
     target_halos: modified table
     """
-    # find position of fof_halo_tags in target_halo array
-    orig_indices = target_halos['fof_halo_id'].argsort()
-    insertions = np.searchsorted(target_halos['fof_halo_id'][orig_indices],
-                                 shapes['fof_halo_tag'])
-    locations = orig_indices[insertions]
-    source = target_halos['fof_halo_id'][locations]
-    assert np.array_equal(source, shapes['fof_halo_tag']), "Fof tag arrays don't match"
+    locations = get_locations(shapes, target_halos['fof_halo_id'], target_halos['rep'])
+    assert np.array_equal(target_halos['fof_halo_id'][locations], shapes['fof_halo_tag']), "Fof tag arrays don't match"
     assert np.array_equal(target_halos['rep'][locations], shapes['replication']), "Replication mismatch"
     
     # get axis lengths, convert to ratios and compute ellipticity and prolaticity

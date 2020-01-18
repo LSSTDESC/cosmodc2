@@ -23,7 +23,9 @@ def get_hpxlist(hpxdir, hpxfiles):
 def main(argsdict):
     nfiles = argsdict['nfiles']
     total = argsdict['total']
-    hpx_per_file = int(np.ceil(total/nfiles))
+    hpx_per_file = argsdict['stride']
+    #hpx_per_file = int(np.ceil(float(total)/float(nfiles)))
+    print('# per file = {}'.format(hpx_per_file))
 
     hpxlist = get_hpxlist(hpxdir, hpxfiles)
     for nf in range(nfiles):
@@ -35,8 +37,9 @@ def main(argsdict):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,description='Makes hpx lists')
-    parser.add_argument('--nfiles',help='Number of hpx file lists (=number of jobs)', default=12)
+    parser.add_argument('--nfiles',help='Number of hpx file lists (=number of jobs)', default=17)
     parser.add_argument('--total',type=float,help='Total number of files', default=2122)
+    parser.add_argument('--stride',type=float,help='Stride for file groups', default=128)
     args=parser.parse_args()
     argsdict=vars(args)
     print ("Running", sys.argv[0], "with parameters:")

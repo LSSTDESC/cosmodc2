@@ -25,14 +25,14 @@ vprod="5000_production_v0.1"
 #xtra_args="-input_master_dirname cosmology/DC2/OR_Production -output_mock_dirname baseDC2_v0.1 -gaussian_smearing 0.03 -nside 32 -ndebug_snaps 1"
 xtra_args="-input_master_dirname cosmology/DC2/OR_5000 -output_mock_dirname baseDC2_v0.1 -gaussian_smearing 0.03 -nside 32"
 filename="cutout"
-tot_pix_grp=11
+tot_pix_grp=16
 if [ "$hpx_group" -lt "$tot_pix_grp" ]
 then
-# 177 pixels per file
-total_pix_num=178
+# 128 pixels per file
+total_pix_num=129
 else
-# 175 pixels per file
-total_pix_num=176
+# 74 pixels per file
+total_pix_num=75
 fi
 echo "total_pix_num=${total_pix_num}"
 
@@ -49,7 +49,7 @@ do
   hostname1=${hostname1%?}
   #echo $hostname1
   #hostname1=$(cat $COBALT_NODEFILE | awk 'NR=='${nodenumber})
-  for pixnumber in {1..6}
+  for pixnumber in {1..4}
   do
   if [ "$npix" -lt "$total_pix_num" ]
   then
