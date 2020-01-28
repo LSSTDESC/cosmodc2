@@ -73,8 +73,9 @@ def get_locations(shapes, fof_halo_tags, replications):
             idx = np.where(replications[loc]==rep)[0]
             if len(idx) == 1:
                 locations.append(loc[idx[0]])
-            else:
-                print('Error: entry not found for fof_tag {} rep {}'.format(foftag, rep))
+            else:  #duplicate halo
+                print('Warning: duplicate entries for fof_tag {} rep {}'.format(foftag, rep))
+                locations.append(loc[idx[0]])
         elif len(loc) == 1:
             locations.append(loc[0])
         else:

@@ -36,6 +36,8 @@ fof_halo_mass = 'fof_halo_mass'
 fof_mass = 'fof_mass'
 mass = 'mass'
 fof_max = 14.5
+sod_mass = 'sod_mass'
+m_particle_1000 = 1.85e12
 H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
@@ -91,7 +93,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False, image=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
-            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min= 6.6e6, z2ts={},
+            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min=7e6, z2ts={},
             mass_match_noise=0.1):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
@@ -515,6 +517,18 @@ def get_astropy_table(table_data, halo_unique_id=0, check=False):
         t.rename_column(fof_mass, fof_halo_mass)
     else:
         print('  Warning; halo mass or fof_mass not found')
+
+    #  check sod information and clean bad values
+    if sod_mass in t.colnames:
+        mask_valid = (t[sod_mass] > 0)
+        mask = mask_valid & (t[sod_mass] < m_particle_1000)
+        # overwrite
+        for cn in ['sod_cdelta', 'sod_cdelta_error', sod_mass, 'sod_radius']:
+            t[cn][mask] = -1
+
+        print('...Overwrote {}/{} SOD quantities failing {:.2g} mass cut'.format(np.count_nonzero(mask),
+                                                                                 np.count_nonzero(mask_valid),
+                                                                                 m_particle_1000))
 
     if check:
         #  compute comoving distance from z and from position

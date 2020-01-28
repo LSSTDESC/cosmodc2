@@ -23,6 +23,6 @@ fi
 
 #qsub -n 2 -t 00:10:00 -A ExtCosmology_2 -M ${EMAIL} -I 
 #qsub -n 1 -t 00:10:00 -A ExtCosmology_2 -M ${EMAIL} ./bundle_cosmodc2_z_0.sh
-qsub -n ${nodes} -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 0
-qsub -n ${nodes} -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 1
-qsub -n ${nodes} -t 11:00:00 -A LastJourney -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 2
+qsub -n ${nodes} -t 11:00:00 -A LSSTsky -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 0
+qsub -n ${nodes} -t 11:00:00 -A LSSTsky -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 1
+qsub -n ${nodes} -t 11:00:00 -A LSSTsky -M ${EMAIL} ./bundle_skysim5000_hpx_z.sh ${hpx_group} 2
