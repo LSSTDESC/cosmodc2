@@ -99,6 +99,10 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
     source_halo_mvir = mock['source_halo_mvir'][idx]
     target_halo_id = mock['target_halo_id'][idx]
     target_halo_fof_halo_id = mock['target_halo_fof_halo_id'][idx]
+    host_sod_mass = mock['sod_halo_mass'][idx]
+    host_sod_radius = mock['sod_halo_radius'][idx]
+    host_sod_cdelta = mock['sod_halo_cdelta'][idx]
+    host_sod_cdelta_error = mock['sod_halo_cdelta_error'][idx]
     
     #  Calculate tri-axial properties
     tri_axial_properties = ('target_halo_ellipticity', 'target_halo_prolaticity',
@@ -138,7 +142,12 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
         sats['target_halo_vz'] = np.repeat(host_vz, synthetic_richness)
         sats['target_halo_id'] = np.repeat(target_halo_id, synthetic_richness)
         sats['target_halo_fof_halo_id'] = np.repeat(target_halo_fof_halo_id, synthetic_richness)
-
+        #  Add sod properties
+        sats['sod_halo_mass'] = np.repeat(host_sod_mass, synthetic_richness)
+        sats['sod_halo_radius'] = np.repeat(host_sod_radius, synthetic_richness)
+        sats['sod_halo_cdelta'] = np.repeat(host_sod_cdelta, synthetic_richness)
+        sats['sod_halo_cdelta_error'] = np.repeat(host_sod_cdelta_error, synthetic_richness)
+                
         #  Add tri-axial properties
         for k, v in host_tri_axial_properties.items():
             sats[k] = np.repeat(v, synthetic_richness)

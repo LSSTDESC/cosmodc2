@@ -36,6 +36,8 @@ fof_halo_mass = 'fof_halo_mass'
 fof_mass = 'fof_mass'
 mass = 'mass'
 fof_max = 14.5
+sod_mass = 'sod_mass'
+m_particle_1000 = 1.85e12
 H0 = 71.0
 OmegaM = 0.2648
 OmegaB = 0.0448
@@ -91,7 +93,7 @@ def write_umachine_healpix_mock_to_disk(
             redshift_list, commit_hash, synthetic_halo_minimum_mass=9.8, num_synthetic_gal_ratio=1.,
             use_centrals=True, use_substeps_real=True, use_substeps_synthetic=False, image=False,
             randomize_redshift_real=True, randomize_redshift_synthetic=True, Lbox=3000.,
-            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min= 6.6e6, z2ts={},
+            gaussian_smearing_real_redshifts=0., nzdivs=6, Nside_cosmoDC2=32, mstar_min=7e6, z2ts={},
             mass_match_noise=0.1):
     """
     Main driver function used to paint SDSS fluxes onto UniverseMachine,
@@ -516,6 +518,18 @@ def get_astropy_table(table_data, halo_unique_id=0, check=False):
     else:
         print('  Warning; halo mass or fof_mass not found')
 
+    #  check sod information and clean bad values
+    if sod_mass in t.colnames:
+        mask_valid = (t[sod_mass] > 0)
+        mask = mask_valid & (t[sod_mass] < m_particle_1000)
+        # overwrite
+        for cn in ['sod_cdelta', 'sod_cdelta_error', sod_mass, 'sod_radius']:
+            t[cn][mask] = -1
+
+        print('...Overwrote {}/{} SOD quantities failing {:.2g} mass cut'.format(np.count_nonzero(mask),
+                                                                                 np.count_nonzero(mask_valid),
+                                                                                 m_particle_1000))
+
     if check:
         #  compute comoving distance from z and from position
         cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
@@ -624,6 +638,16 @@ def build_output_snapshot_mock(
     dc2['target_halo_axis_A_y'][idxA] = target_halos['axis_A_y'][idxB]
     dc2['target_halo_axis_A_z'][idxA] = target_halos['axis_A_z'][idxB]
 
+    # add SOD information from target_halo table
+    dc2['sod_halo_cdelta'] = 0.
+    dc2['sod_halo_cdelta_error'] = 0.
+    dc2['sod_halo_mass'] = 0.
+    dc2['sod_halo_radius'] = 0.
+    dc2['sod_halo_cdelta'][idxA] = target_halos['sod_cdelta'][idxB]
+    dc2['sod_halo_cdelta_error'][idxA] = target_halos['sod_cdelta_error'][idxB]
+    dc2['sod_halo_mass'][idxA] = target_halos['sod_mass'][idxB]
+    dc2['sod_halo_radius'][idxA] = target_halos['sod_radius'][idxB]
+
     #  Here the host_centric_xyz_vxvyvz in umachine should be overwritten
     #  Then we can associate x <--> A, y <--> B, z <--> C and then apply a random rotation
     #  It will be important to record the true direction of the major axis as a stored column
@@ -713,7 +737,7 @@ def build_output_snapshot_mock(
             lowmass_mock = create_synthetic_lowmass_mock_with_satellites(
                 umachine, dc2, synthetic_dict)
         if len(lowmass_mock) > 0:
-            dc2 = vstack((dc2, lowmass_mock))
+            dc2 = vstack((dc2, lowmass_mock)) # astropy vstack pads missing values with zeros in lowmass_mock
             print('...time to create {} galaxies in synthetic_lowmass_mock = {:.2f} secs'.format(len(lowmass_mock['target_halo_id']), time()-check_time))
 
     dc2['galaxy_id'] = np.arange(galaxy_id_offset, galaxy_id_offset + len(dc2['target_halo_id'])).astype(int)

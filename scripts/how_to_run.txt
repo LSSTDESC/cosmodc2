@@ -1,0 +1,1 @@
+./run_cosmoDC2_5000_mocks_9.8_centrals_production.csh cutout_9554 2 test | & tee cutout_9554_z_2_triax_mass_shape_sod.log
