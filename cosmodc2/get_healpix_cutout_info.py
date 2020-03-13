@@ -20,3 +20,12 @@ def get_healpix_cutout_info(pkldirname, infile, sim_name='AlphaQ', pklname='{}_z
         print('{} not found'.format(infile))
 
     return h5file, redshifts, snapshots, z2ts
+
+def get_snap_redshift_min(z2ts, snapshots):
+    assert (len(z2ts) > 0), 'z2ts data NOT supplied'
+    all_snapshots =  sorted([v for v in z2ts.values()])[::-1]
+    # find redshift of preceding snapshot (499 is at index 0 and is never in snapshots list)
+    previous_snap = all_snapshots[all_snapshots.index(int(max(snapshots))) - 1]
+    previous_redshift = list(z2ts.keys())[z2ts.values().index(previous_snap)]
+    
+    return previous_redshift

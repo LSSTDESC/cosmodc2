@@ -12,6 +12,7 @@ from astropy.cosmology import FlatLambdaCDM, WMAP7
 from astropy.utils.misc import NumpyRNGContext
 from cosmodc2.sdss_colors import assign_restframe_sdss_gri
 from cosmodc2.sdss_colors.sigmoid_magr_model import magr_monte_carlo
+from cosmodc2.get_healpix_cutout_info import get_snap_redshift_min
 
 from scipy.spatial import cKDTree
 from cosmodc2.stellar_mass_remapping import remap_stellar_mass_in_snapshot
@@ -83,9 +84,13 @@ cutout_remap = {'8': {'564':1, '565':2, '566':3, '597':4, '598':5, '628':6, '629
                 }
 
 # constants to determine synthetic number density
-Ntotal_synthetics = 1932058570
-Area_total = float(131)/float(hp.nside2npix(32)) #drop factor of 4pi since it will cancel later
+Ntotal_synthetics = 1932058570 # total number of synthetic galaxies in cosmoDC2_image
+nhpx_total = float(131)  # number of healpixels in image area
 snapshot_min = 121
+# specify edges of octant
+volume_minx=0.
+volume_miny=0.
+volume_maxz=0.
 
 def write_umachine_healpix_mock_to_disk(
             umachine_mstar_ssfr_mock_fname_list, umachine_host_halo_fname_list,
@@ -185,11 +190,16 @@ def write_umachine_healpix_mock_to_disk(
     #  determine seed from output filename
     seed = get_random_seed(output_mock_basename)
 
-    #  determine maximum redshift used in creating catalog
+    #  determine maximum redshift and volume covered by catalog
     redshift_max = [float(k) for k,v in z2ts.items() if int(v)==snapshot_min][0]
-    #  determine total number of synthetic galaxies for this healpixel
-    #  area of this healpixel = 1/hp.nside2npix(Nside_cosmoDC2) (dropping the factor of 4pi)
-    synthetic_number = int(Ntotal_synthetics/Area_total/hp.nside2npix(Nside_cosmoDC2))
+    cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
+    Vtotal = cosmology.comoving_volume(redshift_max).value    
+
+    #  determine total number of synthetic galaxies for arbitrary healpixel for full z range
+    synthetic_number = int(Ntotal_synthetics/nhpx_total)
+    #  number for healpixels straddling the edge of the octant will be adjusted later
+    # initialize previous redshift for computing synthetic galaxy distributions
+    previous_redshift = get_snap_redshift_min(z2ts, snapshots)
 
     #  initialize book-keeping variables
     fof_halo_mass_max = 0.
@@ -199,6 +209,7 @@ def write_umachine_healpix_mock_to_disk(
     print('Using initial seed = {}'.format(seed))
     print('Using nside = {}'.format(Nside_cosmoDC2))
     print('Maximum redshift for catalog = {}'.format(redshift_max))
+    print('Minimum redshift for catalog = {}'.format(previous_redshift))
     print('Synthetic-halo minimum mass =  {}'.format(synthetic_halo_minimum_mass))
     print('Number of synthetic ultra-faint galaxies = {}'.format(synthetic_number))
     print('Using {} synthetic low-mass galaxies'.format('central' if use_centrals else 'satellite'))
@@ -352,9 +363,9 @@ def write_umachine_healpix_mock_to_disk(
             if num_infinite > 0:
                 print('...Warning: {} infinite values in synthetic {}'.format(num_infinite, m_id))
 
-        #  Now downsample the synthetic galaxies according to the
+        #  Now downsample the synthetic galaxies to adjust for volume of lightcone shell
         #  desired number = synthetic_number*comoving_vol(snapshot)/comoving_vol(healpixel)
-        volume_factor = get_volume_factor(snapshot, redshift_max, z2ts)
+        volume_factor = get_volume_factor(redshift, previous_redshift, Vtotal, cosmology)
         num_selected_synthetic = int(synthetic_number*volume_factor)
         num_synthetic_gals_in_snapshot = len(mpeak_synthetic_snapshot)
         synthetic_indices = np.arange(0, num_synthetic_gals_in_snapshot).astype(int)
@@ -434,11 +445,13 @@ def write_umachine_healpix_mock_to_disk(
         ########################################################################
         #  Assemble the output mock by snapshot
         ########################################################################
-
+        
         print("...building output snapshot mock for snapshot {}".format(snapshot))
-        output_mock[snapshot] = build_output_snapshot_mock(redshift,
+        output_mock[snapshot] = build_output_snapshot_mock(float(redshift),
                 mock, target_halos, source_galaxy_indx, galaxy_id_offset,
-                synthetic_dict, Nside_cosmoDC2, cutout_number_true,
+                synthetic_dict, Nside_cosmoDC2, cutout_number_true, float(previous_redshift),
+                cosmology, H0=H0, volume_minx=volume_minx,
+                volume_miny=volume_miny, volume_maxz=volume_maxz,
                 halo_unique_id=halo_unique_id, redshift_method='halo', use_centrals=use_centrals)
         galaxy_id_offset = galaxy_id_offset + len(output_mock[snapshot]['galaxy_id'])  #increment offset
         #check that offset is within index bounds for imsim pixels
@@ -449,6 +462,7 @@ def write_umachine_healpix_mock_to_disk(
 
         Ngals_total += len(output_mock[snapshot]['galaxy_id'])
         print('...saved {} galaxies to dict'.format(len(output_mock[snapshot]['galaxy_id'])))
+        previous_redshift = redshift # update for next snap
 
         time_stamp = time()
         msg = "\nLightcone-shell runtime = {0:.2f} minutes"
@@ -486,20 +500,13 @@ def get_random_seed(filename, seed_max=4294967095):  #reduce max seed by 200 to 
     return seed
 
 
-def get_volume_factor(snapshot, redshift_max, z2ts):
-    assert (len(z2ts) > 0), 'z2ts data NOT supplied'
-    cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
-    #  find for z limits for shell in healpixel
-    zshell_hi = [float(k) for k,v in z2ts.items() if int(v)==int(snapshot)][0]
-    snapshots = sorted([v for k,v in z2ts.items()])
-    zshell_lo = [float(k) for k,v in z2ts.items() if int(v)==snapshots[snapshots.index(int(snapshot)) + 1]][0]
+def get_volume_factor(redshift, previous_redshift, Vtotal, cosmology):
 
-    Vtotal = cosmology.comoving_volume(redshift_max).value
-    Vshell = cosmology.comoving_volume(zshell_hi).value - cosmology.comoving_volume(zshell_lo).value
+    Vshell = cosmology.comoving_volume(float(redshift)).value - cosmology.comoving_volume(float(previous_redshift)).value
     return Vshell/Vtotal
 
 
-def get_astropy_table(table_data, halo_unique_id=0, check=False):
+def get_astropy_table(table_data, halo_unique_id=0, check=False, cosmology=None):
     """
     """
     t = Table()
@@ -530,9 +537,8 @@ def get_astropy_table(table_data, halo_unique_id=0, check=False):
                                                                                  np.count_nonzero(mask_valid),
                                                                                  m_particle_1000))
 
-    if check:
+    if check and cosmology is not None:
         #  compute comoving distance from z and from position
-        cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
         r = np.sqrt(t['x']*t['x'] + t['y']*t['y'] + t['z']*t['z'])
         comoving_distance = cosmology.comoving_distance(t['halo_redshift'])*H0/100.
         print('r == comoving_distance(z) is {}', np.isclose(r, comoving_distance))
@@ -542,7 +548,8 @@ def get_astropy_table(table_data, halo_unique_id=0, check=False):
 
 def build_output_snapshot_mock(
             snapshot_redshift, umachine, target_halos, galaxy_indices, galaxy_id_offset,
-            synthetic_dict, Nside, cutout_number_true,
+            synthetic_dict, Nside, cutout_number_true, previous_redshift,
+            cosmology, H0=H0, volume_minx=0., volume_miny=0., volume_maxz=0.,
             halo_unique_id=0, redshift_method='galaxy', use_centrals=True):
     """
     Collect the GalSampled snapshot mock into an astropy table
@@ -731,8 +738,10 @@ def build_output_snapshot_mock(
         check_time = time()
         if use_centrals:
             lowmass_mock = create_synthetic_lowmass_mock_with_centrals(
-                umachine, dc2, synthetic_dict, Nside=Nside, cutout_id=cutout_number_true,
-                H0=H0, OmegaM=OmegaM, halo_id_offset=halo_id_offset, halo_unique_id=halo_unique_id)
+                umachine, dc2, synthetic_dict, previous_redshift, snapshot_redshift,
+                cosmology, Nside=Nside, cutout_id=cutout_number_true, H0=H0,
+                volume_minx=volume_minx, volume_miny=volume_miny, volume_maxz=volume_maxz,
+                halo_id_offset=halo_id_offset, halo_unique_id=halo_unique_id)
         else:
             lowmass_mock = create_synthetic_lowmass_mock_with_satellites(
                 umachine, dc2, synthetic_dict)
@@ -764,7 +773,6 @@ def build_output_snapshot_mock(
             zmin = np.min(dc2['redshift'])
             zmax = np.max(dc2['redshift'])
             zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
-            cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
             CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
             #  use interpolation to get redshifts for satellites only
             sat_mask = (dc2['upid'] != -1)

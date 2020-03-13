@@ -1,6 +1,7 @@
 """
 """
 import numpy as np
+import healpy as hp
 from halotools.utils import unsorting_indices
 from astropy.table import Table
 from scipy.stats import norm
@@ -185,19 +186,79 @@ def create_synthetic_lowmass_mock_with_satellites(
     return gals
 
 
-def get_redshifts_from_comoving_distances(comoving_distances, zmin, zmax, H0=71.0, OmegaM=0.2648):
+def get_comoving_distances(zmin, zmax, cosmology, H0=71.0):
+    rmin = (cosmology.comoving_distance(zmin)*H0/100.).value   #Mpc/h
+    rmax = (cosmology.comoving_distance(zmax)*H0/100.).value
+
+    return rmin, rmax
+
+
+def get_box_boundaries(Nside, cutout_id, rmin, rmax):
+
+    corners = hp.boundaries(Nside, cutout_id, nest=False)
+    center = np.asarray(hp.pixelfunc.pix2vec(Nside, cutout_id, nest=False)) # acccount for spherical cap
+    box_corners = np.vstack((corners.T*rmin, corners.T*rmax, center*rmax))
+    box_mins = np.asarray([np.min(box_corners[:, i]) for i in range(len(box_corners.T))])
+    box_maxs = np.asarray([np.max(box_corners[:, i]) for i in range(len(box_corners.T))])
+
+    return box_mins, box_maxs
+
+def get_volume_factor(box_mins, box_maxs, Nside, cutout_id, r_min, r_max, 
+                      volume_minx=0., volume_miny=0., volume_maxz=0., Nsample=100000):
+    volume_factor = 1.0
+    volume_box = (box_maxs[0] - box_mins[0])*(box_maxs[1] - box_mins[1])*(box_maxs[2] - box_mins[2])
+    
+    #check boundaries against edges of octant                                          
+    x_min = max(box_mins[0], volume_minx)
+    y_min = max(box_mins[1], volume_miny)
+    z_max = min(box_maxs[2], volume_maxz)
+    volume_in_octant = (box_maxs[0] - x_min)*(box_maxs[1] - y_min)*(z_max - box_mins[2])
+    vol_frac = volume_in_octant/volume_box
+    if vol_frac > 1./Nsample:  #check if overlap with octant is big enough for estimate of reduction factor 
+        # Monte Carlo the area to find the reduced number of synthetics needed
+        gals_x, gals_y , gals_z = generate_trial_sample(box_mins, box_maxs, Nsample=Nsample)
+        healpix_mask = mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max)
+        N_inhpx = np.count_nonzero(healpix_mask) 
+        octant_mask = (gals_x >= volume_minx) & (gals_y >= volume_miny) & (gals_z <= volume_maxz)
+        mask = healpix_mask & octant_mask
+        N_inoctant = np.count_nonzero(mask)
+        print('...edge-healpix measure: {} in octant out of {} in healpix'.format(N_inoctant, N_inhpx))
+        volume_factor = float(N_inoctant)/float(N_inhpx)
+        print('...adjusting xyz box boundaries for octant edges: {:.3g}, {:.3g}, {:.3g}'.format(x_min,
+                                                                                                y_min,
+                                                                                                z_max))
+    else:
+        volume_factor = 0.0
+        print('...fraction of box volume in octant ({:.3g}) too small for Monte Carlo measure'. format(vol_frac))
+
+    #adjust box boundaries
+    box_mins[0] = x_min
+    box_mins[1] = y_min
+    box_maxs[2] = z_max
+
+    return volume_factor, box_mins, box_maxs
+            
+def generate_trial_sample(box_mins, box_maxs, Nsample=100000):
+        
+    gals_x = np.random.uniform(box_mins[0], box_maxs[0], Nsample)
+    gals_y = np.random.uniform(box_mins[1], box_maxs[1], Nsample)
+    gals_z = np.random.uniform(box_mins[2], box_maxs[2], Nsample)
+        
+    return gals_x, gals_y , gals_z
+
+def get_redshifts_from_comoving_distances(comoving_distances, zmin, zmax,
+                                          cosmology, H0=71.0):
     """
     """
     zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
-    cosmology = FlatLambdaCDM(H0=H0, Om0=OmegaM)
     CDgrid = cosmology.comoving_distance(zgrid)*H0/100.
     redshifts = np.interp(comoving_distances, CDgrid, zgrid)
 
     return redshifts
 
+
 def mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max):
     """                                                                                                                                  """
-    import healpy as hp
     healpixels = hp.pixelfunc.vec2pix(Nside, gals_x, gals_y, gals_z, nest=False)
     healpix_number_mask = (healpixels == cutout_id)
     #print('.....removing {} fakes falling outside healpixel'.format(np.sum(~healpix_number_mask)))
@@ -211,7 +272,9 @@ def mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_mi
 
 def create_synthetic_lowmass_mock_with_centrals(
             mock, healpix_mock, synthetic_dict,
-            cutout_id=None, Nside=8, H0=71.0, OmegaM=0.2648,
+            snapshot_redshift_min, snapshot_redshift_max, cosmology,
+            cutout_id=None, Nside=32, H0=71.,
+            volume_minx=0., volume_miny=0., volume_maxz=0.,
             halo_id_offset=0, halo_unique_id=0):
     """ Function generates a data table storing synthetic ultra-faint galaxies
     for purposes of extending the resolution limit of the simulation.
@@ -228,6 +291,12 @@ def create_synthetic_lowmass_mock_with_centrals(
     synthetic_dict : dict
         Dictionary of additional properties being modeled onto synthetic galaxies
 
+    snapshot_redshift_min: float
+        Minimum redshift of shell (= redshift or previous snapshot)
+
+    snapshot_redshift_max: float
+        Maximum redshift of shell
+
     Returns
     -------
     ultra_faints : Astropy Table
@@ -239,17 +308,44 @@ def create_synthetic_lowmass_mock_with_centrals(
         print('...missing cutout_id')
         return Table()
 
-    ngals = len(synthetic_dict['mpeak'])
+    # setup r_min and r_max for lightcone shell
+    r_min = (cosmology.comoving_distance(snapshot_redshift_min)*H0/100.).value
+    r_max = (cosmology.comoving_distance(snapshot_redshift_max)*H0/100.).value
+    print('...min/max comoving distances for z ({:.4f}-{:.4f}) = ({:.5g}-{:.5g})'.format(snapshot_redshift_min,
+                                                                                         snapshot_redshift_max,
+                                                                                         r_min, r_max))
+
+    # find coordinates of box enclosing healpixel
+    box_mins, box_maxs = get_box_boundaries(Nside, cutout_id, r_min, r_max)
+    # adjust for edge cases at boundaries of octant
+    volume_factor, box_mins, box_maxs = get_volume_factor(box_mins, box_maxs, Nside, cutout_id, r_min, r_max,
+                                                          volume_minx=volume_minx, volume_miny=volume_miny,
+                                                          volume_maxz=volume_maxz)
+                                   
+    nsynthetic = len(synthetic_dict['mpeak'])
     mstar_max = min(10**8., 10.**(np.log10(np.max(synthetic_dict['mpeak']))+1))
     mock_sample_mask = mock['obs_sm'] < mstar_max
     num_sample = np.count_nonzero(mock_sample_mask)
-    selection_indices = np.random.randint(0, num_sample, ngals)
+    if volume_factor < 1.0:
+        ngals = int(nsynthetic*volume_factor)
+        print('...down-sampling synthetics by {:.3f} to {} for edge pixel {}'.format(volume_factor,
+                                                                                     ngals,
+                                                                                     cutout_id))
+        downsampled_indices =  np.random.randint(0, nsynthetic, ngals)
+    else:
+        ngals = nsynthetic
+        downsampled_indices = np.arange(0, ngals)
 
     gals = Table()
+    if ngals == 0:
+        return gals
+
+    selection_indices = np.random.randint(0, num_sample, ngals)
+
     #  populate gals table with selected galaxies
     for key in mock.keys():
         if key in list(synthetic_dict.keys()):
-            gals[key] = synthetic_dict[key]
+            gals[key] = synthetic_dict[key][downsampled_indices]
         else:
             gals[key] = mock[key][mock_sample_mask][selection_indices]
     ngals = len(gals)
@@ -266,19 +362,16 @@ def create_synthetic_lowmass_mock_with_centrals(
     total_num_created = 0
     nloop = 0
     print('...looping over position generation for synthetic centrals')
-    # setup r_min and r_max
-    r_halo = np.sqrt(healpix_mock['target_halo_x']**2 + healpix_mock['target_halo_y']**2 + healpix_mock['target_halo_z']**2)
-    r_min = np.min(r_halo)
-    r_max = np.max(r_halo)
+
     while total_num_created < ngals:
         start_index = total_num_created
         num_needed = int(5*(ngals - total_num_created)) #  boost by factor of 5 to reduce number of loops
         nloop = nloop + 1
-        #  select positions inside box defined by halos in healpix mock and remove any locations outside the healpixel
-        gals_x = np.random.uniform(np.min(healpix_mock['target_halo_x']), np.max(healpix_mock['target_halo_x']), num_needed)
-        gals_y = np.random.uniform(np.min(healpix_mock['target_halo_y']), np.max(healpix_mock['target_halo_y']), num_needed)
-        gals_z = np.random.uniform(np.min(healpix_mock['target_halo_z']), np.max(healpix_mock['target_halo_z']), num_needed)
+        #  select positions inside box and remove any locations outside the healpixel
+        gals_x, gals_y , gals_z = generate_trial_sample(box_mins, box_maxs, Nsample=num_needed)
         healpix_mask = mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max)
+        #octant_mask = (gals_x >= volume_minx) & (gals_y >= volume_miny) & (gals_z <= volume_maxz)
+        #healpix_mask = hpx_mask & octant_mask
         num_created = np.sum(healpix_mask)
         total_num_created = min(total_num_created + num_created, ngals)
         print('.....created {} synthetic centrals in loop #{}; {} remaining'.format(num_created, nloop, ngals - total_num_created))
@@ -288,8 +381,8 @@ def create_synthetic_lowmass_mock_with_centrals(
 
     #  compute redshifts from comoving distance
     r_gals = np.sqrt(gals['x']**2 + gals['y']**2 + gals['z']**2)
-    redshifts = get_redshifts_from_comoving_distances(r_gals, np.min(healpix_mock['target_halo_redshift']),
-                    np.max(healpix_mock['target_halo_redshift']), H0=H0, OmegaM=OmegaM)
+    redshifts = get_redshifts_from_comoving_distances(r_gals, snapshot_redshift_min,
+                                                      snapshot_redshift_max, cosmology, H0=H0)
     print('...Min and max synthetic redshifts = {:.2f} -> {:.2f}'.format(np.min(redshifts), np.max(redshifts)))
 
     #  overwrite redshifts with new redshifts

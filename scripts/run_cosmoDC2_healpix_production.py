@@ -113,7 +113,8 @@ for zdir in z_range_dirs:
     #get list of snapshots 
     healpix_cutout_fname = os.path.join(healpix_cutout_dirname, zdir, args.healpix_fname)
     print('Processing healpix cutout {}'.format(healpix_cutout_fname))
-    healpix_data, redshift_strings, snapshots, z2ts  = get_healpix_cutout_info(pkldirname, healpix_cutout_fname, sim_name='AlphaQ')
+    healpix_data, redshift_strings, snapshots, z2ts = get_healpix_cutout_info(pkldirname,
+                                                                              healpix_cutout_fname, sim_name='AlphaQ')
 
     if args.ndebug_snaps > 0:
         
@@ -161,8 +162,7 @@ for zdir in z_range_dirs:
             healpix_data, snapshots, output_healpix_mock_fname, shape_dir,
             redshift_list, commit_hash, synthetic_halo_minimum_mass=synthetic_halo_minimum_mass,
             use_centrals=use_centrals, gaussian_smearing_real_redshifts=args.gaussian_smearing, 
-            nzdivs=args.nzdivs, Nside_cosmoDC2=args.nside, z2ts=z2ts, )
+            nzdivs=args.nzdivs, Nside_cosmoDC2=args.nside, z2ts=z2ts)
 
     else:
         print('Skipping empty healpix-cutout file {}'.format(args.healpix_fname))
-        
