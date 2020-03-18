@@ -214,24 +214,25 @@ def get_volume_factor(box_mins, box_maxs, Nside, cutout_id, r_min, r_max,
     z_max = min(box_maxs[2], volume_maxz)
     volume_in_octant = (box_maxs[0] - x_min)*(box_maxs[1] - y_min)*(z_max - box_mins[2])
     vol_frac = volume_in_octant/volume_box
-    if vol_frac > 1./Nsample:  #check if overlap with octant is big enough for estimate of reduction factor 
-        # Monte Carlo the area to find the reduced number of synthetics needed
-        gals_x, gals_y , gals_z = generate_trial_sample(box_mins, box_maxs, Nsample=Nsample)
-        healpix_mask = mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max)
-        N_inhpx = np.count_nonzero(healpix_mask) 
-        octant_mask = (gals_x >= volume_minx) & (gals_y >= volume_miny) & (gals_z <= volume_maxz)
-        mask = healpix_mask & octant_mask
-        N_inoctant = np.count_nonzero(mask)
-        print('...edge-healpix measure: {} in octant out of {} in healpix'.format(N_inoctant, N_inhpx))
-        volume_factor = float(N_inoctant)/float(N_inhpx)
-        print('...adjusting xyz box boundaries for octant edges: {:.3g}, {:.3g}, {:.3g}'.format(x_min,
-                                                                                                y_min,
-                                                                                                z_max))
-    else:
-        volume_factor = 0.0
-        print('...fraction of box volume in octant ({:.3g}) too small for Monte Carlo measure'. format(vol_frac))
+    if vol_frac < 1.:  # edge pixel needs adjustment
+        if vol_frac > 1./Nsample:  #check if overlap with octant is big enough for estimate of reduction factor 
+            # Monte Carlo the area to find the reduced number of synthetics needed
+            gals_x, gals_y , gals_z = generate_trial_sample(box_mins, box_maxs, Nsample=Nsample)
+            healpix_mask = mask_galaxies_outside_healpix(gals_x, gals_y, gals_z, cutout_id, Nside, r_min, r_max)
+            N_inhpx = np.count_nonzero(healpix_mask) 
+            octant_mask = (gals_x >= volume_minx) & (gals_y >= volume_miny) & (gals_z <= volume_maxz)
+            mask = healpix_mask & octant_mask
+            N_inoctant = np.count_nonzero(mask)
+            print('...edge-healpix measure: {} in octant out of {} in healpix'.format(N_inoctant, N_inhpx))
+            volume_factor = float(N_inoctant)/float(N_inhpx)
+            print('...adjusting xyz box boundaries for octant edges: {:.3g}, {:.3g}, {:.3g}'.format(x_min,
+                                                                                                    y_min,
+                                                                                                    z_max))
+        else:
+            volume_factor = 0.0
+            print('...fraction of box volume in octant ({:.3g}) too small for Monte Carlo measure'. format(vol_frac))
 
-    #adjust box boundaries
+    #adjust box boundaries 
     box_mins[0] = x_min
     box_mins[1] = y_min
     box_maxs[2] = z_max
