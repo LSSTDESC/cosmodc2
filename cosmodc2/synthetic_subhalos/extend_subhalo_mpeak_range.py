@@ -207,7 +207,7 @@ def get_box_boundaries(Nside, cutout_id, rmin, rmax):
 box_zero = 1.e-6  #minimum value of position coordinate in box
 
 def get_volume_factor(box_mins, box_maxs, Nside, cutout_id, r_min, r_max, 
-                      volume_minx=box_zero, volume_miny=box_zero, volume_maxz=box_zero, Nsample=100000):
+                      volume_minx=box_zero, volume_miny=box_zero, volume_maxz=-box_zero, Nsample=100000):
     volume_factor = 1.0
     volume_box = (box_maxs[0] - box_mins[0])*(box_maxs[1] - box_mins[1])*(box_maxs[2] - box_mins[2])
     
@@ -283,7 +283,7 @@ def create_synthetic_lowmass_mock_with_centrals(
             mock, healpix_mock, synthetic_dict,
             snapshot_redshift_min, snapshot_redshift_max, cosmology,
             cutout_id=None, Nside=32, H0=71., Ntrial_min=3000,
-            volume_minx=box_zero, volume_miny=box_zero, volume_maxz=box_zero,
+            volume_minx=box_zero, volume_miny=box_zero, volume_maxz=-box_zero,
             halo_id_offset=0, halo_unique_id=0):
     """ Function generates a data table storing synthetic ultra-faint galaxies
     for purposes of extending the resolution limit of the simulation.
