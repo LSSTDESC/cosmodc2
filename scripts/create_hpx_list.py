@@ -5,41 +5,68 @@ import re
 import argparse
 import numpy as np
 
-hpxdir = '/gpfs/mira-home/*/healpix_cutouts/z_0_1/*'
-hpxfiles = './hpx_z_0.txt'
+hpxdir = '/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000'
+hpx_template = 'healpix_cutouts/z_{}_{}/cutout_*.hdf5'
+hpxfiles = 'hpx_z_{}_{}.txt'
 file_template = 'pixels_{}.txt'
+hpxfiles_all = 'hpx_z_{}.txt'
+size_min = 500000
 
 def get_hpxlist(hpxdir, hpxfiles):
     #filelist = sorted(glob.glob(hpxdir))
     hpxlist = []
-    with open(hpxfiles, 'r') as fh:
+    with open(os.path.join(hpxdir, hpxfiles), 'r') as fh:
         contents = fh.read()
         lines = contents.splitlines()
 
     hpxlist = sorted([int(re.split('.hdf5', re.split('cutout_', l)[-1])[0]) for l in lines])
     return hpxlist
 
+def check_file_sizes(hpxdir, z):
+    fn = os.path.join(hpxdir, hpx_template.format(z, z+1))
+    filelist = sorted(glob.glob(fn))
+    sizes = np.asarray([os.stat(f).st_size for f in filelist])
+    fnf = os.path.join(hpxdir, hpxfiles.format(z,'full'))
+    fne = os.path.join(hpxdir, hpxfiles.format(z,'empty'))
+    fhf = open(fnf, 'w')
+    fhe = open(fne, 'w')
+    mask = (sizes < size_min)
+    print('Found {} empty pixels'.format(np.count_nonzero(mask)))
+
+    for s, f in zip(sizes, filelist):
+        if s < size_min:
+            fhe.write('{}\n'.format(os.path.basename(f)))
+        else:
+            fhf.write('{}\n'.format(os.path.basename(f)))
+
+    fhf.close()
+    fhf.close()
+    print('Wrote {}\n      {}'.format(fnf, fne))
+    return
 
 def main(argsdict):
-    nfiles = argsdict['nfiles']
-    total = argsdict['total']
     hpx_per_file = argsdict['stride']
-    #hpx_per_file = int(np.ceil(float(total)/float(nfiles)))
     print('# per file = {}'.format(hpx_per_file))
 
-    hpxlist = get_hpxlist(hpxdir, hpxfiles)
+    #first make list of full and empty pixels
+    #for z in range(3):
+    #    check_file_sizes(hpxdir, z)
+    hpxfile = hpxfiles.format(0, 'full')
+    hpxlist = get_hpxlist(hpxdir, hpxfile)
+    total = len(hpxlist)
+    nfiles = int(np.ceil(total/float(hpx_per_file)))
+    
     for nf in range(nfiles):
         outfile = file_template.format(nf)
         with open(outfile, 'w') as fh:
             for hpxn in hpxlist[nf*hpx_per_file:min((nf+1)*hpx_per_file, total)]:
                 fh.write('{}\n'.format(hpxn))
 
-
 def parse_args(argv):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,description='Makes hpx lists')
-    parser.add_argument('--nfiles',help='Number of hpx file lists (=number of jobs)', default=17)
-    parser.add_argument('--total',type=float,help='Total number of files', default=2122)
+#    parser.add_argument('--nfiles',help='Number of hpx file lists (=number of jobs)', default=17)
     parser.add_argument('--stride',type=float,help='Stride for file groups', default=128)
+#    parser.add_argument('--total',type=float,help='Total number of files', default=2122)
     args=parser.parse_args()
     argsdict=vars(args)
     print ("Running", sys.argv[0], "with parameters:")
