@@ -4,8 +4,8 @@ import os
 
 hpxdir = '/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000'
 hpxlist = 'hpx_z_0_empty.txt'
-base_dir = 'baseDC2_v0.1'
-new_dir = 'baseDC2_v0.1_empty'
+base_dir = 'baseDC2_5000_v1.1.1'
+new_dir = 'baseDC2_5000)v1.1.1_empty'
 
 def read_list(fn):
     with open(os.path.join(hpxdir, hpxlist), 'r') as fh:

@@ -22,8 +22,8 @@ PYTHONPATH=/gpfs/mira-home/ekovacs/.local/lib/python2.7/site-packages:/gpfs/mira
 export PYTHONPATH
 #script_name="run_cosmoDC2_healpix_production.py"
 vprod="5000_production_v0.1"
-#xtra_args="-input_master_dirname cosmology/DC2/OR_Production -output_mock_dirname baseDC2_v0.1 -gaussian_smearing 0.03 -nside 32 -ndebug_snaps 1"
-xtra_args="-input_master_dirname cosmology/DC2/OR_5000 -output_mock_dirname baseDC2_v0.1 -gaussian_smearing 0.03 -nside 32"
+#xtra_args="-input_master_dirname cosmology/DC2/OR_Production -output_mock_dirname baseDC2_5000_v1.1.1 -gaussian_smearing 0.03 -nside 32 -ndebug_snaps 1"
+xtra_args="-input_master_dirname cosmology/DC2/OR_5000 -output_mock_dirname baseDC2_5000_v1.1.1 -gaussian_smearing 0.03 -nside 32"
 filename="cutout"
 tot_pix_grp=16
 if [ "$hpx_group" -lt "$tot_pix_grp" ]
