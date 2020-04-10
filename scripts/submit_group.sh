@@ -11,14 +11,20 @@ hpx_group=${1}
 echo "hpx_group=${hpx_group}"
 fi
 
-tot_pix_grp=16
+tot_pix_grp=12
 if [ "$hpx_group" -lt "$tot_pix_grp" ]
 then
 # 128 pixels per file; 4 pixels per node
 nodes=32
 else
-# 74 pixels per file                   
-nodes=19
+if [ "$hpx_group" -gt "$tot_pix_grp" ]
+then
+#special case for reruns
+nodes=1
+else
+# 32 pixels per file                   
+nodes=8
+fi
 fi
 
 #qsub -n 2 -t 00:10:00 -A ExtCosmology_2 -M ${EMAIL} -I 
