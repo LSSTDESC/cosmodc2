@@ -8,7 +8,7 @@ import numpy as np
 hpxdir = '/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000'
 hpx_template = 'healpix_cutouts/z_{}_{}/cutout_*.hdf5'
 hpxfiles = 'hpx_z_{}_{}.txt'
-file_template = 'pixels_{}.txt'
+file_template = 'pixels_{}_{}.txt'
 hpxfiles_all = 'hpx_z_{}.txt'
 size_min = 500000
 
@@ -47,6 +47,9 @@ def check_file_sizes(hpxdir, z):
 def main(argsdict):
     hpx_per_file = argsdict['stride']
     print('# per file = {}'.format(hpx_per_file))
+    list_format = argsdict['format']
+    print('Output in list format')
+    xname = argsdict['name']
 
     #first make list of full and empty pixels
     #for z in range(3):
@@ -57,16 +60,19 @@ def main(argsdict):
     nfiles = int(np.ceil(total/float(hpx_per_file)))
     
     for nf in range(nfiles):
-        outfile = file_template.format(nf)
+        outfile = file_template.format(xname, nf)
         with open(outfile, 'w') as fh:
             for hpxn in hpxlist[nf*hpx_per_file:min((nf+1)*hpx_per_file, total)]:
-                fh.write('{}\n'.format(hpxn))
+                if list_format:
+                    fh.write('{}, '.format(hpxn))
+                else:
+                    fh.write('{}\n'.format(hpxn))
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,description='Makes hpx lists')
-#    parser.add_argument('--nfiles',help='Number of hpx file lists (=number of jobs)', default=17)
-    parser.add_argument('--stride',type=float,help='Stride for file groups', default=128)
-#    parser.add_argument('--total',type=float,help='Total number of files', default=2122)
+    parser.add_argument('--stride', type=int, help='Stride for file groups', default=128)
+    parser.add_argument('--format', default=False, help='output in list format', action='store_true')
+    parser.add_argument('--name', help='extra name for pixels_{}_{}.txt', default='')
     args=parser.parse_args()
     argsdict=vars(args)
     print ("Running", sys.argv[0], "with parameters:")
