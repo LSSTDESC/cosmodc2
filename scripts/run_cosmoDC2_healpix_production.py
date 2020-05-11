@@ -150,7 +150,7 @@ for zdir in z_range_dirs:
             print('umachine_host_halo_fname_list:',umachine_host_halo_basename_list)
 
         healpix_basename = os.path.basename(args.healpix_fname)
-        output_mock_basename = ''.join(["baseDC2_", zdir, '_', healpix_basename.replace('_fof_halo_mass', '')])
+        output_mock_basename = ''.join(["base5000_", zdir, '_', healpix_basename.replace('_fof_halo_mass', '')])
         output_healpix_mock_fname = os.path.join(output_mock_dirname, output_mock_basename)
         if(args.verbose):
             print('output_healpix_mock_fname:', output_healpix_mock_fname)
