@@ -36,7 +36,7 @@ endif
 
 set script_name = "run_cosmoDC2_healpix_production.py"
 set python = "/soft/libraries/anaconda-unstable/bin/python"
-set xtra_args = "-input_master_dirname cosmology/DC2/OR_5000 -output_mock_dirname baseDC2_5000_v1.1.1 -gaussian_smearing 0.03 -nside 32"
+set xtra_args = "-input_master_dirname cosmology/DC2/OR_5000 -output_mock_dirname base5000_v1.1.1 -gaussian_smearing 0.03 -nside 32"
 set xtra_label = "5000_production_v0.1"
 if(${xtra_label} != "") then
     set jobname = ${jobname}_${xtra_label}

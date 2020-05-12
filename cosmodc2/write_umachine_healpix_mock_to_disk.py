@@ -51,6 +51,7 @@ halo_id_offset = int(1e8)  # offset to guarantee unique halo ids across cutout f
 
 #galaxy id offsets for non image-sim catalogs (eg. 5000 sq. deg.)
 cutout_id_offset = int(1e9)
+z_offsets_not_im = {'32':[0, 1e8, 2e8, 3e8]}
 
 # galaxy id offsets for image simulations
 cutout_id_offset_galaxy = {'8':1e9, '32': 62500000} #  offset to guarantee unique galaxy ids across cutout files
@@ -184,7 +185,8 @@ def write_umachine_healpix_mock_to_disk(
         halo_id_cutout_offset = int(cutout_number*cutout_id_offset_halo)
     else:
         cutout_number = cutout_number_true # used for output
-        galaxy_id_offset = int(cutout_number_true*cutout_id_offset + z_range_id*cutout_id_offset)
+        galaxy_id_offset = int(cutout_number_true*cutout_id_offset + \
+                               z_offsets_not_im[str(Nside_cosmoDC2)][z_range_id])
         halo_id_cutout_offset = int(cutout_number_true*cutout_id_offset_halo)
 
     #  determine seed from output filename
@@ -457,8 +459,11 @@ def write_umachine_healpix_mock_to_disk(
         #check that offset is within index bounds for imsim pixels
         if image and str(cutout_number_true) in cutout_remap.keys():
             galaxy_id_bound = cutout_number*cutout_id_offset_galaxy + z_offsets[z_range_id+1]
-            if galaxy_id_offset > galaxy_id_bound:
-                print('...Warning: galaxy_id bound of {} exceeded for snapshot {}'.format(galaxy_id_bound, snapshot))
+        else:
+            galaxy_id_bound = cutout_number*cutout_id_offset_galaxy + z_offsets_not_im[z_range_id+1]
+        if galaxy_id_offset > galaxy_id_bound:
+            print('...Warning: galaxy_id bound of {} exceeded for snapshot {}'.format(galaxy_id_bound, snapshot))
+
 
         Ngals_total += len(output_mock[snapshot]['galaxy_id'])
         print('...saved {} galaxies to dict'.format(len(output_mock[snapshot]['galaxy_id'])))
