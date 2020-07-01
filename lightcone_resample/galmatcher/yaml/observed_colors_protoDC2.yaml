@@ -1,0 +1,32 @@
+description: 'Config file for masking bad observed colors'
+
+quantities_to_check:
+  - quantities: ['LSST_filters/totalLuminositiesStellar:LSST_g:observed:dustAtlas',
+                 'LSST_filters/totalLuminositiesStellar:LSST_r:observed:dustAtlas',
+                ]
+    label: 'g-r'
+    min: -0.5
+    max: 2.5
+    derived: 'flux_to_mag'
+    function: 'weighted_sum'
+    weights:  [1.0, -1.0]
+
+  - quantities: ['LSST_filters/totalLuminositiesStellar:LSST_r:observed:dustAtlas',
+                 'LSST_filters/totalLuminositiesStellar:LSST_i:observed:dustAtlas',
+                ]
+    label: 'r-i'
+    min: -0.5
+    max: 2.
+    derived: 'flux_to_mag'
+    function: 'weighted_sum'
+    weights:  [1.0, -1.0]
+
+  - quantities: ['LSST_filters/totalLuminositiesStellar:LSST_i:observed:dustAtlas',
+                 'LSST_filters/totalLuminositiesStellar:LSST_z:observed:dustAtlas',
+                ]
+    label: 'i-z'
+    min: -1.
+    max: 2.5
+    derived: 'flux_to_mag'
+    function: 'weighted_sum'
+    weights:  [1.0, -1.0]

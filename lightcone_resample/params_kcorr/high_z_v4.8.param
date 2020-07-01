@@ -1,0 +1,11 @@
+
+gltcs_snapshots_ptrn /cosmo/homes/dkorytov/proj/protoDC2/output/ANL_box_v2.1.3_nocut_steps/${step}.hdf5
+steps 247 241 235 230 224 219 213 208 203 198 194 189 184 180 176 171 167 163 159 155 151 148 144 141 137 134 131 127 121
+
+
+
+mtree_ptrn /cosmo/homes/dkorytov/data/AlphaQ/merger_trees3/AlphaQ.${num}.hdf5
+mtree_num 256
+
+output_index_only true
+output_ptrn output/index/v4.4_index_${step}.hdf5

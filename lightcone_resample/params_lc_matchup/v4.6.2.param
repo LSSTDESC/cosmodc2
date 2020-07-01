@@ -1,0 +1,10 @@
+
+lightcone_bin_fname /cosmo/homes/dkorytov/data/cosmoDC2/protoDC2_v4.6/lc_bin/${var}.${step}.bin
+shear_bin_fname     /cosmo/homes/dkorytov/data/cosmoDC2/protoDC2_v4.6.2/lc_shear/${step}_${step_shr}_${var}.bin
+snapshot_galaxy_fname /cosmo/data/hacc/AlphaQuadrant/UniverseMachine/galsampler_alphaq_outputs_v4_6/umachine_color_mock_v4_m000-${step}.hdf5
+lightcone_output_fname /cosmo/homes/dkorytov/data/cosmoDC2/protoDC2_v4.6.2/lc_mock/lc_mock_v4.6.2_${step}.hdf5
+steps 487 475 464 453 442 432 421 411 401 392 382 373 365 355 347 338 331 323 315 307 300 293 286 279 272 266 259 253 247
+steps_shr 0.023287 0.043227 0.064636 0.089845 0.117327 0.141357 0.171270 0.197931 0.227056 0.257742 0.285645 0.320587 0.349833 0.384947 0.418608 0.452527 0.488471 0.522006 0.557412 0.598930 0.635991 0.677272 0.714638 0.756830 0.803214 0.843307 0.889647 0.937251 0.982080
+
+fake_shears false
+

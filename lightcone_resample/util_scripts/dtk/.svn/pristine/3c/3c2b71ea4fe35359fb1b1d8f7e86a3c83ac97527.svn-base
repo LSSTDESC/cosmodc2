@@ -1,0 +1,156 @@
+
+import numpy as np
+import sys
+import readline
+
+class Param:
+    data = {}
+    def __init__(self,file_name=""):
+        if(file_name != ""):
+            self.load(file_name)
+    def __contains__(self, item):
+        return item in self.data
+
+    def load(self,file_name):
+        self.data = {}       
+        self.append(file_name)
+        return
+
+    def append(self,file_name):
+        self.file = file_name
+        self.file_name = file_name
+        f = open(file_name)
+        for line in f.readlines():
+            b = line.split()
+            if(len(b) > 0 and b[0][0] != "#"):
+                key = b[0]
+                to_save = np.array(b[1:],dtype=np.str)
+                if(key in self.data):
+                    raise Exception("Duplicate parameters not allowed. Parameter duplicated: \"%s\"." % key)
+                self.data[key] = to_save
+        return
+    
+    def get_string(self,var_name):
+        val = self.get(var_name,np.str);
+        if(len(val) >1):
+            raise Exception("Parameter \"%s\" has multiple values, must be used as a list." %var_name)
+        return val[0]
+   
+    def get_int(self,var_name):
+        val = self.get(var_name,np.int32)
+        if(len(val) >1):
+            raise Exception("Parameter \"%s\" has multiple values, must be used as a list." %var_name)
+        return val[0]
+
+
+    def get_int64(self,var_name):
+        val = self.get(var_name,np.int64)
+        if(len(val) >1):
+            raise Exception("Parameter \"%s\" has multiple values, must be used as a list." %var_name)
+        return val[0]
+
+    def get_float(self,var_name):
+        val = self.get(var_name,np.float)
+        if(len(val) >1):
+            raise Exception("Parameter \"%s\" has multiple values, must be used as a list." %var_name)
+        return val[0]
+
+    def get_double(self,var_name):
+        val = self.get(var_name,np.double)
+        if(len(val) >1):
+            raise Exception("Parameter \"%s\" has multiple values, must be used as a list." %var_name)
+        return val[0]
+
+    def get_bool(self,var_name):
+        val = self.get(var_name,np.str)
+        if(len(val)>1):
+            raise Exception("Parameter \"%s\" has multiple values, must be used as a list." %var_name)
+        if(val == "true" or val == "True" or val == "TRUE" or val == "T" or val == "t" or val == "1"):
+            return True
+        elif(val == "false" or val == "False" or val == "FALSE" or val == "F" or val == "f" or val == "0"):
+            return False
+        else:
+            print "\n\nError: At least one value in parameter \"%s\" cannot convert to bool." %(var_name)
+            print "Values: ",self.data[var_name]
+            print "Aborting.\n"
+            raise err
+
+        
+    
+
+    def get_string_list(self,var_name):
+        return self.get(var_name,np.str)
+   
+    def get_int_list(self,var_name):
+        return self.get(var_name,np.int32)
+
+    def get_int64_list(self,var_name):
+        return self.get(var_name,np.int64)
+
+    def get_float_list(self,var_name):
+        return self.get(var_name,np.float)
+
+    def get_double_list(self,var_name):
+        return self.get(var_name,np.double)
+    
+    def get(self,var_name,dtype):
+        try:
+            return self.data[var_name].astype(dtype)
+        except ValueError as err:
+            print "\n\nError: At least one value in parameter \"%s\" cannot convert to %s." %(var_name,str(dtype))
+            print "Values: ",self.data[var_name]
+            print "Aborting.\n"
+            raise err
+        except KeyError as err:
+            print "\n\nError: Parameter file does not have \"%s\" as parameter.\nAborting.\n" % var_name
+            raise err
+            
+
+class CosmoParam(Param):
+    #rho_crit =  2.7774e+11 #[h^-2 Msun/Mpc]
+    def load(self,file_name):
+        Param.load(self,file_name)
+        
+        # Simulation steps & z-shift
+        self.z_in = self.get_double("Z_IN")
+        self.z_fin = self.get_double("Z_FIN")
+        self.num_steps = self.get_double("N_STEPS")
+        self.a_in = 1./(1.+self.z_in)
+        self.a_out= 1./(1.+self.z_fin)
+        self.a_del= (self.a_out-self.a_in)/(self.num_steps-1)
+
+        
+        # Rho critical at z=0
+        self.h  = self.get_float("HUBBLE")
+        self.Hubble       = self.h*100
+        G = 6.67408e-11*1e-9 #grav const km^3 kg^-1 /s^2
+        kg2msun = 5.02749e-31 # Msun/kg
+        km2mpc  = 3.24078e-20 # mpc/km
+        rho_crit_0 = 3*self.Hubble**2/(8*np.pi*G)
+        rho_crit_0 = rho_crit_0*kg2msun/km2mpc
+        self.rho_crit_0 = rho_crit_0/(self.h**2) #reduced rho crit
+
+        # Particle mass
+        RL = self.get_float("RL")
+        NP = self.get_float("NP")
+        self.Omega_DM = self.get_float("OMEGA_CDM")
+        self.Omega_BM = self.get_float("DEUT")/self.h**2
+        self.Omega_M  = self.Omega_DM + self.Omega_BM
+        self.particle_mass = RL**3/NP**3*self.Omega_M*self.rho_crit_0
+        return
+    
+    def get_particle_mass(self):
+        return self.particle_mass
+    
+    def get_z(self,step):
+        #to get rid of annoying rounding errors on z=0 (or other ending values)
+        if(step == self.num_steps-1):
+            return 1./self.a_out -1. 
+        
+        a = self.a_in+step*self.a_del
+        return 1./a-1.
+    def get_step(self,z):
+        a = 1./(z+1.)
+        return (a-self.a_in)/self.a_del
+    def get_rho_crit(self,z=0):
+        return self.rho_crit_0*((z+1)**3*self.Omega_M+(1-self.Omega_M))/(z+1)**3
