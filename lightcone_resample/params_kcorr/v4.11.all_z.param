@@ -1,0 +1,12 @@
+
+gltcs_snapshots_ptrn /cosmo/homes/dkorytov/data/Galacticus/steps/${step}.hdf5
+#steps 499 487 475 464 453 442 432 421 411 401 392 382 373 365 355 347 338 331 323 315 307 300 293 286 279 272 266 259 253 247 241 235 230 224 219 213 208 203 198 194 189 184 180 176 171 167 163 159 155 151 148 144 141 137 134 131 127	 
+steps  253 247 241 235 230 224 219 213 208 203 198 194 189 184 180 176 171 167 163 159 155 151 148 144 141 137 134 131 127	 
+
+
+
+mtree_ptrn /cosmo/homes/dkorytov/data/AlphaQ/merger_trees3/AlphaQ.${num}.hdf5
+mtree_num 256
+
+output_index_only true
+output_ptrn /cosmo/homes/dkorytov/data/Galacticus/index/index_${step}.hdf5

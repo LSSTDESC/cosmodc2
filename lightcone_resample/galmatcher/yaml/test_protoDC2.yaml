@@ -1,0 +1,12 @@
+description: 'Config file for masking bad galaxies'
+
+quantities_to_check:
+  - quantities: ['otherLuminosities/totalLuminositiesStellar:B:rest:dustAtlas',
+                 'otherLuminosities/totalLuminositiesStellar:B:rest',
+                 'otherLuminosities/totalLuminositiesStellar:V:rest:dustAtlas',
+                 'otherLuminosities/totalLuminositiesStellar:V:rest',
+                ]
+    label: 'E(B-V)'
+    isclose: 0.
+    function: 'weighted_sum'
+    weights: [1.0, -1.0, -1.0, 1.0]

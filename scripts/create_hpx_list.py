@@ -5,7 +5,7 @@ import re
 import argparse
 import numpy as np
 
-hpxdir = '/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000'
+hpxdir = '/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/auxiliary_files'
 hpx_template = 'healpix_cutouts/z_{}_{}/cutout_*.hdf5'
 hpxfiles = 'hpx_z_{}_{}.txt'
 file_template = 'pixels_{}_{}.txt'
@@ -47,8 +47,12 @@ def check_file_sizes(hpxdir, z):
 def main(argsdict):
     hpx_per_file = argsdict['stride']
     print('# per file = {}'.format(hpx_per_file))
-    list_format = argsdict['format']
-    print('Output in list format')
+    list_format = argsdict['list_format']
+    if list_format:
+        print('Output in list format')
+    run_format = argsdict['run_format']
+    if run_format:
+        print('Output in run-list format')
     xname = argsdict['name']
 
     #first make list of full and empty pixels
@@ -65,13 +69,17 @@ def main(argsdict):
             for hpxn in hpxlist[nf*hpx_per_file:min((nf+1)*hpx_per_file, total)]:
                 if list_format:
                     fh.write('{}, '.format(hpxn))
+                elif run_format:
+                    fh.write('{} '.format(hpxn))
                 else:
                     fh.write('{}\n'.format(hpxn))
+
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,description='Makes hpx lists')
     parser.add_argument('--stride', type=int, help='Stride for file groups', default=128)
-    parser.add_argument('--format', default=False, help='output in list format', action='store_true')
+    parser.add_argument('--list_format', default=False, help='output in list format', action='store_true')
+    parser.add_argument('--run_format', default=False, help='output in run list format', action='store_true')
     parser.add_argument('--name', help='extra name for pixels_{}_{}.txt', default='')
     args=parser.parse_args()
     argsdict=vars(args)

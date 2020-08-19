@@ -1,0 +1,8 @@
+
+gltcs_snapshots_ptrn /cosmo/homes/dkorytov/proj/protoDC2/output/ANL_box_v2.1.3_nocut_steps_old/${step}.hdf5
+steps 487 475 464 453
+
+mtree_ptrn /cosmo/homes/dkorytov/data/AlphaQ/merger_trees3/AlphaQ.${num}.hdf5
+mtree_num 256
+
+output_ptrn output/k_corr_${step}_2.hdf5

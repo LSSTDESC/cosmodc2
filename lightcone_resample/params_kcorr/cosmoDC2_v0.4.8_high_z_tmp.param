@@ -1,0 +1,14 @@
+
+gltcs_snapshots_ptrn /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z/galaxy_library/${step}_mod.hdf5
+steps 247 241
+
+
+
+mtree_ptrn NULL
+mtree_num 256
+
+mtree_list /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/AlphaQ/high_z/raw_files/AlphaQ_split.105.hdf5
+#/projects/DarkUniverse_esp/kovacs/GalacticusFiles/AlphaQv3LB_dust_ELG_hiz/AlphaQv3LB_split/nbody_AlphaQ_z1.0-3.0_BH_SDSS_LSST_BV_ELG_SEDval44/AlphaQv3LB_split_105/galacticus_AlphaQv3LB_split_105_nbody_AlphaQ_z1.0-3.0_BH_SDSS_LSST_BV_ELG_SEDval44.hdf5
+
+output_index_only true
+output_ptrn /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z_tmp/index_tmp/v0.4.4_index_${step}.hdf5
