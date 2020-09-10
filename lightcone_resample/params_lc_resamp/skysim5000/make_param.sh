@@ -5,10 +5,11 @@ python="/soft/libraries/anaconda-unstable/bin/python"
 output_file_path="/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000"
 params_parent_dir="params_lc_resamp"
 cat_basename="skysim5000"
-cat_minor_name="image"
+cat_minor_name="small_worst"
 pixel_basename="pixels"
 pixel_lists_dir="../pixel_lists"
 pixel_group=""
+match="worst"
 v1=1
 v2=0
 v3=0
@@ -103,6 +104,7 @@ for i in "${!z_ranges[@]}";do
     echo "glcts:${gltcs_file}"
     echo "z_type:${z_type}"
     echo "plotdir:${plotdir_z}"
+    echo "select_match:${match}"
     for j in "${!healpix_groups[@]}";do
 	group_name="${hpx_group_name}${j}"
 	#get rid of leading and trailing extra quotes in healpix_groups
@@ -130,12 +132,12 @@ for i in "${!z_ranges[@]}";do
 	if [ ! -e ${submit_file} ]; then
 	    echo "#!/bin/bash" >${submit_file}
 	fi
-	sed "s/#z_range#/${z_range}/g; s/#step_list#/${steps}/g; s@#gltcs_file#@${gltcs_file}@g; s/#z_type#/${z_type}/g; s/#healpix_group#/${healpix_group}/g; s%#path_to_plotdir#%${plotdir_z_grp}%g; s/#v1#/${v1}/g; s/#v2#/${v2}/g; s/#v3#/${v3}/g"<template.param > ${param_file}
+	sed "s/#z_range#/${z_range}/g; s/#step_list#/${steps}/g; s@#gltcs_file#@${gltcs_file}@g; s/#z_type#/${z_type}/g; s/#healpix_group#/${healpix_group}/g; s%#path_to_plotdir#%${plotdir_z_grp}%g; s/#match#/${match}/g; s/#run_dir#/${run_dir}/g; s/#v1#/${v1}/g; s/#v2#/${v2}/g; s/#v3#/${v3}/g"<template.param > ${param_file}
 	sed "s%#python#%${python}%g; s/#z_range#/${z_range}/g; s/#healpix_name#/${group_name}/g; s%#param_file_path#%${params_dir}%g; s/#cat_name#/${cat_name}/g"<template.sh > ${run_file}
 	chmod +x ${run_file}
 	log_fname=${logdir}/${z_range}_${group_name}
-	echo "qsub -n 1 -t 720 -A LSSTsky -o ${log_fname}.out -e ${log_fname}.err  --debuglog=${log_fname}.cobalt  `tail -1 $run_file`" >> ${submit_all_file}
-	echo "qsub -n 1 -t 720 -A LSSTsky -o ${log_fname}.out -e ${log_fname}.err  --debuglog=${log_fname}.cobalt  `tail -1 $run_file`" >> ${submit_file}
+	echo "qsub -n 1 -t 720 -A LastJourney -o ${log_fname}.out -e ${log_fname}.err  --debuglog=${log_fname}.cobalt  `tail -1 $run_file`" >> ${submit_all_file}
+	echo "qsub -n 1 -t 720 -A LastJourney -o ${log_fname}.out -e ${log_fname}.err  --debuglog=${log_fname}.cobalt  `tail -1 $run_file`" >> ${submit_file}
 	echo "`tail -1 $run_file`" >> ${run_all_file} 
     done
 done
