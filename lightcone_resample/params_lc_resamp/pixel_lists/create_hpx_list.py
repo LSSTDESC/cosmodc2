@@ -1,1 +1,1 @@
-/home/ekovacs/cosmology/cosmodc2/scripts/create_hpx_list.py
+../../../scripts/create_hpx_list.py

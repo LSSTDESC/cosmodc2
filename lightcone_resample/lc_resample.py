@@ -430,7 +430,7 @@ def squash_magnitudes(mag_dic, lim, a):
 
 
 def resample_index(lc_data, gal_prop, ignore_mstar = False, nnk = 10,
-                   verbose = False, ignore_bright_luminosity=False,
+                   verbose = False, select_match='ran', ignore_bright_luminosity=False,
                    ignore_bright_luminosity_threshold=None,
                    ignore_bright_luminosity_softness=0.0, ):
     if verbose:
@@ -487,8 +487,14 @@ def resample_index(lc_data, gal_prop, ignore_mstar = False, nnk = 10,
     if verbose:
         t4= time.time()
         print('\tdone querying. {}'.format(t4-t3))
+        print("\tusing {}/{} match".format(select_match, nnk))
     if nnk > 1:
-        rand = np.random.randint(nnk,size=index_raw.shape[0])
+        if 'best' in select_match:
+            rand = np.zeros(index_raw.shape[0]).astype(int)
+        elif 'worst' in select_match:
+            rand = np.array([nnk-1]*index_raw.shape[0])  #indices run from 0 to nnk-1
+        else:
+            rand = np.random.randint(nnk,size=index_raw.shape[0])
         aa = np.arange(index_raw.shape[0])
         #dist = dist[aa,rand]
         index = index_raw[aa,rand]
@@ -516,7 +522,7 @@ def resample_index(lc_data, gal_prop, ignore_mstar = False, nnk = 10,
 
 def resample_index_cluster_red_squence(lc_data, gal_prop, ignore_mstar
                                        = False, nnk = 10, verbose =
-                                       False,
+                                       False, select_match='ran',
                                        ignore_bright_luminosity=False,
                                        ignore_bright_luminosity_threshold=False,
                                        ignore_bright_luminosity_softness=0.0,
@@ -581,8 +587,14 @@ def resample_index_cluster_red_squence(lc_data, gal_prop, ignore_mstar
     if verbose:
         t4 = time.time()
         print("\tdone querying. {}".format(t4-t3))
+        print("\tusing {}/{} match".format(select_match, nnk))
     if nnk > 1:
-        rand = np.random.randint(nnk,size=dist.shape[0])
+        if 'best' in select_match:
+            rand = np.zeros(dist.shape[0]).astype(int)
+        elif 'worst' in select_match:
+            rand = np.array([nnk-1]*dist.shape[0])  #indices run from 0 to nnk-1
+        else:
+            rand = np.random.randint(nnk,size=dist.shape[0])
         aa = np.arange(dist.shape[0])
         #dist = dist[aa,rand]
         index = index[aa,rand]
@@ -1546,7 +1558,7 @@ def add_metadata(gal_ref_fname, out_fname, version_major,
         commit_hash = subprocess.check_output(cmd, shell=True).strip()
     except subprocess.CalledProcessError as cpe:
         with open('git_commit_hash.txt') as gcf:
-            commit_hash = gcf.read()
+            commit_hash = gcf.read().rstrip()
     print("commit hash: ", commit_hash)
     hfile_out['/metaData/cosmodDC2_Matchup/commit_hash']= commit_hash
     if param_file is not None:
@@ -1572,7 +1584,8 @@ def add_units(out_fname):
     vel_list = ['vx','vy','vz','Velocity']; vel_unit = 'km/s'
     timeSFR_list =['TimeWeightedIntegratedSFR']; timeSFR_unit = 'Gyr*Msun'
     sfr_list =['SFR','blackHoleAccretionRate','StarFormationRate']; sfr_unit = 'Msun/Gyr'
-    mass_list =['Mass','IntegratedSFR']; mass_unit = 'Msun'
+    mass_list =['MassStellar','IntegratedSFR']; mass_unit = 'Msun'
+    halo_mass_list = ['HaloMass']; halo_mass_unit = 'Msun/h'
     abundance_list =['Abundance'];abundance_unit = 'Msun'
     luminosity_list =['Luminosities','Luminosity']; luminosity_unit = 'AB luminosity (4.4659e13 W/Hz)'
     unitless_list = ['redshift','shear','magnification','convergence','Ellipticity','Sersic','AxisRatio','dustFactor']; unitless_unit ='unitless'
@@ -1644,6 +1657,10 @@ def add_units(out_fname):
         elif(any(l in key for l in mass_list)):
             hfile[key].attrs['units']=mass_unit
             print ("\t ",mass_unit)
+            #add halo mass
+        elif(any(l in key for l in halo_mass_list)):
+            hfile[key].attrs['units'] = halo_mass_unit
+            print ("\t ",halo_mass_unit)
             #add abundance
         elif(any(l in key for l in abundance_list)):
             hfile[key].attrs['units']=abundance_unit
@@ -2113,6 +2130,7 @@ def lightcone_resample(param_file_name):
     use_dust_factor = param.get_bool('use_dust_factor')
     dust_factors = param.get_float_list('dust_factors')
     ignore_mstar = param.get_bool('ignore_mstar')
+    select_match = param.get_string('select_match')
     match_obs_color_red_seq = param.get_bool('match_obs_color_red_seq')
     rescale_bright_luminosity = param.get_bool('rescale_bright_luminosity')
     rescale_bright_luminosity_threshold = param.get_float('rescale_bright_luminosity_threshold')
@@ -2168,7 +2186,7 @@ def lightcone_resample(param_file_name):
     red_sequence_transition_mass_end = red_sequence_transition_mass_end
 
 
-    # The other options are depricated
+    # The other options are deprecated
     assert use_dust_factor & use_slope, "Must set use_dust_factor and use_slope to true. The other settings are depricated"
     assert ("${step}" in output_fname), "Must have ${step} in output_fname to generate sperate files for each step"
     if healpix_file:
@@ -2347,7 +2365,7 @@ def lightcone_resample(param_file_name):
                 # Find the closest Galacticus galaxy
                 index_abin = resample_index(lc_data_a, gal_prop_a, 
                                             ignore_mstar = ignore_mstar, 
-                                            verbose = verbose, 
+                                            verbose = verbose, select_match=select_match, 
                                             ignore_bright_luminosity=ignore_bright_luminosity, 
                                             ignore_bright_luminosity_threshold = ignore_bright_luminosity_threshold,
                                             ignore_bright_luminosity_softness = ignore_bright_luminosity_softness)
@@ -2363,7 +2381,7 @@ def lightcone_resample(param_file_name):
                         index_abin_crs = resample_index_cluster_red_squence(
                             lc_data_a_crs, gal_prop_a, 
                             ignore_mstar = ignore_mstar,
-                            verbose = verbose,
+                            verbose = verbose, select_match=select_match,
                             ignore_bright_luminosity=ignore_bright_luminosity,
                             ignore_bright_luminosity_threshold = ignore_bright_luminosity_threshold,
                             ignore_bright_luminosity_softness = ignore_bright_luminosity_softness,
