@@ -1,0 +1,54 @@
+Jobid: 1627639
+qsub -n 1 -t 720 -o params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.out -e params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.err --debuglog=params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.colbalt ./lc_resample.py params_lc_resamp/cosmoDC2_v0.4.8/cosmoDC2_v0.4.8_z_2_3.param
+Sat Sep 01 18:04:23 2018 +0000 (UTC) submitted with cwd set to: /gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample
+jobid 1627639 submitted from terminal /dev/pts/118
+Sat Sep 01 22:22:53 2018 +0000 (UTC) 
+Sat Sep 01 22:22:53 2018 +0000 (UTC) Command: '/usr/bin/ssh' 'cc075.cooley' '/usr/bin/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.1627639' '--jobid' '1627639' '--cwd' '/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample' '--env' 'COBALT_JOBID=1627639' '/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py' 'params_lc_resamp/cosmoDC2_v0.4.8/cosmoDC2_v0.4.8_z_2_3.param'
+Sat Sep 01 22:22:53 2018 +0000 (UTC) 
+Sat Sep 01 22:22:53 2018 +0000 (UTC) Environment:
+Sat Sep 01 22:22:53 2018 +0000 (UTC) SHELL=/bin/bash
+Sat Sep 01 22:22:53 2018 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpsCxYaP
+Sat Sep 01 22:22:53 2018 +0000 (UTC) COBALT_PARTNAME=cc075.cooley
+Sat Sep 01 22:22:53 2018 +0000 (UTC) COBALT_JOBID=1627639
+Sat Sep 01 22:22:53 2018 +0000 (UTC) COBALT_STARTTIME=1535840557
+Sat Sep 01 22:22:53 2018 +0000 (UTC) LOGNAME=dkorytov
+Sat Sep 01 22:22:53 2018 +0000 (UTC) USER=dkorytov
+Sat Sep 01 22:22:53 2018 +0000 (UTC) COBALT_ENDTIME=1535883757
+Sat Sep 01 22:22:53 2018 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Sep 01 22:22:53 2018 +0000 (UTC) HOME=/home/dkorytov
+Sat Sep 01 22:22:53 2018 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Sep 01 22:22:53 2018 +0000 (UTC) 
+Sat Sep 01 22:22:53 2018 +0000 (UTC) Info: stdin received from /dev/null
+Sat Sep 01 22:22:53 2018 +0000 (UTC) Info: stdout sent to /gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.out
+Sat Sep 01 22:22:53 2018 +0000 (UTC) Info: stderr sent to /gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.err
+Sat Sep 01 22:22:53 2018 +0000 (UTC) 
+Sat Sep 01 22:23:37 2018 +0000 (UTC) Info: task completed normally with an exit code of 1; initiating job cleanup and removal
+Jobid: 1628013
+qsub -n 1 -t 720 -o params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.out -e params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.err --debuglog=params_lc_resamp/cosmoDC2_v0.4.8/logs/2_3.colbalt ./lc_resample.py params_lc_resamp/cosmoDC2_v0.4.8/cosmoDC2_v0.4.8_z_2_3.param
+Sun Sep 02 02:43:13 2018 +0000 (UTC) submitted with cwd set to: /gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample
+jobid 1628013 submitted from terminal /dev/pts/81
+Jobid: 1628036
+qsub -n 1 -t 720 -o params_lc_resamp/cosmoDC2_v0.4.9/logs/2_3.out -e params_lc_resamp/cosmoDC2_v0.4.9/logs/2_3.err --debuglog=params_lc_resamp/cosmoDC2_v0.4.9/logs/2_3.colbalt ./lc_resample.py params_lc_resamp/cosmoDC2_v0.4.9/cosmoDC2_v0.4.9_z_2_3.param
+Sun Sep 02 03:17:58 2018 +0000 (UTC) submitted with cwd set to: /gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample
+jobid 1628036 submitted from terminal /dev/pts/68
+Sun Sep 02 04:24:18 2018 +0000 (UTC) 
+Sun Sep 02 04:24:18 2018 +0000 (UTC) Command: '/usr/bin/ssh' 'cc081.cooley' '/usr/bin/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.1628036' '--jobid' '1628036' '--cwd' '/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample' '--env' 'COBALT_JOBID=1628036' '/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py' 'params_lc_resamp/cosmoDC2_v0.4.9/cosmoDC2_v0.4.9_z_2_3.param'
+Sun Sep 02 04:24:18 2018 +0000 (UTC) 
+Sun Sep 02 04:24:18 2018 +0000 (UTC) Environment:
+Sun Sep 02 04:24:18 2018 +0000 (UTC) SHELL=/bin/bash
+Sun Sep 02 04:24:18 2018 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpJd5wgr
+Sun Sep 02 04:24:18 2018 +0000 (UTC) COBALT_PARTNAME=cc081.cooley
+Sun Sep 02 04:24:18 2018 +0000 (UTC) COBALT_JOBID=1628036
+Sun Sep 02 04:24:18 2018 +0000 (UTC) COBALT_STARTTIME=1535862244
+Sun Sep 02 04:24:18 2018 +0000 (UTC) LOGNAME=dkorytov
+Sun Sep 02 04:24:18 2018 +0000 (UTC) USER=dkorytov
+Sun Sep 02 04:24:18 2018 +0000 (UTC) COBALT_ENDTIME=1535905444
+Sun Sep 02 04:24:18 2018 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Sep 02 04:24:18 2018 +0000 (UTC) HOME=/home/dkorytov
+Sun Sep 02 04:24:18 2018 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Sep 02 04:24:18 2018 +0000 (UTC) 
+Sun Sep 02 04:24:18 2018 +0000 (UTC) Info: stdin received from /dev/null
+Sun Sep 02 04:24:18 2018 +0000 (UTC) Info: stdout sent to /gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/params_lc_resamp/cosmoDC2_v0.4.9/logs/2_3.out
+Sun Sep 02 04:24:18 2018 +0000 (UTC) Info: stderr sent to /gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/params_lc_resamp/cosmoDC2_v0.4.9/logs/2_3.err
+Sun Sep 02 04:24:18 2018 +0000 (UTC) 
+Sun Sep 02 04:29:39 2018 +0000 (UTC) Info: task completed normally with an exit code of 1; initiating job cleanup and removal

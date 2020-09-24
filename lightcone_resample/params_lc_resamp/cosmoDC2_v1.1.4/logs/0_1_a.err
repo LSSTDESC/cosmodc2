@@ -1,0 +1,17 @@
+/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+/gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/projects/lightcone_resample/galmatcher/rescale_Galacticus.py:19: UserWarning: 
+This call to matplotlib.use() has no effect because the backend has already
+been chosen; matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+The backend was *originally* set to u'Qt5Agg' by the following code:
+  File "/gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/projects/lightcone_resample/./lc_resample.py", line 9, in <module>
+    import matplotlib.pyplot as plt
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/pyplot.py", line 72, in <module>
+    from matplotlib.backends import pylab_setup
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 14, in <module>
+    line for line in traceback.format_stack()
+
+
+  matplotlib.use('Agg')

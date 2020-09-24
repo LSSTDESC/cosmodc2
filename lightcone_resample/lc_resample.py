@@ -268,6 +268,7 @@ def construct_lc_data(fname, match_obs_color_red_seq = False, verbose
     else: # healpix basedDC2 format
         hfile = h5py.File(fname,'r')[str(internal_step)]
     non_empty_step = "obs_sm" in hfile
+    print("Reading {} (size={})".format(os.path.basename(fname), len(hfile)))
     if non_empty_step:
         lc_data['m_star'] = np.log10(hfile['obs_sm'].value)
         lc_data['Mag_r'] = hfile['restframe_extincted_sdss_abs_magr'].value
@@ -284,7 +285,7 @@ def construct_lc_data(fname, match_obs_color_red_seq = False, verbose
         lc_data['clr_gr'] = np.zeros(0, dtype=np.float)
         lc_data['clr_ri'] = np.zeros(0, dtype=np.float)
         if not snapshot:
-            lc_data['redshift'] = hfile['redshift'].value
+            lc_data['redshift'] =  np.zeros(0, dtype=np.float)
         else:
             lc_data['redshift'] = np.ones(lc_data['m_star'].size)*snapshot_redshift
         lc_data['sfr_percentile'] = np.zeros(0, dtype=np.float)
@@ -960,7 +961,7 @@ def overwrite_columns(input_fname, output_fname, ignore_mstar = False,
                       snapshot_redshift = None):
     t1 = time.time()
     if verbose:
-        print("Overwriting columns.")
+        print("\nOverwriting columns for file {}".format(os.path.basename(output_fname)))
         #sdss = Table.read(input_fname,path='data')
     if snapshot:
         assert snapshot_redshift is not None, "Snapshot redshift must be specified in snapshot mode"
@@ -1114,8 +1115,8 @@ def overwrite_columns(input_fname, output_fname, ignore_mstar = False,
     elif healpix:
         print("\thealpix shears")
         h_shear = h5py.File(healpix_shear_file, 'r')[str(step)]
-        shear_id = h_shear['galaxy_id'].value
         if step_has_data:
+            shear_id = h_shear['galaxy_id'].value
             print("\t\tassigning shears ")
             base_id = h_in['galaxy_id'].value[mask]
             srt = np.argsort(shear_id)
@@ -1248,7 +1249,7 @@ def overwrite_host_halo(output_fname, sod_loc, halo_shape_loc,
         sod_mass[slct] = sod_cat_mass[indx[slct]]
         hgroup['hostHaloSODMass']=sod_mass
 
-    print("Num of galaxies: ", halo_tag.size)
+    print("Filling host halo information: Num of galaxies: ", halo_tag.size)
     eg_cat_eg1 = np.zeros(size,dtype='f4')
     eg_cat_eg2 = np.zeros(size,dtype='f4')
     eg_cat_eg3 = np.zeros(size,dtype='f4')

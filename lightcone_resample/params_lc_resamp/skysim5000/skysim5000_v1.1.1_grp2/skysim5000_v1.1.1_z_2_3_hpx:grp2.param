@@ -1,0 +1,64 @@
+lightcone_fname /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/base5000_v1.1.1/base5000_z_2_3_cutout_${healpix}.hdf5
+gltcs_fname     /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z/galaxy_library/${step}_mod.hdf5
+gltcs_metadata_ref  /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/low_z/galaxy_library/499_mod.hdf5
+gltcs_slope_fname    NULL
+halo_shape_fname     NULL
+halo_shape_red_fname NULL
+sod_fname            NULL
+healpix_shear_file   /projects/LastJourney/prlarsen/density_maps_OR/skysim_full/base5000_z_2_3_cutout_${healpix}.hdf5
+healpix_file true
+healpix_pixels 6594 6595 6596 6597 6598 6599 6600 6601 6602 6603 6604 6605 6606 6607 6608 6609 6610 6611 6612 6613 6614 6615 6616 6617 6618 6619 6620 6621 6622 6623 6720 6721 6722 6723 6724 6725 6726 6727 6728 6729 6730 6731 6732 6733 6734 6735 6736 6737 6738 6739 6740 6741 6742 6743 6744 6745 6746 6747 6748 6749 6750 6751 6752 6848 6849 6850
+fake_lensing  false
+
+steps   167 163 159 155 151 148 144 141 137 134 131 127 124 121
+
+output_fname  /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/skysim5000_v1.1.1/steps_v1.1.1/z_2_3.step_${step}.healpix_${healpix}.hdf5
+
+load_mask true
+mask_loc /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z/mask/v1.0.0_mask.hdf5
+index_loc /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z/index/v0.4.4_index_${step}.hdf5
+use_slope true
+
+substeps  5
+use_substep_redshift false
+
+recolor false
+
+short     false
+supershort false
+cut_small_galaxies false
+cut_small_galaxies_mass 8 
+
+use_dust_factor true
+dust_factors
+
+ignore_mstar true
+
+select_match  ran
+
+match_obs_color_red_seq true
+red_sequence_transition_mass_start 12.5 
+red_sequence_transition_mass_end 13.5
+red_sequence_scatter_query_gr 0.09
+red_sequence_scatter_query_ri 0.114
+red_sequence_scatter_query_iz 0.10
+red_sequence_scatter_tree_gr  0.09
+red_sequence_scatter_tree_ri  0.114
+red_sequence_scatter_tree_iz  0.10
+
+rescale_bright_luminosity true
+rescale_bright_luminosity_threshold 0
+
+ignore_bright_luminosity true
+ignore_bright_luminosity_threshold -21
+ignore_bright_luminosity_softness 2
+
+plot         true
+plot_substep false
+plot_directory /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/skysim5000_v1.1.1/plots/z_2_3/grp2
+
+version_major       1
+version_minor       1
+version_minor_minor 1
+
+concatenate_only false

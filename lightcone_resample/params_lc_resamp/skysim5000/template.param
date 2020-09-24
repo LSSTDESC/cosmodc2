@@ -5,14 +5,14 @@ gltcs_slope_fname    NULL
 halo_shape_fname     NULL
 halo_shape_red_fname NULL
 sod_fname            NULL
-healpix_shear_file   NULL
+healpix_shear_file   /projects/LastJourney/prlarsen/density_maps_OR/skysim_full/base5000_z_#z_range#_cutout_${healpix}.hdf5
 healpix_file true
 healpix_pixels #healpix_group#
-fake_lensing  true
+fake_lensing  false
 
 steps   #step_list#
 
-output_fname  /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/#run_dir#/steps_v#v1#.#v2#.#v3#/z_#z_range#.step_${step}.healpix_${healpix}.hdf5
+output_fname  /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/#out_dir#/steps_v#v1#.#v2#.#v3#/z_#z_range#.step_${step}.healpix_${healpix}.hdf5
 
 load_mask true
 mask_loc /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/#z_type#/mask/v1.0.0_mask.hdf5

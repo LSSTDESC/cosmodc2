@@ -1,0 +1,123 @@
+/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/galmatcher/rescale_Galacticus.py:19: UserWarning: 
+This call to matplotlib.use() has no effect because the backend has already
+been chosen; matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+The backend was *originally* set to u'Qt5Agg' by the following code:
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 9, in <module>
+    import matplotlib.pyplot as plt
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/pyplot.py", line 72, in <module>
+    from matplotlib.backends import pylab_setup
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 14, in <module>
+    line for line in traceback.format_stack()
+
+
+  matplotlib.use('Agg')
+Traceback (most recent call last):
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 2161, in <module>
+    lightcone_resample(sys.argv[1])
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 1924, in lightcone_resample
+    index_2to1 = h5py.File(index_loc.replace("${step}",str(step)), 'r')['match_2to1']
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/_hl/files.py", line 269, in __init__
+    fid = make_fid(name, mode, userblock_size, fapl, swmr=swmr)
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/_hl/files.py", line 99, in make_fid
+    fid = h5f.open(name, flags, fapl=fapl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 78, in h5py.h5f.open
+IOError: Unable to open file (unable to open file: name = '/gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/low_z/index/v0.4.4_index_347.hdf5', errno = 2, error message = 'No such file or directory', flags = 0, o_flags = 0)
+/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/galmatcher/rescale_Galacticus.py:19: UserWarning: 
+This call to matplotlib.use() has no effect because the backend has already
+been chosen; matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+The backend was *originally* set to u'Qt5Agg' by the following code:
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 9, in <module>
+    import matplotlib.pyplot as plt
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/pyplot.py", line 72, in <module>
+    from matplotlib.backends import pylab_setup
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 14, in <module>
+    line for line in traceback.format_stack()
+
+
+  matplotlib.use('Agg')
+Traceback (most recent call last):
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 2161, in <module>
+    lightcone_resample(sys.argv[1])
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 2021, in lightcone_resample
+    index[slct_lc_abin] = gal_prop_a['index'][index_abin]
+IndexError: index 8022538 is out of bounds for axis 1 with size 8022538
+/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/galmatcher/rescale_Galacticus.py:19: UserWarning: 
+This call to matplotlib.use() has no effect because the backend has already
+been chosen; matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+The backend was *originally* set to u'Qt5Agg' by the following code:
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 9, in <module>
+    import matplotlib.pyplot as plt
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/pyplot.py", line 72, in <module>
+    from matplotlib.backends import pylab_setup
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 14, in <module>
+    line for line in traceback.format_stack()
+
+
+  matplotlib.use('Agg')
+Traceback (most recent call last):
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 2161, in <module>
+    lightcone_resample(sys.argv[1])
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 2021, in lightcone_resample
+    index[slct_lc_abin] = gal_prop_a['index'][index_abin]
+IndexError: index 8022538 is out of bounds for axis 1 with size 8022538
+/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/galmatcher/rescale_Galacticus.py:19: UserWarning: 
+This call to matplotlib.use() has no effect because the backend has already
+been chosen; matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+The backend was *originally* set to u'Qt5Agg' by the following code:
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 9, in <module>
+    import matplotlib.pyplot as plt
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/pyplot.py", line 72, in <module>
+    from matplotlib.backends import pylab_setup
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 14, in <module>
+    line for line in traceback.format_stack()
+
+
+  matplotlib.use('Agg')
+Traceback (most recent call last):
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 2186, in <module>
+    lightcone_resample(sys.argv[1])
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 1935, in lightcone_resample
+    mask1 = hfile_mask['{}'.format(step)].value
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/_hl/group.py", line 167, in __getitem__
+    oid = h5o.open(self.id, self._e(name), lapl=self._lapl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5o.pyx", line 190, in h5py.h5o.open
+KeyError: "Unable to open object (object '487' doesn't exist)"
+/home/dkorytov/anaconda2/lib/python2.7/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/galmatcher/rescale_Galacticus.py:19: UserWarning: 
+This call to matplotlib.use() has no effect because the backend has already
+been chosen; matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+The backend was *originally* set to u'Qt5Agg' by the following code:
+  File "/gpfs/mira-fs0/projects/SkySurvey/dkorytov/projects/lightcone_resample/./lc_resample.py", line 9, in <module>
+    import matplotlib.pyplot as plt
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/pyplot.py", line 72, in <module>
+    from matplotlib.backends import pylab_setup
+  File "/home/dkorytov/anaconda2/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 14, in <module>
+    line for line in traceback.format_stack()
+
+
+  matplotlib.use('Agg')
