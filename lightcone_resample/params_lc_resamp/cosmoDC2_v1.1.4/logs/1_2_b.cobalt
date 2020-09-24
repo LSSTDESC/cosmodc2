@@ -1,0 +1,25 @@
+Jobid: 1704269
+qsub -n 1 -t 720 -o params_lc_resamp/cosmoDC2_v1.1.4/logs/1_2_b.out -e params_lc_resamp/cosmoDC2_v1.1.4/logs/1_2_b.err --debuglog=params_lc_resamp/cosmoDC2_v1.1.4/logs/1_2_b.cobalt ./lc_resample.py params_lc_resamp/cosmoDC2_v1.1.4/cosmoDC2_v1.1.4_z_1_2_hp:b.param
+Tue Nov 27 23:33:01 2018 +0000 (UTC) submitted with cwd set to: /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/projects/lightcone_resample
+jobid 1704269 submitted from terminal /dev/pts/59
+Wed Nov 28 03:34:00 2018 +0000 (UTC) 
+Wed Nov 28 03:34:00 2018 +0000 (UTC) Command: '/usr/bin/ssh' 'cc047.cooley' '/usr/bin/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.1704269' '--jobid' '1704269' '--cwd' '/gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/projects/lightcone_resample' '--env' 'COBALT_JOBID=1704269' '/gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/projects/lightcone_resample/./lc_resample.py' 'params_lc_resamp/cosmoDC2_v1.1.4/cosmoDC2_v1.1.4_z_1_2_hp:b.param'
+Wed Nov 28 03:34:00 2018 +0000 (UTC) 
+Wed Nov 28 03:34:00 2018 +0000 (UTC) Environment:
+Wed Nov 28 03:34:00 2018 +0000 (UTC) SHELL=/bin/bash
+Wed Nov 28 03:34:00 2018 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpnWyX0p
+Wed Nov 28 03:34:00 2018 +0000 (UTC) COBALT_PARTNAME=cc047.cooley
+Wed Nov 28 03:34:00 2018 +0000 (UTC) COBALT_JOBID=1704269
+Wed Nov 28 03:34:00 2018 +0000 (UTC) COBALT_STARTTIME=1543376022
+Wed Nov 28 03:34:00 2018 +0000 (UTC) LOGNAME=dkorytov
+Wed Nov 28 03:34:00 2018 +0000 (UTC) USER=dkorytov
+Wed Nov 28 03:34:00 2018 +0000 (UTC) COBALT_ENDTIME=1543419222
+Wed Nov 28 03:34:00 2018 +0000 (UTC) COBALT_PARTSIZE=1
+Wed Nov 28 03:34:00 2018 +0000 (UTC) HOME=/home/dkorytov
+Wed Nov 28 03:34:00 2018 +0000 (UTC) COBALT_JOBSIZE=1
+Wed Nov 28 03:34:00 2018 +0000 (UTC) 
+Wed Nov 28 03:34:00 2018 +0000 (UTC) Info: stdin received from /dev/null
+Wed Nov 28 03:34:00 2018 +0000 (UTC) Info: stdout sent to /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/projects/lightcone_resample/params_lc_resamp/cosmoDC2_v1.1.4/logs/1_2_b.out
+Wed Nov 28 03:34:00 2018 +0000 (UTC) Info: stderr sent to /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/projects/lightcone_resample/params_lc_resamp/cosmoDC2_v1.1.4/logs/1_2_b.err
+Wed Nov 28 03:34:00 2018 +0000 (UTC) 
+Wed Nov 28 11:01:42 2018 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

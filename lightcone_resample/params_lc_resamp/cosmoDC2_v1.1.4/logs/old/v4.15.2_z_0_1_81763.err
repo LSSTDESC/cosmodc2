@@ -1,0 +1,19 @@
+/cosmo/software/opt/anaconda2/lib/python2.7/site-packages/matplotlib/__init__.py:1350: UserWarning:  This call to matplotlib.use() has no effect
+because the backend has already been chosen;
+matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+  warnings.warn(_use_error_msg)
+Traceback (most recent call last):
+  File "./lc_resample.py", line 1916, in <module>
+    lightcone_resample(sys.argv[1])
+  File "./lc_resample.py", line 1686, in lightcone_resample
+    mask1 = hfile_mask['{}'.format(step)].value
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper (-------src-dir-------/h5py/_objects.c:2582)
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper (-------src-dir-------/h5py/_objects.c:2541)
+  File "/cosmo/software/opt/anaconda2/lib/python2.7/site-packages/h5py/_hl/group.py", line 166, in __getitem__
+    oid = h5o.open(self.id, self._e(name), lapl=self._lapl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper (-------src-dir-------/h5py/_objects.c:2582)
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper (-------src-dir-------/h5py/_objects.c:2541)
+  File "h5py/h5o.pyx", line 190, in h5py.h5o.open (-------src-dir-------/h5py/h5o.c:3551)
+KeyError: "Unable to open object (Object '347' doesn't exist)"

@@ -1,0 +1,7 @@
+/cosmo/software/opt/anaconda2/lib/python2.7/site-packages/matplotlib/__init__.py:1350: UserWarning:  This call to matplotlib.use() has no effect
+because the backend has already been chosen;
+matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+or matplotlib.backends is imported for the first time.
+
+  warnings.warn(_use_error_msg)
+slurmstepd: error: *** JOB 81758 ON cg63-p CANCELLED AT 2018-07-11T17:03:59 ***

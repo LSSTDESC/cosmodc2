@@ -1,0 +1,62 @@
+lightcone_fname /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_9.8C_v1.1_velocity_bug_fixes/baseDC2_z_0_1_cutout_${healpix}.hdf5
+gltcs_fname     /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/low_z/galaxy_library/${step}_mod.hdf5
+gltcs_metadata_ref  /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/low_z/galaxy_library/499_mod.hdf5
+gltcs_slope_fname    NULL
+halo_shape_fname     NULL
+halo_shape_red_fname NULL
+sod_fname            NULL
+healpix_shear_file  /projects/DarkUniverse_esp/prlarsen/galaxy_shears/OR_Production_nov16/baseDC2_z_0_1_cutout_${healpix}.hdf5
+healpix_file true
+healpix_pixels 9170 9171 9172 9173 9174 9175 9176 9177 9178 9298 9299 9300 9301 9302 9303 9304 9305 9306 9425 9426 9427 9428 9429 9430 9431 9432 9433 9434 9554 9555 9556 9557 9558 9559 9560 9561 9562 9681 9682 9683 9684 9685 9686 9687 9688 9689 9690 9810 9811 9812 9813 9814 9815 9816 9817 9818 9937 9938 9939 9940 9941 9942 9943 9944 9945 9946
+fake_lensing  false
+
+steps   499 487 475 464 453 442 432 421 411 401 392 382 373 365 355 347 338 331 323 315 307 300 293 286 279 272 266 259 253 247
+
+
+output_fname  /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/cosmoDC2/cosmoDC2_v1.1.4_rs_scatter_query_tree_double/steps_v1.1.4/z_0_1.step_${step}.healpix_${healpix}.hdf5
+
+load_mask true
+mask_loc /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/low_z/mask/v1.0.0_mask.hdf5
+index_loc /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/low_z/index/v0.4.4_index_${step}.hdf5
+use_slope true
+
+substeps  5
+use_substep_redshift false
+
+recolor false
+
+short     false
+supershort false
+cut_small_galaxies false
+cut_small_galaxies_mass 8 
+
+use_dust_factor true
+dust_factors
+
+ignore_mstar true
+
+match_obs_color_red_seq true
+red_sequence_transition_mass_start 12.5 
+red_sequence_transition_mass_end 13.5
+red_sequence_scatter_query_gr 0.09
+red_sequence_scatter_query_ri 0.114
+red_sequence_scatter_query_iz 0.10
+red_sequence_scatter_tree_gr  0.09
+red_sequence_scatter_tree_ri  0.114
+red_sequence_scatter_tree_iz  0.10
+
+rescale_bright_luminosity true
+rescale_bright_luminosity_threshold 0
+
+ignore_bright_luminosity true
+ignore_bright_luminosity_threshold -21
+ignore_bright_luminosity_softness 2
+
+plot         false
+plot_substep false
+
+version_major       1
+version_minor       1
+version_minor_minor 4
+
+concatenate_only false

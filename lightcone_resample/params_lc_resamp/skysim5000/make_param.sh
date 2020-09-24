@@ -5,15 +5,24 @@ python="/soft/libraries/anaconda-unstable/bin/python"
 output_file_path="/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000"
 params_parent_dir="params_lc_resamp"
 cat_basename="skysim5000"
-cat_minor_name="small_worst"
+cat_minor_name=""
 pixel_basename="pixels"
 pixel_lists_dir="../pixel_lists"
-pixel_group=""
-match="worst"
-v1=1
-v2=0
-v3=0
 hpx_group_name="grp"
+if [ "$#" -ge 1 ]; then
+    pixel_group="${1}"
+    pix_suffix="_${hpx_group_name}${pixel_group}"
+    echo "Running pixel group ${pixel_group}"
+else
+    pixel_group=""
+    pix_suffix=""
+    echo "No pixel group selected"
+fi
+template_param_file="template.param"
+match="ran"
+v1=1
+v2=1
+v3=1
 logs="logs"
 plots="plots"
 clean="yes"
@@ -24,7 +33,9 @@ if [ ! -z "${cat_minor_name}" ]; then
     cat_name="${cat_name}_${cat_minor_name}"
     pixel_basename="${pixel_basename}_${cat_minor_name}"
 fi
-run_dir="${cat_name}"
+# output directory is cat name and run directory is cat name+hpx group if supplied
+out_dir="${cat_name}"
+run_dir="${cat_name}${pix_suffix}"
 mkdir -p ${run_dir}
 if [ ! -z "${pixel_group}" ]; then
     pixel_filename="${pixel_basename}_${pixel_group}.txt"
@@ -106,7 +117,12 @@ for i in "${!z_ranges[@]}";do
     echo "plotdir:${plotdir_z}"
     echo "select_match:${match}"
     for j in "${!healpix_groups[@]}";do
-	group_name="${hpx_group_name}${j}"
+	#auto assign pixel group or use input value (assumes only 1 group will be input)
+	if [ ! -z "${pixel_group}" ]; then
+	    group_name="${hpx_group_name}${pixel_group}"
+	else
+	    group_name="${hpx_group_name}${j}"
+	fi
 	#get rid of leading and trailing extra quotes in healpix_groups
 	healpix_group=`sed -e 's/^"//' -e 's/"$//' <<<${healpix_groups[j]}`
         #echo ${healpix_groups[j]}
@@ -132,7 +148,7 @@ for i in "${!z_ranges[@]}";do
 	if [ ! -e ${submit_file} ]; then
 	    echo "#!/bin/bash" >${submit_file}
 	fi
-	sed "s/#z_range#/${z_range}/g; s/#step_list#/${steps}/g; s@#gltcs_file#@${gltcs_file}@g; s/#z_type#/${z_type}/g; s/#healpix_group#/${healpix_group}/g; s%#path_to_plotdir#%${plotdir_z_grp}%g; s/#match#/${match}/g; s/#run_dir#/${run_dir}/g; s/#v1#/${v1}/g; s/#v2#/${v2}/g; s/#v3#/${v3}/g"<template.param > ${param_file}
+	sed "s/#z_range#/${z_range}/g; s/#step_list#/${steps}/g; s@#gltcs_file#@${gltcs_file}@g; s/#z_type#/${z_type}/g; s/#healpix_group#/${healpix_group}/g; s%#path_to_plotdir#%${plotdir_z_grp}%g; s/#match#/${match}/g; s/#out_dir#/${out_dir}/g; s/#v1#/${v1}/g; s/#v2#/${v2}/g; s/#v3#/${v3}/g"<${template_param_file} > ${param_file}
 	sed "s%#python#%${python}%g; s/#z_range#/${z_range}/g; s/#healpix_name#/${group_name}/g; s%#param_file_path#%${params_dir}%g; s/#cat_name#/${cat_name}/g"<template.sh > ${run_file}
 	chmod +x ${run_file}
 	log_fname=${logdir}/${z_range}_${group_name}

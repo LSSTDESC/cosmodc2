@@ -1,0 +1,2 @@
+#!/bin/bash
+qsub -n 1 -t 720 -A LastJourney -o /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/skysim5000_v1.1.0_image_WL/logs/0_1_grp1.out -e /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/skysim5000_v1.1.0_image_WL/logs/0_1_grp1.err  --debuglog=/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/skysim5000_v1.1.0_image_WL/logs/0_1_grp1.cobalt  /soft/libraries/anaconda-unstable/bin/python ./lc_resample.py params_lc_resamp/skysim5000/skysim5000_v1.1.0_image_WL/skysim5000_v1.1.0_image_WL_z_0_1_hpx:grp1.param

@@ -1,0 +1,663 @@
+
+
+=================================
+ STEP:  163
+not a resume run
+
+
+=================================
+ STEP:  163
+not a resume run
+Construicting light cone data:  [533 534 564 565 566 596 597 598 599 628 629 630 660 661]
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_533.hdf5
+match obs color red seq
+(12.5,) 13.5
+8906371
+done loading lc data. 4.16722798347
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_534.hdf5
+match obs color red seq
+(12.5,) 13.5
+8862461
+done loading lc data. 4.07810616493
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_564.hdf5
+match obs color red seq
+(12.5,) 13.5
+8842934
+done loading lc data. 4.09051704407
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_565.hdf5
+match obs color red seq
+(12.5,) 13.5
+8612724
+done loading lc data. 3.93741488457
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_566.hdf5
+match obs color red seq
+(12.5,) 13.5
+8690123
+done loading lc data. 4.01095604897
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_596.hdf5
+match obs color red seq
+(12.5,) 13.5
+8713626
+done loading lc data. 3.91452288628
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_597.hdf5
+match obs color red seq
+(12.5,) 13.5
+8766684
+done loading lc data. 3.99583983421
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_598.hdf5
+match obs color red seq
+(12.5,) 13.5
+9040494
+done loading lc data. 4.1681098938
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_599.hdf5
+match obs color red seq
+(12.5,) 13.5
+9185234
+done loading lc data. 4.11670899391
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_628.hdf5
+match obs color red seq
+(12.5,) 13.5
+9250550
+done loading lc data. 4.16403603554
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_629.hdf5
+match obs color red seq
+(12.5,) 13.5
+9080286
+done loading lc data. 4.05462694168
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_630.hdf5
+match obs color red seq
+(12.5,) 13.5
+8710606
+done loading lc data. 3.95786213875
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_660.hdf5
+match obs color red seq
+(12.5,) 13.5
+9126960
+done loading lc data. 4.11949777603
+/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_Production/baseDC2_min_9.8_centrals_v0.4.6_velocity_bug_fix/baseDC2_z_2_3_cutout_661.hdf5
+match obs color red seq
+(12.5,) 13.5
+8896664
+done loading lc data. 4.24542403221
+using slope 163
+min a: 0.331263682566 max a 0.339383106435
+raw min a: 0.331343284761 raw max a: 0.33930350424
+	0/10 substeps
+		 0.331263682566 -> 0.332075624953
+		 num gals: 11829874
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0912809371948
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0451128482819
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0396499633789
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0606288909912
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0564720630646
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0269351005554
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0441391468048
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0352427959442
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0153000354767
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.015084028244
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0288259983063
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0238988399506
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161519050598
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160040855408
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0454649925232
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0527749061584
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0400071144104
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.18e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.35372209549
+data size: 1.18e+07
+long tree
+	done making tree. 0.137211799622
+	done querying. 13.4720201492
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0127320289612
+quick tree
+	done making kdtree. 0.118140935898
+	done querying. 0.0374209880829
+index_abin:  0 327492
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  11829874
+num bright galaxies to rescale luminosity: 11829874
+	1/10 substeps
+		 0.332075624953 -> 0.33288756734
+		 num gals: 12972140
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0172519683838
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0165979862213
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0164167881012
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0163140296936
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.016597032547
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0162229537964
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0116980075836
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0208370685577
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.01535987854
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0153949260712
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0177440643311
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161030292511
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0166161060333
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0166411399841
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0165729522705
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.021155834198
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0153131484985
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.30e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.337733030319
+data size: 1.30e+07
+long tree
+	done making tree. 0.0805139541626
+	done querying. 15.8255140781
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0111179351807
+quick tree
+	done making kdtree. 0.117712020874
+	done querying. 0.0442600250244
+index_abin:  8 327481
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12972140
+num bright galaxies to rescale luminosity: 12972140
+	2/10 substeps
+		 0.33288756734 -> 0.333699509727
+		 num gals: 12904094
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0185649394989
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155248641968
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0145511627197
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0151700973511
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0152070522308
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0151209831238
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.00929999351501
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0139222145081
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0132410526276
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0132369995117
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0154278278351
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0148499011993
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0148799419403
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0145800113678
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0148980617523
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0168509483337
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0140409469604
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.29e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.300920963287
+data size: 1.29e+07
+long tree
+	done making tree. 0.0744459629059
+	done querying. 13.6703460217
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0127000808716
+quick tree
+	done making kdtree. 0.118977069855
+	done querying. 0.0386338233948
+index_abin:  0 327490
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12904094
+num bright galaxies to rescale luminosity: 12904094
+	3/10 substeps
+		 0.333699509727 -> 0.334511452114
+		 num gals: 12824104
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.01873087883
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.016331911087
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155749320984
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155820846558
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0159499645233
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.015781879425
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0103280544281
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0169050693512
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.01486992836
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0153019428253
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0167789459229
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.016429901123
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0164468288422
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0166401863098
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161550045013
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0201909542084
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.014790058136
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.28e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.332584142685
+data size: 1.28e+07
+long tree
+	done making tree. 0.0778520107269
+	done querying. 14.2853808403
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0112750530243
+quick tree
+	done making kdtree. 0.119858980179
+	done querying. 0.0385150909424
+index_abin:  0 327494
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12824104
+num bright galaxies to rescale luminosity: 12824104
+	4/10 substeps
+		 0.334511452114 -> 0.335323394501
+		 num gals: 12733100
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0197420120239
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0167639255524
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0162370204926
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0152740478516
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.015734910965
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0156610012054
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0102860927582
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0162291526794
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0145239830017
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0144650936127
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0164301395416
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157639980316
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0158290863037
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155730247498
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0158870220184
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0176038742065
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0150928497314
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.27e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.331614971161
+data size: 1.27e+07
+long tree
+	done making tree. 0.0757150650024
+	done querying. 13.5825259686
+Starting kdtree resampling with obs colors
+	done formatting data. 0.013032913208
+quick tree
+	done making kdtree. 0.116452932358
+	done querying. 0.0437960624695
+index_abin:  0 327494
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12733100
+num bright galaxies to rescale luminosity: 12733100
+	5/10 substeps
+		 0.335323394501 -> 0.336135336887
+		 num gals: 12668386
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0187220573425
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161280632019
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0154340267181
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0153028964996
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.015860080719
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157458782196
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0106270313263
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0148289203644
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0142920017242
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0142679214478
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160889625549
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155799388885
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161550045013
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0158989429474
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157310962677
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0173361301422
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0147080421448
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.27e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.329679965973
+data size: 1.27e+07
+long tree
+	done making tree. 0.0789530277252
+	done querying. 14.0493690968
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0123682022095
+quick tree
+	done making kdtree. 0.119812965393
+	done querying. 0.0374348163605
+index_abin:  42 327490
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12668386
+num bright galaxies to rescale luminosity: 12668386
+	6/10 substeps
+		 0.336135336887 -> 0.336947279274
+		 num gals: 12595634
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0176408290863
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0164740085602
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160927772522
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.015508890152
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0159299373627
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157458782196
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0101988315582
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0150289535522
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0144970417023
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0146570205688
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.016716003418
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160889625549
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157101154327
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.01593708992
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157120227814
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0207941532135
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0147910118103
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.26e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.327358007431
+data size: 1.26e+07
+long tree
+	done making tree. 0.0801539421082
+	done querying. 13.6494240761
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0106339454651
+quick tree
+	done making kdtree. 0.117026090622
+	done querying. 0.0367329120636
+index_abin:  0 327490
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12595634
+num bright galaxies to rescale luminosity: 12595634
+	7/10 substeps
+		 0.336947279274 -> 0.337759221661
+		 num gals: 12550144
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0201680660248
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0172259807587
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157778263092
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0168440341949
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0162439346313
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161988735199
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0109050273895
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0175468921661
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0148179531097
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0144350528717
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0166409015656
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160109996796
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0159459114075
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0157370567322
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161190032959
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0178411006927
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0153810977936
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.26e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.321808099747
+data size: 1.26e+07
+long tree
+	done making tree. 0.0757489204407
+	done querying. 12.7076010704
+Starting kdtree resampling with obs colors
+	done formatting data. 0.011048078537
+quick tree
+	done making kdtree. 0.119422912598
+	done querying. 0.0374190807343
+index_abin:  1 327482
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12550144
+num bright galaxies to rescale luminosity: 12550144
+	8/10 substeps
+		 0.337759221661 -> 0.338571164048
+		 num gals: 12473304
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0188748836517
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0161941051483
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155401229858
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155198574066
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0158348083496
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0156538486481
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.00996017456055
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0165200233459
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.014858007431
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.015839099884
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0159890651703
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0175969600677
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0154130458832
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0172507762909
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0154409408569
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0211138725281
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0152230262756
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.25e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.324525117874
+data size: 1.25e+07
+long tree
+	done making tree. 0.0756409168243
+	done querying. 12.4442660809
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0115668773651
+quick tree
+	done making kdtree. 0.118371009827
+	done querying. 0.0428690910339
+index_abin:  0 327481
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  12473304
+num bright galaxies to rescale luminosity: 12473304
+	9/10 substeps
+		 0.338571164048 -> 0.339383106435
+		 num gals: 11134937
+dust_factor********= 1.0
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0182597637177
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160810947418
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160980224609
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0154139995575
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0158898830414
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:rest:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.016566991806
+	Loading key: totalMassStellar
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0100870132446
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0154349803925
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0146939754486
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0147571563721
+	Loading key: SDSS_filters/diskLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0165541172028
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0155730247498
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.015702009201
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_i:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0160248279572
+	Loading key: SDSS_filters/spheroidLuminositiesStellar:SDSS_z:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0159978866577
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_g:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.017539024353
+	Loading key: LSST_filters/diskLuminositiesStellar:LSST_r:observed:dustAtlas
+		size: 3.3e+05/3.7e+05:?3.3e+05 read + format time: 0.0144200325012
+Starting kdtree resampling
+
+ Num LC Galaxies: 1.11e+07 Num Gltcs Galaxies: 3.27e+05
+Ignoring Mstar!
+lc shape:  (2,)
+lc shape:  (2,)
+	done formating data. 0.292135000229
+data size: 1.11e+07
+long tree
+	done making tree. 0.0825459957123
+	done querying. 12.5412650108
+Starting kdtree resampling with obs colors
+	done formatting data. 0.0105230808258
+quick tree
+	done making kdtree. 0.0332508087158
+	done querying. 0.0038800239563
+index_abin:  1 327495
+gal_prop_a:  0 327494
+gal_prop_a size:  327495 index_abin size:  11134937
