@@ -13,10 +13,12 @@ if [ "$#" -ge 1 ]; then
     pixel_group="${1}"
     pix_suffix="_${hpx_group_name}${pixel_group}"
     echo "Running pixel group ${pixel_group}"
+    clean=""
 else
     pixel_group=""
     pix_suffix=""
-    echo "No pixel group selected"
+    clean="yes"
+    echo "No pixel group selected; cleaning any old files"
 fi
 template_param_file="template.param"
 match="ran"
@@ -25,7 +27,6 @@ v2=1
 v3=1
 logs="logs"
 plots="plots"
-clean="yes"
 
 #setup filenames and paths
 cat_name="${cat_basename}_v${v1}.${v2}.${v3}"
@@ -85,6 +86,8 @@ if [ ! -z "${clean}" ]; then
     echo "Erasing all ${run_dir}/*${cat_name}* and *all.sh files"
     rm ${run_dir}/*${cat_name}*
     rm ${run_dir}/*_all.sh
+else
+    echo "Not moving earlier logfiles"
 fi
 
 # parameters for z ranges and Galacticus libraries
