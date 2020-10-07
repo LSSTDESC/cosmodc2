@@ -1555,7 +1555,8 @@ def add_metadata(gal_ref_fname, out_fname, version_major,
         if not snapshot:
             hfile_out['metaData/skyArea'] = 25
     try:
-        cmd = 'git rev-parse HEAD'
+        #cmd = 'git rev-parse HEAD'
+        cmd = 'cd {0} && git rev-parse HEAD'.format(path_to_cosmodc2)
         commit_hash = subprocess.check_output(cmd, shell=True).strip()
     except subprocess.CalledProcessError as cpe:
         with open('git_commit_hash.txt') as gcf:

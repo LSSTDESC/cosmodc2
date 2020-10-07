@@ -1,0 +1,64 @@
+lightcone_fname /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/base5000_v1.1.1/base5000_z_1_2_cutout_${healpix}.hdf5
+gltcs_fname     /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z/galaxy_library/${step}_mod.hdf5
+gltcs_metadata_ref  /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/low_z/galaxy_library/499_mod.hdf5
+gltcs_slope_fname    NULL
+halo_shape_fname     NULL
+halo_shape_red_fname NULL
+sod_fname            NULL
+healpix_shear_file   /projects/LastJourney/prlarsen/density_maps_OR/skysim_full/base5000_z_1_2_cutout_${healpix}.hdf5
+healpix_file true
+healpix_pixels 11812 11813 11814 11815 11816 11817 11818 11819 11820 11821 11822 11868 11869 11870 11871 11872 11873 11874 11875 11876 11877 11878 11879 11880 11881 11924 11925 11926 11927 11928 11929 11930 11931 11932 11933 11934 11935 11936 11976 11977 11978 11979 11980 11981 11982 11983 11984 11985 11986 11987 12024 12025 12026 12027 12028 12029 12030 12031 12032 12033 12034 12068 12069 12070 12071 12072
+fake_lensing  false
+
+steps   247 241 235 230 224 219 213 208 203 198 194 189 184 180 176 171 167
+
+output_fname  /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/skysim5000_v1.1.1/steps_v1.1.1/z_1_2.step_${step}.healpix_${healpix}.hdf5
+
+load_mask true
+mask_loc /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z/mask/v1.0.0_mask.hdf5
+index_loc /gpfs/mira-fs0/projects/DarkUniverse_esp/dkorytov/data/Galacticus/high_z/index/v0.4.4_index_${step}.hdf5
+use_slope true
+
+substeps  5
+use_substep_redshift false
+
+recolor false
+
+short     false
+supershort false
+cut_small_galaxies false
+cut_small_galaxies_mass 8 
+
+use_dust_factor true
+dust_factors
+
+ignore_mstar true
+
+select_match  ran
+
+match_obs_color_red_seq true
+red_sequence_transition_mass_start 12.5 
+red_sequence_transition_mass_end 13.5
+red_sequence_scatter_query_gr 0.09
+red_sequence_scatter_query_ri 0.114
+red_sequence_scatter_query_iz 0.10
+red_sequence_scatter_tree_gr  0.09
+red_sequence_scatter_tree_ri  0.114
+red_sequence_scatter_tree_iz  0.10
+
+rescale_bright_luminosity true
+rescale_bright_luminosity_threshold 0
+
+ignore_bright_luminosity true
+ignore_bright_luminosity_threshold -21
+ignore_bright_luminosity_softness 2
+
+plot         true
+plot_substep false
+plot_directory /gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000/skysim5000_v1.1.1/plots/z_1_2/grp22
+
+version_major       1
+version_minor       1
+version_minor_minor 1
+
+concatenate_only false
