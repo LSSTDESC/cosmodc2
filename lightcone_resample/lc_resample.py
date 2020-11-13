@@ -259,11 +259,11 @@ def construct_lc_data(fname, match_obs_color_red_seq = False, verbose
                       snapshot = False):
     t1 = time.time()
     lc_data = {}
-    if snapshot: # Snapshot baseDC2 format
+    if snapshot: # Snapshot base5000 format
         hfile_snap = h5py.File(fname,'r')
         hfile = hfile_snap['galaxyProperties']
         snapshot_redshift = hfile_snap['metaData/redshift'].value
-    elif internal_step is None: # flat-file baseDC2 format
+    elif internal_step is None: # flat-file base5000 format
         hfile = h5py.File(fname,'r')
     else: # healpix basedDC2 format
         hfile = h5py.File(fname,'r')[str(internal_step)]
@@ -429,19 +429,110 @@ def squash_magnitudes(mag_dic, lim, a):
     # plt.show()
     return mag_dic
 
+#functions for shifting base/UM colors to Galacticus locus
+def get_bin_edges(um_r, gal_r, Magr_cut=None):
+    if Magr_cut is not None:
+        masku = um_r < Magr_cut
+        maskg = gal_r < Magr_cut
+        msg = '(r < {:.1f})'.format(Magr_cut)
+    else:
+        masku = np.ones(len(um_r), dtype=bool)
+        maskg = np.ones(len(gal_r), dtype=bool)
+        msg = '(no Mag_r cut)'
+    # find ranges common to both data sets
+    um_min = np.amin(um_r[masku])
+    um_max = np.amax(um_r[masku])
+    gl_min = np.amin(gal_r[maskg])
+    gl_max = np.amax(gal_r[maskg])
+    min_r = max(um_min, gl_min)
+    max_r = min(um_max, gl_max)
+    print('Mag_r ranges {}: UM {:.3f}-{:.3f}, Galacticus {:.3f}-{:.3f}'.format(msg,
+                                                                               um_min, um_max, gl_min, gl_max))
+    return min_r, max_r
 
-def resample_index(lc_data, gal_prop, ignore_mstar = False, nnk = 10,
+def delta_color_vs_rmag(um_r, gal_r, min_r, max_r, gal_col, um_col, num_slices=12):
+    gal_edges = np.linspace(min_r, max_r, num_slices+1)
+    median_r = []
+    delta_med = []
+    for i in range(num_slices):
+        masku = ((um_r>gal_edges[i])&(um_r<gal_edges[i+1]))
+        maskg = ((gal_r>gal_edges[i])&(gal_r<gal_edges[i+1]))
+        if np.sum(masku) > 3 and np.sum(maskg) > 3:
+            gmedian_col=np.median(gal_col[maskg])
+            umedian_col=np.median(um_col[masku])
+            delta_med.append(gmedian_col-umedian_col)
+            median_r.append(np.median(um_r[masku]))  #median r is computed for UM
+    
+    print('Values of median color differences:')
+    print(delta_med)
+    return(median_r, delta_med)
+
+from scipy.interpolate import splrep, splev #, splprep
+def shift_um_color_with_rmag(um_r, gal_r, min_r, max_r, gal_col, um_col,
+                             num_slices=12, deltac_min=.05, k=5):
+
+    shifted = True
+    #get median color shifts
+    median_r, delta_col = delta_color_vs_rmag(um_r, gal_r, min_r, max_r, gal_col, um_col, num_slices=num_slices)
+    
+    #get smoothed interpolating function for color shifts
+    #tck, u = splprep([median_r, delta_col], s=.01,k=5)
+    #smoothed_pts = splev(u, tck)
+    #get shifted points
+    if len(median_r) > k and any(np.abs(np.asarray(delta_col)) > deltac_min):
+            print('Computing spline color shifts')
+            tck_col = splrep(median_r, delta_col, s=0.01, k=k)
+            shifts = splev(um_r, tck_col, ext=3) #ext=3 returns bound value when extrapolating so polynomial doesn't shoot off to bad values
+            new_col = um_col + shifts
+    else:
+        print('Too few Median colors ({}) or differences < {:.2f}; not shifting colors'.format(len(median_r), deltac_min))
+        new_col = um_col
+        shifted = False
+
+    return new_col, shifted
+
+def get_um_color_shifts(lc_data, gal_prop, nslices=12, deltac_min=.05, Magr_cut=None):
+    
+    mag_r  = lc_data['Mag_r']
+    um_gr = lc_data['clr_gr']
+    um_ri = lc_data['clr_ri']
+    gal_r = gal_prop['Mag_r']
+    gal_gr = gal_prop['clr_gr']
+    gal_ri = gal_prop['clr_ri']
+    # compute color shifts required to move base/UM colors to Galacticus colors 
+    min_r, max_r = get_bin_edges(mag_r, gal_r, Magr_cut=Magr_cut)
+    clr_gr, shifted_g = shift_um_color_with_rmag(mag_r, gal_r, min_r, max_r, gal_gr, um_gr,
+                                      num_slices=nslices, deltac_min=deltac_min)
+    if shifted_g:
+        clr_ri, shifted_r = shift_um_color_with_rmag(mag_r, gal_r, min_r, max_r, gal_ri, um_ri,
+                                      num_slices=nslices, deltac_min=deltac_min)
+        if not shifted_r:
+            print('Skipping gr shifts since ri not shifted')
+            clr_gr = um_gr
+    else:
+        print('Skipping ri shifts since gr not shifted')
+        clr_ri = um_ri
+
+    return clr_gr, clr_ri
+
+
+def resample_index(lc_data, gal_prop,
+                   ignore_mstar = False, nnk = 10,
                    verbose = False, select_match='ran', ignore_bright_luminosity=False,
                    ignore_bright_luminosity_threshold=None,
-                   ignore_bright_luminosity_softness=0.0, ):
+                   ignore_bright_luminosity_softness=0.0,
+                   nslices=12, deltac_min=.05, Magr_cut=None):
+
     if verbose:
         t1 = time.time()
         print("Starting kdtree resampling")
         print("\nNum LC Galaxies: {:.2e} Num Gltcs Galaxies: {:.2e}".format(lc_data['m_star'].size, gal_prop['m_star'].size))
     m_star = lc_data['m_star']
     mag_r  = lc_data['Mag_r']
-    clr_gr = lc_data['clr_gr']
-    clr_ri = lc_data['clr_ri']
+    # Get shifted UM/base model colors
+    clr_gr, clr_ri = get_um_color_shifts(lc_data, gal_prop,
+                                         nslices=nslices, deltac_min=deltac_min, Magr_cut=Magr_cut)
+    # 
     if ignore_mstar:
         print("\tIgnoring Mstar!")
         lc_mat = np.stack((mag_r,clr_gr,clr_ri),axis=1)
@@ -521,22 +612,27 @@ def resample_index(lc_data, gal_prop, ignore_mstar = False, nnk = 10,
     return index
    
 
-def resample_index_cluster_red_squence(lc_data, gal_prop, ignore_mstar
-                                       = False, nnk = 10, verbose =
-                                       False, select_match='ran',
-                                       ignore_bright_luminosity=False,
+def resample_index_cluster_red_squence(lc_data, gal_prop,
+                                       ignore_mstar=False, nnk = 10, verbose=False,
+                                       select_match='ran',
+                                       ignore_bright_luminosity=False, 
                                        ignore_bright_luminosity_threshold=False,
                                        ignore_bright_luminosity_softness=0.0,
+                                       nslices=12, deltac_min=.05, Magr_cut=None,
                                        rs_scatter_dict = {}):
     if verbose:
         t1 = time.time()
         print("Starting kdtree resampling with obs colors")
     lc_data_list = []
     gal_prop_list = []
-    # We modify the lightcone/baseDC2/query data with rs scatter, if listed
+    # Get shifted UM/base model colors
+    clr_gr, clr_ri = get_um_color_shifts(lc_data, gal_prop,
+                                         nslices=nslices, deltac_min=deltac_min, Magr_cut=Magr_cut)
+
+    # We modify the lightcone/base5000/query data with rs scatter, if listed
     lc_data_list += (lc_data['Mag_r'],
-                     lc_data['clr_gr'],
-                     lc_data['clr_ri'],
+                     clr_gr,
+                     clr_ri,
                      modify_array_with_rs_scatter(lc_data, "query", "gr", rs_scatter_dict), #clr_gr_obs
                      modify_array_with_rs_scatter(lc_data, "query", "ri", rs_scatter_dict), #clr_ri_obs
                      modify_array_with_rs_scatter(lc_data, "query", "iz", rs_scatter_dict), #clr_iz_obs
@@ -1121,7 +1217,7 @@ def overwrite_columns(input_fname, output_fname, ignore_mstar = False,
             base_id = h_in['galaxy_id'].value[mask]
             srt = np.argsort(shear_id)
             shear_indx = dtk.search_sorted(shear_id, base_id, sorter=srt)
-            assert np.sum(shear_indx==-1) == 0, "a baseDC2 galaxy wasn't found in shear catalog?"
+            assert np.sum(shear_indx==-1) == 0, "a base5000 galaxy wasn't found in shear catalog?"
             h_out_gp['ra'] = h_shear['ra_lensed'].value[shear_indx]
             h_out_gp['dec'] = h_shear['dec_lensed'].value[shear_indx]
             s1 = h_shear['shear_1'].value[shear_indx]
@@ -1344,13 +1440,13 @@ def add_native_umachine(output_fname, umachine_native,
     hgroup = h5py.File(output_fname, 'r+')['galaxyProperties']
     if cut_small_galaxies_mass is None:
         for key in h_in.keys():
-            hgroup['baseDC2/'+key] = h_in[key].value
+            hgroup['base5000/'+key] = h_in[key].value
     else:
         sm = h_in['obs_sm'].value # in linear units
         slct = sm > 10**cut_small_galaxies_mass #convert cut_small.. from log to linear
         for key in h_in.keys():
-            hgroup['baseDC2/'+key] = h_in[key].value[slct]
-    print("done addign baseDC2 quantities. time: {:.2f}".format(time.time()-t1))
+            hgroup['base5000/'+key] = h_in[key].value[slct]
+    print("done addign base5000 quantities. time: {:.2f}".format(time.time()-t1))
     return
 
 
@@ -1596,7 +1692,7 @@ def add_units(out_fname):
     bool_list =['nodeIsIsolated'];bool_unit = 'boolean'
     spinSpin_list =['spinSpin'];spinSpin_unit ='lambda'
     step_list = ['step'];step_unit = 'simluation step'
-    umachine_list = ['UMachineNative', 'baseDC2', 'matchUp'];umachine_unit = 'Unspecified'
+    umachine_list = ['UMachineNative', 'base5000', 'matchUp'];umachine_unit = 'Unspecified'
     count_list =['NumberSelected'];count_unit = 'count'
     print("assigning units")
     keys = get_keys(hfile)
@@ -2146,6 +2242,10 @@ def lightcone_resample(param_file_name):
     version_major = param.get_int('version_major')
     version_minor = param.get_int('version_minor')
     version_minor_minor = param.get_int('version_minor_minor')
+    #set matching parameters
+    Magr_cut = None
+    nslices = 12
+    deltac_min = .05
 
     if "concatenate_only" in param:
         concatenate_only = param.get_bool("concatenate_only")
@@ -2299,7 +2399,7 @@ def lightcone_resample(param_file_name):
         if snapshot:
             index_2to1 = None
             snapshot_redshift = lc_data['redshift'][0] # Get the redshift of 
-            # the snapshot from the metadata of the baseDC2. They all have the same value
+            # the snapshot from the metadata of the base5000. They all have the same value
         else:
             index_2to1 = h5py.File(index_loc.replace("${step}",str(step)), 'r')['match_2to1'].value
             snapshot_redshift = None
@@ -2365,12 +2465,14 @@ def lightcone_resample(param_file_name):
                         gal_prop_list.append(gal_prop_tmp2)
                     gal_prop_a = cat_dics(gal_prop_list)
                 # Find the closest Galacticus galaxy
-                index_abin = resample_index(lc_data_a, gal_prop_a, 
+                index_abin = resample_index(lc_data_a, gal_prop_a,
                                             ignore_mstar = ignore_mstar, 
-                                            verbose = verbose, select_match=select_match, 
-                                            ignore_bright_luminosity=ignore_bright_luminosity, 
+                                            verbose = verbose, select_match=select_match,
+                                            ignore_bright_luminosity=ignore_bright_luminosity,
                                             ignore_bright_luminosity_threshold = ignore_bright_luminosity_threshold,
-                                            ignore_bright_luminosity_softness = ignore_bright_luminosity_softness)
+                                            ignore_bright_luminosity_softness = ignore_bright_luminosity_softness,
+                                            nslices=nslices, deltac_min=deltac_min, Magr_cut=Magr_cut,
+                                           ) 
                 #If we are matching on observed colors for cluster red seqence guys:
                 if match_obs_color_red_seq:
                     print("Matching on obs red seq")
@@ -2381,12 +2483,13 @@ def lightcone_resample(param_file_name):
                         # Find the closest Galacticus galaxy as before but also match on 
                         # observed g-r, r-i, and i-z colors
                         index_abin_crs = resample_index_cluster_red_squence(
-                            lc_data_a_crs, gal_prop_a, 
+                            lc_data_a_crs, gal_prop_a,
                             ignore_mstar = ignore_mstar,
                             verbose = verbose, select_match=select_match,
                             ignore_bright_luminosity=ignore_bright_luminosity,
                             ignore_bright_luminosity_threshold = ignore_bright_luminosity_threshold,
                             ignore_bright_luminosity_softness = ignore_bright_luminosity_softness,
+                            nslices=nslices, deltac_min=deltac_min, Magr_cut=Magr_cut,
                             rs_scatter_dict = rs_scatter_dict)
                         index_abin[slct_clstr_red_squence] = index_abin_crs
                     else:

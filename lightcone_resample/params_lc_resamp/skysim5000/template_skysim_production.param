@@ -5,7 +5,7 @@ gltcs_slope_fname    NULL
 halo_shape_fname     NULL
 halo_shape_red_fname NULL
 sod_fname            NULL
-healpix_shear_file  /projects/LastJourney/prlarsen/density_maps_OR/skysim_full_new/base5000_z_#z_range#_cutout_${healpix}.hdf5   
+healpix_shear_file   /projects/LastJourney/prlarsen/density_maps_OR/skysim_full/base5000_z_#z_range#_cutout_${healpix}.hdf5
 healpix_file true
 healpix_pixels #healpix_group#
 fake_lensing  false

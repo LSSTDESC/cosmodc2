@@ -1,10 +1,11 @@
 #!/bin/bash
+
 #this script runs in cat_name and makes scripts to be run from lightcone_resample(_copy)
 python="/soft/libraries/anaconda-unstable/bin/python"
 output_file_path="/gpfs/mira-fs0/projects/DarkUniverse_esp/kovacs/OR_5000"
 params_parent_dir="params_lc_resamp"
 cat_basename="skysim5000"
-cat_minor_name="small_colortest"
+cat_minor_name=""
 pixel_basename="pixels"
 pixel_lists_dir="../pixel_lists"
 hpx_group_name="grp"
@@ -21,8 +22,8 @@ else
 fi
 template_param_file="template.param"
 match="ran"
-v1=2
-v2=0
+v1=1
+v2=1
 v3=1
 logs="logs"
 plots="plots"
