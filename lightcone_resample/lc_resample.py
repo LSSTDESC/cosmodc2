@@ -1445,10 +1445,10 @@ def add_ellipticity_quantities(output_fname, verbose = False):
         # Returns ellip = 1-q^2 / 1+q^2
         # spheroid_ellip_cosmo = monte_carlo_ellipticity_bulge(mag_r)
         # disk_ellip_cosmo = monte_carlo_ellipticity_disk(mag_r, inclination)
-        # We need to convert to q = sqrt((1-e)/(1+e))
+        # We need to compute q = sqrt((1-e)/(1+e)) and convert to e = 1-q / 1+q
         spheroid_ellip_cosmos, disk_ellip_cosmos = monte_carlo_ellipticity_bulge_disk(mag_r)
-        spheroid_axis_ratio = np.sqrt((1-spheroid_ellip_cosmos**2)/(1+spheroid_ellip_cosmos**2))
-        disk_axis_ratio = np.sqrt((1-disk_ellip_cosmos**2)/(1+disk_ellip_cosmos**2))
+        spheroid_axis_ratio = np.sqrt((1-spheroid_ellip_cosmos)/(1+spheroid_ellip_cosmos))
+        disk_axis_ratio = np.sqrt((1-disk_ellip_cosmos)/(1+disk_ellip_cosmos))
     # Calculate ellipticity from the axis ratios
     ellip_disk = (1.0 - disk_axis_ratio)/(1.0 + disk_axis_ratio)
     ellip_spheroid = (1.0 - spheroid_axis_ratio)/(1.0 + spheroid_axis_ratio)
