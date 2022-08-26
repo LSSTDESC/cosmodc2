@@ -4,6 +4,8 @@ Joe Hollowed
 COSMO-HEP 2017
 '''
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 from numpy.core import umath_tests as npm
 import astropy.constants as const
 import pdb

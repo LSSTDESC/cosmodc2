@@ -41,7 +41,7 @@ def get_ellipsoidal_positions_and_velocities(sats, host_conc=5.0):
     """
     generate positions and velocities base on ellipsoidal distributions
     """
-    print('    Using tri-axial positions for synthetic satellites')
+    print('.......using tri-axial positions for synthetic satellites')
     e_sats = {}
     b_to_a = sats['target_halo_axis_B_length']/sats['target_halo_axis_A_length']
     c_to_a = sats['target_halo_axis_C_length']/sats['target_halo_axis_A_length']
@@ -81,7 +81,7 @@ def get_satellite_velocities(halo_vx, halo_vy, halo_vz, halo_mass, seed=43, seed
 
 def model_synthetic_cluster_satellites(mock, Lbox=256.,
         cluster_satboost_logm_table=[13.5, 13.75, 14],
-        cluster_satboost_table=[0., 0.15, 0.2],
+        cluster_satboost_table=[0., 0.15, 0.2], generate_SEDs=True, SFH_keys=[],
         tri_axial_positions=True, host_conc=5.0, snapshot=False, **kwargs):
     """
     """
@@ -186,41 +186,62 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             sats['y'] = np.mod(sats['y'], Lbox)
             sats['z'] = np.mod(sats['z'], Lbox)
 
-        #  Assign synthetic subhalo mass according to a power law
-        #  Maximum allowed value of the subhalo mass is the host halo mass
-        #  Power law distribution in subhalo mass spans [11, logMhost]
-        alpha = np.zeros_like(sats['target_halo_mass']) + 2.0  #  power-law slope
-        sats['mpeak'] = 10**(np.log10(sats['target_halo_mass']) - 4*powerlaw.rvs(alpha))
-
         sats['halo_id'] = -1
         sats['source_halo_id'] = -1
         sats['source_halo_mvir'] = sats['target_halo_mass']
 
-        #  Assign M* according to the Halotools implementation
-        #  of the Moster+13 stellar-to-halo-mass relation
-        moster_model = Moster13SmHm()
-        sats['obs_sm'] = moster_model.mc_stellar_mass(
-            prim_haloprop=sats['mpeak'], redshift=sats['target_halo_redshift'])
-        sats['obs_sfr'] = np.random.normal(loc=-12, scale=0.2, size=len(sats))*sats['obs_sm']
-        sats['sfr_percentile'] = np.random.uniform(0, 0.33, len(sats))
-        sats['_obs_sm_orig_um_snap'] = sats['obs_sm']
+        if generate_SEDs:
+            # add SFH parameter histories randomly from existing satellites
+            keys = ['mpeak', 'obs_sm', 'obs_sfr', 'sfr_percentile'] + SFH_keys
+            #initialize
+            for k in keys:
+                sats[k] = np.zeros(len(sats['target_halo_id']))
 
-        #  We will only boost the richness of red sequence cluster members
-        sats['is_on_red_sequence_gr'] = True
-        sats['is_on_red_sequence_ri'] = True
+            # find halos requiring fakes
+            nonzeros = (synthetic_richness > 0)
+            print('.......adding SFH information for {} synthetic satellites'.format(np.count_nonzero(nonzeros)))
+            for ns, halo_id in zip(synthetic_richness[nonzeros], target_halo_id[nonzeros]):
+                # identify existing satellites
+                maskm = (mock['target_halo_id'] == halo_id) & (mock['upid'] != -1)
+                #print('.........randomly selecting {} synthetics from {} existing satellites'.format(ns, np.count_nonzero(maskm)))
+                # randomly select from existing satellites to populate synthetics
+                indexes = np.random.choice(np.where(maskm)[0], size=ns)
+                masks = sats['target_halo_id'] == halo_id
+                assert(np.count_nonzero(masks) == ns), "Mismatch in number of expected synthetic staellites"
+                for k in keys:
+                    sats[k][masks] = mock[k][indexes]
+        else:
+            #  Assign synthetic subhalo mass according to a power law
+            #  Maximum allowed value of the subhalo mass is the host halo mass
+            #  Power law distribution in subhalo mass spans [11, logMhost]
+            alpha = np.zeros_like(sats['target_halo_mass']) + 2.0  #  power-law slope
+            sats['mpeak'] = 10**(np.log10(sats['target_halo_mass']) - 4*powerlaw.rvs(alpha))
 
-        #  Model r-band magnitude just like regular galaxies
-        sats['restframe_extincted_sdss_abs_magr'] = magr_monte_carlo(
-            sats['obs_sm'], sats['upid'], sats['target_halo_redshift'])
+            #  Assign M* according to the Halotools implementation
+            #  of the Moster+13 stellar-to-halo-mass relation
+            moster_model = Moster13SmHm()
+            sats['obs_sm'] = moster_model.mc_stellar_mass(
+                prim_haloprop=sats['mpeak'], redshift=sats['target_halo_redshift'])
+            sats['obs_sfr'] = np.random.normal(loc=-12, scale=0.2, size=len(sats))*sats['obs_sm']
+            sats['sfr_percentile'] = np.random.uniform(0, 0.33, len(sats))
+            sats['_obs_sm_orig_um_snap'] = sats['obs_sm']
 
-        #  Model g-r and r-i color just like regular red sequence galaxies
-        red_sequence_loc_gr = red_sequence_peak_gr(
-            sats['restframe_extincted_sdss_abs_magr'], sats['target_halo_redshift'])
-        red_sequence_loc_ri = red_sequence_peak_ri(
-            sats['restframe_extincted_sdss_abs_magr'], sats['target_halo_redshift'])
+            #  We will only boost the richness of red sequence cluster members
+            sats['is_on_red_sequence_gr'] = True
+            sats['is_on_red_sequence_ri'] = True
 
-        sats['restframe_extincted_sdss_gr'] = np.random.normal(loc=red_sequence_loc_gr, scale=0.05)
-        sats['restframe_extincted_sdss_ri'] = np.random.normal(loc=red_sequence_loc_ri, scale=0.02)
+            #  Model r-band magnitude just like regular galaxies
+            sats['restframe_extincted_sdss_abs_magr'] = magr_monte_carlo(
+                sats['obs_sm'], sats['upid'], sats['target_halo_redshift'])
+
+            #  Model g-r and r-i color just like regular red sequence galaxies
+            red_sequence_loc_gr = red_sequence_peak_gr(
+                sats['restframe_extincted_sdss_abs_magr'], sats['target_halo_redshift'])
+            red_sequence_loc_ri = red_sequence_peak_ri(
+                sats['restframe_extincted_sdss_abs_magr'], sats['target_halo_redshift'])
+
+            sats['restframe_extincted_sdss_gr'] = np.random.normal(loc=red_sequence_loc_gr, scale=0.05)
+            sats['restframe_extincted_sdss_ri'] = np.random.normal(loc=red_sequence_loc_ri, scale=0.02)
 
         #  It is important to insure that `sats` the `dc2` mock have the exact same columns,
         #  since these two get combined by a call to `astropy.table.vstack`. Here we enforce this:

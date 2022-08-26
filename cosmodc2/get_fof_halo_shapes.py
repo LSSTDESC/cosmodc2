@@ -28,11 +28,11 @@ def get_halo_shapes(snapshot, hpx_fof_tags, hpx_reps, shape_dir, debug=True):
     fn = os.path.join(shape_dir, shape_file_template.format(fsnap))
     if os.path.isfile(fn):
         with h5py.File(fn) as fh:
-            fof_tags = fh['fof_halo_tag'].value
+            fof_tags = fh['fof_halo_tag']
             mask = np.in1d(fof_tags, hpx_fof_tags) # duplicates possible
             nfof = np.count_nonzero(mask)
             if nfof > 0:
-                reps = fh['replication'].value
+                reps = fh['replication']
                 mask &= np.in1d(reps, hpx_reps) # duplicates possible
                 #check foftag/replication pairs to verify they are matched
                 mask_locations = np.where(mask==True)[0]
@@ -51,7 +51,7 @@ def get_halo_shapes(snapshot, hpx_fof_tags, hpx_reps, shape_dir, debug=True):
                     np.count_nonzero(mask), nfof, snapshot))
                 for k, v in fh.items():
                     if 'RIT' not in k and k[-3:] != 'SIT':
-                        shapes[k] = v.value[mask]
+                        shapes[k] = v[mask]
     else:
         if debug:
             print('...Skipping {} (not found)'.format(fn))
@@ -166,8 +166,8 @@ def get_halo_table(file_handle): #read hpx file into astropy table for testing
 def run_shapes(h5, shape_dir):  #for testing
     shapes = {}
     for k, v in h5.items(): 
-        fof_tags = v['id'].value
-        reps = v['rep'].value
+        fof_tags = v['id']
+        reps = v['rep']
         # match on fof tags and replication values
         shapes[k] = get_halo_shapes(k, fof_tags, reps, shape_dir, debug=True)
         

@@ -2,9 +2,10 @@
 """
 import numpy as np
 from .monte_carlo_nfw import nfw_profile_realization
-from halotools.utils import elementwise_norm
-from halotools.utils import rotation_matrices_from_vectors, rotate_vector_collection
-
+from halotools.utils.vector_utilities import elementwise_norm, rotate_vector_collection 
+#from ..vector_utilities import elementwise_norm, rotate_vector_collection
+from halotools.utils.rotations3d import rotation_matrices_from_vectors
+#from ..rotations3d import rotation_matrices_from_vectors
 
 def generate_triaxial_satellite_distribution(
             host_conc, host_Ax, host_Ay, host_Az, b_to_a, c_to_a, seed=43):
