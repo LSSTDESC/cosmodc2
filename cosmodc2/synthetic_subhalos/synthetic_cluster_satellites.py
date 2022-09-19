@@ -80,6 +80,9 @@ def get_satellite_velocities(halo_vx, halo_vy, halo_vz, halo_mass, seed=43, seed
     return sat_vx, sat_vy, sat_vz
 
 def model_synthetic_cluster_satellites(mock, Lbox=256.,
+        source_halo_mass_key='host_halo_mvir', 
+        source_halo_id_key='source_halo_id',
+        upid_key='upid',
         cluster_satboost_logm_table=[13.5, 13.75, 14],
         cluster_satboost_table=[0., 0.15, 0.2], generate_SEDs=True, SFH_keys=[],
         tri_axial_positions=True, host_conc=5.0, snapshot=False, **kwargs):
@@ -96,7 +99,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
     host_vx = mock['target_halo_vx'][idx]
     host_vy = mock['target_halo_vy'][idx]
     host_vz = mock['target_halo_vz'][idx]
-    source_halo_mvir = mock['source_halo_mvir'][idx]
+    source_halo_mvir = mock[source_halo_mass_key][idx]
     target_halo_id = mock['target_halo_id'][idx]
     target_halo_fof_halo_id = mock['target_halo_fof_halo_id'][idx]
     host_sod_mass = mock['sod_halo_mass'][idx]
@@ -132,7 +135,6 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
 
         #  For every synthetic galaxy, calculate the mass, redshift, position, and velocity of the host halo
         sats['target_halo_mass'] = np.repeat(host_mass, synthetic_richness)
-        sats['host_halo_mvir'] = sats['target_halo_mass']
         sats['target_halo_redshift'] = np.repeat(host_redshift, synthetic_richness)
         sats['target_halo_x'] = np.repeat(host_x, synthetic_richness)
         sats['target_halo_y'] = np.repeat(host_y, synthetic_richness)
@@ -157,7 +159,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             sats['lightcone_replication'] = np.repeat(target_halo_lightcone_replication, synthetic_richness)
             sats['lightcone_rotation'] = np.repeat(target_halo_lightcone_rotation, synthetic_richness)
 
-        sats['upid'] = sats['target_halo_id']
+        sats[upid_key] = sats['target_halo_id']
 
         if tri_axial_positions: 
             nfw_sats = get_ellipsoidal_positions_and_velocities(sats, host_conc=host_conc)
@@ -166,12 +168,12 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             nfw = NFWPhaseSpace()
             nfw_sats = nfw.mc_generate_nfw_phase_space_points(mass=sats['target_halo_mass'])
 
-        sats['host_centric_x'] = nfw_sats['x']
-        sats['host_centric_y'] = nfw_sats['y']
-        sats['host_centric_z'] = nfw_sats['z']
-        sats['host_centric_vx'] = nfw_sats['vx']
-        sats['host_centric_vy'] = nfw_sats['vy']
-        sats['host_centric_vz'] = nfw_sats['vz']
+        sats['host_dx'] = nfw_sats['x']
+        sats['host_dy'] = nfw_sats['y']
+        sats['host_dz'] = nfw_sats['z']
+        sats['host_dvx'] = nfw_sats['vx']
+        sats['host_dvy'] = nfw_sats['vy']
+        sats['host_dvz'] = nfw_sats['vz']
 
         #  Add host-centric pos/vel to target halo pos/vel
         sats['x'] = sats['target_halo_x'] + nfw_sats['x']
@@ -186,13 +188,16 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             sats['y'] = np.mod(sats['y'], Lbox)
             sats['z'] = np.mod(sats['z'], Lbox)
 
-        sats['halo_id'] = -1
-        sats['source_halo_id'] = -1
-        sats['source_halo_mvir'] = sats['target_halo_mass']
+        sats[source_halo_id_key] = -1
+        sats[source_halo_mass_key] = sats['target_halo_mass']
+        sats['source_halo_uber_hostid'] = -1
 
         if generate_SEDs:
-            # add SFH parameter histories randomly from existing satellites
-            keys = ['mpeak', 'obs_sm', 'obs_sfr', 'sfr_percentile'] + SFH_keys
+            # add source keys and SFH parameter histories randomly from existing satellites
+            keys = ['source_halo_mp', 'source_halo_vmp', 'source_halo_rvir', 'source_halo_upid',
+                    'source_halo_host_rvir', 'source_halo_has_fit',
+                    'source_halo_is_main_branch',  
+                    'obs_sm', 'obs_sfr'] + list(SFH_keys)
             #initialize
             for k in keys:
                 sats[k] = np.zeros(len(sats['target_halo_id']))
@@ -200,10 +205,10 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             # find halos requiring fakes
             nonzeros = (synthetic_richness > 0)
             print('.......adding SFH information for {} synthetic satellites'.format(np.count_nonzero(nonzeros)))
+            print('.........using random resampling of existing satellites')
             for ns, halo_id in zip(synthetic_richness[nonzeros], target_halo_id[nonzeros]):
                 # identify existing satellites
-                maskm = (mock['target_halo_id'] == halo_id) & (mock['upid'] != -1)
-                #print('.........randomly selecting {} synthetics from {} existing satellites'.format(ns, np.count_nonzero(maskm)))
+                maskm = (mock['target_halo_id'] == halo_id) & (mock['source_halo_upid'] != -1)
                 # randomly select from existing satellites to populate synthetics
                 indexes = np.random.choice(np.where(maskm)[0], size=ns)
                 masks = sats['target_halo_id'] == halo_id
@@ -249,6 +254,10 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             "sats keys = {0}\nmock keys = {1}")
         satkeys = list(sats.keys())
         dc2keys = list(mock.keys())
+        if [k for k in dc2keys if k not in satkeys]:
+            print('.......extra dc2keys:', [k for k in dc2keys if k not in satkeys])
+        if [k for k in satkeys if k not in dc2keys]:
+            print('.......extra satkeys:', [k for k in satkeys if k not in dc2keys])
         assert set(satkeys) == set(dc2keys), msg.format(satkeys, dc2keys)
 
         return sats
