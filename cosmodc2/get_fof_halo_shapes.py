@@ -83,7 +83,8 @@ def get_locations(shapes, fof_halo_tags, replications):
 
     return np.asarray(locations)
 
-def get_matched_shapes(shapes, target_halos, check_positions=False, Lbox=3000.):
+def get_matched_shapes(shapes, target_halos, rep_key='rep',
+                       check_positions=False, Lbox=3000.):
     """
     modify array of target halo shape information to include 
     host halo shape information if available
@@ -96,9 +97,9 @@ def get_matched_shapes(shapes, target_halos, check_positions=False, Lbox=3000.):
     -------
     target_halos: modified table
     """
-    locations = get_locations(shapes, target_halos['fof_halo_id'], target_halos['rep'])
+    locations = get_locations(shapes, target_halos['fof_halo_id'], target_halos[rep_key])
     assert np.array_equal(target_halos['fof_halo_id'][locations], shapes['fof_halo_tag']), "Fof tag arrays don't match"
-    assert np.array_equal(target_halos['rep'][locations], shapes['replication']), "Replication mismatch"
+    assert np.array_equal(target_halos[rep_key][locations], shapes['replication']), "Replication mismatch"
     
     # get axis lengths, convert to ratios and compute ellipticity and prolaticity
     # see code in triaxial_satellite_distributions/axis_ratio_model.py for definitions
