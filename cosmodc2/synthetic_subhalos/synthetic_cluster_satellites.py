@@ -200,7 +200,10 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
                     'obs_sm', 'obs_sfr'] + list(SFH_keys)
             #initialize
             for k in keys:
-                sats[k] = np.zeros(len(sats['target_halo_id']))
+                if 'has_fit' in k or 'main_branch' in k:
+                    sats[k] = np.zeros(len(sats['target_halo_id']), dtype=bool)
+                else:
+                    sats[k] = np.zeros(len(sats['target_halo_id']))
 
             # find halos requiring fakes
             nonzeros = (synthetic_richness > 0)
