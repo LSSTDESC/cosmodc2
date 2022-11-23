@@ -194,13 +194,13 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
 
         if generate_SEDs:
             # add source keys and SFH parameter histories randomly from existing satellites
-            keys = ['source_halo_mp', 'source_halo_vmp', 'source_halo_rvir', 'source_halo_upid',
-                    'source_halo_host_rvir', 'source_halo_has_fit',
-                    'source_halo_is_main_branch',  
+            keys = ['source_galaxy_mp', 'source_galaxy_vmp', 'source_galaxy_rvir', 'source_galaxy_upid',
+                    'source_galaxy_host_rvir', 'source_galaxy_has_fit', 'source_galaxy_nofit_replace',
+                    'source_galaxy_is_main_branch',  
                     'obs_sm', 'obs_sfr'] + list(SFH_keys)
             #initialize
             for k in keys:
-                if 'has_fit' in k or 'main_branch' in k:
+                if 'has_fit' in k or 'main_branch' in k or 'nofit_replace' in k:
                     sats[k] = np.zeros(len(sats['target_halo_id']), dtype=bool)
                 else:
                     sats[k] = np.zeros(len(sats['target_halo_id']))
@@ -211,7 +211,7 @@ def model_synthetic_cluster_satellites(mock, Lbox=256.,
             print('.........using random resampling of existing satellites')
             for ns, halo_id in zip(synthetic_richness[nonzeros], target_halo_id[nonzeros]):
                 # identify existing satellites
-                maskm = (mock['target_halo_id'] == halo_id) & (mock['source_halo_upid'] != -1)
+                maskm = (mock['target_halo_id'] == halo_id) & (mock['source_galaxy_upid'] != -1)
                 # randomly select from existing satellites to populate synthetics
                 indexes = np.random.choice(np.where(maskm)[0], size=ns)
                 masks = sats['target_halo_id'] == halo_id
